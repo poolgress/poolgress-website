@@ -364,6 +364,27 @@ html, body {
 .save-item .ctrl-btn { padding: 5px 10px; font-size: 13px; }
 .save-close { align-self: flex-end; }
 
+/* 存檔視窗：本機 / 雲端分頁 */
+.save-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--panel-border); }
+.save-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.save-tab:hover { color: var(--text); }
+.save-tab.active { color: var(--text); border-bottom-color: #ffbc00; font-weight: 600; }
+.save-pane { display: flex; flex-direction: column; gap: 12px; }
+.save-pane[hidden] { display: none; }
+.cloud-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cloud-status { color: var(--muted); font-size: 13px; margin-right: auto; }
+
 /* ---------- 母球打點：浮動可拖曳母球面 + 打點 ---------- */
 .cueball-widget {
   position: fixed;

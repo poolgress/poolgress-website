@@ -1273,6 +1273,231 @@
   function loadSaves() { try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "{}"); } catch (e) { return {}; } }
   function writeSaves(obj) { localStorage.setItem(SAVE_KEY, JSON.stringify(obj)); }
 
+  // ───────── Google 雲端硬碟（前端直連，每人存自己的） ─────────
+  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+  const Cloud = {
+    tokenClient: null,
+    accessToken: null,
+    tokenExpiry: 0,
+    folderId: null,
+    signedIn: false,
+  };
+
+  function cloudConfigured() {
+    return !!(CFG.GOOGLE && CFG.GOOGLE.CLIENT_ID && CFG.GOOGLE.CLIENT_ID.trim());
+  }
+  function cloudFolderName() {
+    return (CFG.GOOGLE && CFG.GOOGLE.FOLDER_NAME) || "Poolgress 撞球練習圖";
+  }
+  function gisReady() {
+    return typeof google !== "undefined" && google.accounts && google.accounts.oauth2;
+  }
+
+  function ensureTokenClient() {
+    if (Cloud.tokenClient || !gisReady() || !cloudConfigured()) return Cloud.tokenClient;
+    Cloud.tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CFG.GOOGLE.CLIENT_ID.trim(),
+      scope: DRIVE_SCOPE,
+      callback: () => {}, // 每次請求前覆寫
+    });
+    return Cloud.tokenClient;
+  }
+
+  // 取得 access token。interactive=true 會跳出 Google 登入/授權視窗。
+  function requestToken(interactive) {
+    return new Promise((resolve, reject) => {
+      const client = ensureTokenClient();
+      if (!client) { reject(new Error(gisReady() ? "尚未設定 Google Client ID" : "Google 登入元件尚未載入，請稍候再試")); return; }
+      client.callback = (resp) => {
+        if (resp && resp.error) { reject(new Error(resp.error)); return; }
+        Cloud.accessToken = resp.access_token;
+        Cloud.tokenExpiry = Date.now() + ((resp.expires_in || 3600) * 1000) - 60000;
+        Cloud.signedIn = true;
+        resolve(Cloud.accessToken);
+      };
+      try {
+        client.requestAccessToken({ prompt: interactive ? "consent" : "" });
+      } catch (e) { reject(e); }
+    });
+  }
+
+  async function ensureToken() {
+    if (Cloud.accessToken && Date.now() < Cloud.tokenExpiry) return Cloud.accessToken;
+    return requestToken(false).catch(() => requestToken(true));
+  }
+
+  async function driveApi(path, opts = {}) {
+    const token = await ensureToken();
+    const r = await fetch("https://www.googleapis.com/" + path, {
+      ...opts,
+      headers: { Authorization: "Bearer " + token, ...(opts.headers || {}) },
+    });
+    if (r.status === 401) { // token 失效 → 重新授權再試一次
+      Cloud.accessToken = null;
+      const t2 = await requestToken(true);
+      const r2 = await fetch("https://www.googleapis.com/" + path, {
+        ...opts,
+        headers: { Authorization: "Bearer " + t2, ...(opts.headers || {}) },
+      });
+      if (!r2.ok) throw new Error("Drive API " + r2.status + "：" + (await r2.text()));
+      return r2;
+    }
+    if (!r.ok) throw new Error("Drive API " + r.status + "：" + (await r.text()));
+    return r;
+  }
+
+  async function ensureFolder() {
+    if (Cloud.folderId) return Cloud.folderId;
+    const name = cloudFolderName().replace(/'/g, "\\'");
+    const q = encodeURIComponent(
+      "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    );
+    const res = await driveApi("drive/v3/files?q=" + q + "&fields=files(id,name)&spaces=drive");
+    const data = await res.json();
+    if (data.files && data.files.length) { Cloud.folderId = data.files[0].id; return Cloud.folderId; }
+    const create = await driveApi("drive/v3/files?fields=id", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: cloudFolderName(), mimeType: "application/vnd.google-apps.folder" }),
+    });
+    Cloud.folderId = (await create.json()).id;
+    return Cloud.folderId;
+  }
+
+  async function cloudList() {
+    const folder = await ensureFolder();
+    const q = encodeURIComponent(
+      "'" + folder + "' in parents and trashed=false and mimeType='application/json'"
+    );
+    const res = await driveApi(
+      "drive/v3/files?q=" + q + "&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&pageSize=200"
+    );
+    return (await res.json()).files || [];
+  }
+
+  async function cloudFindByName(fileName) {
+    const folder = await ensureFolder();
+    const q = encodeURIComponent(
+      "'" + folder + "' in parents and name='" + fileName.replace(/'/g, "\\'") + "' and trashed=false"
+    );
+    const res = await driveApi("drive/v3/files?q=" + q + "&fields=files(id)");
+    const files = (await res.json()).files || [];
+    return files.length ? files[0].id : null;
+  }
+
+  async function cloudSave(name, dataObj) {
+    const fileName = name + ".json";
+    const content = JSON.stringify({ data: dataObj, savedAt: Date.now() });
+    const existId = await cloudFindByName(fileName);
+    if (existId) {
+      await driveApi("upload/drive/v3/files/" + existId + "?uploadType=media", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: content,
+      });
+      return existId;
+    }
+    const folder = await ensureFolder();
+    const boundary = "poolgress_boundary_" + name.length + "_" + content.length;
+    const metadata = { name: fileName, parents: [folder], mimeType: "application/json" };
+    const body =
+      "--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" +
+      JSON.stringify(metadata) +
+      "\r\n--" + boundary + "\r\nContent-Type: application/json\r\n\r\n" +
+      content +
+      "\r\n--" + boundary + "--";
+    const res = await driveApi("upload/drive/v3/files?uploadType=multipart&fields=id", {
+      method: "POST",
+      headers: { "Content-Type": "multipart/related; boundary=" + boundary },
+      body,
+    });
+    return (await res.json()).id;
+  }
+
+  async function cloudLoad(fileId) {
+    const res = await driveApi("drive/v3/files/" + fileId + "?alt=media");
+    return res.json();
+  }
+
+  async function cloudDelete(fileId) {
+    await driveApi("drive/v3/files/" + fileId, { method: "DELETE" });
+  }
+
+  // 雲端 UI ───────────────────────────────────────────────
+  function setCloudStatus(text) {
+    const el = document.getElementById("cloudStatus");
+    if (el) el.textContent = text;
+  }
+  function setCloudBusy(busy) {
+    ["cloudAuthBtn", "cloudSaveBtn"].forEach((id) => {
+      const b = document.getElementById(id);
+      if (b) b.disabled = busy || (id === "cloudSaveBtn" && !Cloud.signedIn);
+    });
+  }
+
+  function renderCloudList(files) {
+    const list = document.getElementById("cloudList");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!Cloud.signedIn) { list.innerHTML = '<div class="save-empty">登入後即可看到雲端存檔</div>'; return; }
+    if (!files || !files.length) { list.innerHTML = '<div class="save-empty">雲端尚無存檔</div>'; return; }
+    files.forEach((f) => {
+      const name = f.name.replace(/\.json$/i, "");
+      const row = document.createElement("div"); row.className = "save-item";
+      const info = document.createElement("div"); info.className = "save-item-info";
+      const nm = document.createElement("span"); nm.className = "save-item-name"; nm.textContent = name;
+      const tm = document.createElement("span"); tm.className = "save-item-time";
+      tm.textContent = f.modifiedTime ? new Date(f.modifiedTime).toLocaleString() : "";
+      info.appendChild(nm); info.appendChild(tm);
+      const loadB = document.createElement("button"); loadB.className = "ctrl-btn"; loadB.textContent = "讀取";
+      loadB.addEventListener("click", async () => {
+        loadB.disabled = true;
+        try {
+          const obj = await cloudLoad(f.id);
+          deserializeState(obj && obj.data ? obj.data : obj);
+          document.getElementById("saveName").value = name;
+          document.getElementById("saveModal").setAttribute("hidden", "");
+        } catch (e) { alert("讀取失敗：" + e.message); }
+        finally { loadB.disabled = false; }
+      });
+      const delB = document.createElement("button"); delB.className = "ctrl-btn"; delB.textContent = "刪除";
+      delB.addEventListener("click", async () => {
+        if (!confirm('刪除雲端存檔「' + name + '」？')) return;
+        delB.disabled = true;
+        try { await cloudDelete(f.id); await refreshCloudList(); }
+        catch (e) { alert("刪除失敗：" + e.message); delB.disabled = false; }
+      });
+      row.appendChild(info); row.appendChild(loadB); row.appendChild(delB);
+      list.appendChild(row);
+    });
+  }
+
+  async function refreshCloudList() {
+    if (!Cloud.signedIn) { renderCloudList(null); return; }
+    const list = document.getElementById("cloudList");
+    if (list) list.innerHTML = '<div class="save-empty">讀取中…</div>';
+    try { renderCloudList(await cloudList()); }
+    catch (e) { if (list) list.innerHTML = '<div class="save-empty">讀取失敗：' + e.message + "</div>"; }
+  }
+
+  async function cloudSignIn() {
+    if (!cloudConfigured()) { alert("尚未設定 Google Client ID（請填入 config.js 的 GOOGLE.CLIENT_ID）"); return; }
+    setCloudBusy(true);
+    setCloudStatus("登入中…");
+    try {
+      await requestToken(true);
+      Cloud.signedIn = true;
+      setCloudStatus("已連線");
+      const sBtn = document.getElementById("cloudSaveBtn"); if (sBtn) sBtn.disabled = false;
+      const aBtn = document.getElementById("cloudAuthBtn"); if (aBtn) aBtn.textContent = "重新登入";
+      await refreshCloudList();
+    } catch (e) {
+      Cloud.signedIn = false;
+      setCloudStatus("登入失敗");
+      alert("Google 登入失敗：" + e.message);
+    } finally { setCloudBusy(false); }
+  }
+
   function renderSaveList() {
     const list = document.getElementById("saveList");
     if (!list) return;
@@ -1323,6 +1548,45 @@
       all[name] = { data: serializeState(), savedAt: Date.now() };
       writeSaves(all);
       renderSaveList();
+    });
+
+    // 分頁切換：本機 / 雲端
+    const tabLocal = document.getElementById("tabLocal");
+    const tabCloud = document.getElementById("tabCloud");
+    const panelLocal = document.getElementById("panelLocal");
+    const panelCloud = document.getElementById("panelCloud");
+    function showTab(which) {
+      const cloud = which === "cloud";
+      if (tabLocal) tabLocal.classList.toggle("active", !cloud);
+      if (tabCloud) tabCloud.classList.toggle("active", cloud);
+      if (panelLocal) panelLocal.toggleAttribute("hidden", cloud);
+      if (panelCloud) panelCloud.toggleAttribute("hidden", !cloud);
+      if (cloud) {
+        if (!cloudConfigured()) setCloudStatus("尚未設定 Client ID");
+        else if (!Cloud.signedIn) setCloudStatus("尚未登入");
+        if (Cloud.signedIn) refreshCloudList(); else renderCloudList(null);
+      }
+    }
+    if (tabLocal) tabLocal.addEventListener("click", () => showTab("local"));
+    if (tabCloud) tabCloud.addEventListener("click", () => showTab("cloud"));
+
+    // 雲端：登入
+    const authBtn = document.getElementById("cloudAuthBtn");
+    if (authBtn) authBtn.addEventListener("click", cloudSignIn);
+
+    // 雲端：儲存
+    const cloudSaveBtn = document.getElementById("cloudSaveBtn");
+    if (cloudSaveBtn) cloudSaveBtn.addEventListener("click", async () => {
+      const name = nameInput.value.trim();
+      if (!name) { alert("請先輸入檔名"); return; }
+      if (!Cloud.signedIn) { await cloudSignIn(); if (!Cloud.signedIn) return; }
+      const existId = await cloudFindByName(name + ".json").catch(() => null);
+      if (existId && !confirm('雲端已存在同名存檔「' + name + '」，要覆蓋嗎？')) return;
+      cloudSaveBtn.disabled = true;
+      const old = cloudSaveBtn.textContent; cloudSaveBtn.textContent = "儲存中…";
+      try { await cloudSave(name, serializeState()); await refreshCloudList(); }
+      catch (e) { alert("雲端儲存失敗：" + e.message); }
+      finally { cloudSaveBtn.textContent = old; cloudSaveBtn.disabled = !Cloud.signedIn; }
     });
   }
 

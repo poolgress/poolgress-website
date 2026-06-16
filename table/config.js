@@ -39,6 +39,17 @@ window.CONFIG = {
   // 選取球時的框選環圖（準星）
   PICK_IMAGE: "assets/pick.png",
 
+  // Google 雲端硬碟（每人存自己的存檔）。前端直連，不需後端。
+  //   CLIENT_ID   — 在 Google Cloud Console 建立的 OAuth 2.0 用戶端 ID
+  //                 （類型：Web 應用程式；已授權 JavaScript 來源加入
+  //                  https://poolgress.com 與 http://localhost:4123）。
+  //                 填好後「存檔 / 讀取」視窗的雲端分頁即可使用。
+  //   FOLDER_NAME — 存檔會放進使用者自己雲端硬碟的這個資料夾。
+  GOOGLE: {
+    CLIENT_ID: "502126425089-tb6t8n1r9j9oouismccfudqp6kf3ahj8.apps.googleusercontent.com",
+    FOLDER_NAME: "Poolgress 撞球練習圖",
+  },
+
   // 矩形後備邊界（僅在紅圖遮罩尚未載入完成前使用；正常情況以 AMBIT_IMAGE 的
   // 實際紅色形狀為準）。值為直線庫邊的庫鼻線；球心再內縮一個半徑使球緣貼齊。
   PLAY_AREA: { top: 0.098, right: 0.055, bottom: 0.0995, left: 0.054 },

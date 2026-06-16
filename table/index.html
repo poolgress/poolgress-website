@@ -66,9 +66,32 @@
       <div class="save-title">存檔 / 讀取</div>
       <div class="save-row">
         <input type="text" id="saveName" class="save-name" placeholder="輸入檔名…" />
-        <button type="button" id="saveDoBtn" class="ctrl-btn">儲存</button>
       </div>
-      <div class="save-list" id="saveList"></div>
+
+      <!-- 分頁：本機 / 雲端 -->
+      <div class="save-tabs">
+        <button type="button" id="tabLocal" class="save-tab active">本機</button>
+        <button type="button" id="tabCloud" class="save-tab">雲端硬碟 ☁</button>
+      </div>
+
+      <!-- 本機存檔 -->
+      <div class="save-pane" id="panelLocal">
+        <div class="save-row">
+          <button type="button" id="saveDoBtn" class="ctrl-btn">儲存到本機</button>
+        </div>
+        <div class="save-list" id="saveList"></div>
+      </div>
+
+      <!-- 雲端存檔（Google 雲端硬碟） -->
+      <div class="save-pane" id="panelCloud" hidden>
+        <div class="cloud-bar">
+          <span id="cloudStatus" class="cloud-status">尚未登入</span>
+          <button type="button" id="cloudAuthBtn" class="ctrl-btn">登入 Google</button>
+          <button type="button" id="cloudSaveBtn" class="ctrl-btn" disabled>儲存到雲端</button>
+        </div>
+        <div class="save-list" id="cloudList"></div>
+      </div>
+
       <button type="button" id="saveCloseBtn" class="ctrl-btn save-close">關閉</button>
     </div>
   </div>
@@ -92,6 +115,8 @@
     <div class="strike-point" id="strikePoint"></div>
   </div>
 
+  <!-- Google 登入元件（用於雲端硬碟存檔） -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
