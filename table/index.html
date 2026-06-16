@@ -7,11 +7,6 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="app-header">
-    <h1>撞球練習圖</h1>
-    <p class="hint">從右側球庫把球拖到桌上 · 拖動可移動 · 拖出桌面或雙擊可刪除</p>
-  </header>
-
   <main class="layout">
     <!-- 球桌區 -->
     <section class="table-area">
@@ -39,6 +34,10 @@
           <g id="targetPockets"></g>
         </svg>
       </div>
+      <!-- 球庫：橫式，從左排到右，固定在球桌下方 -->
+      <div class="rack" id="rack">
+        <div class="rack-items" id="rackItems"></div>
+      </div>
       <!-- 球桌下方控制列 -->
       <div class="table-controls">
         <button type="button" id="gridToggle" class="ctrl-btn" aria-pressed="false">顯示格線</button>
@@ -52,12 +51,6 @@
         <button type="button" id="saveLoadBtn" class="ctrl-btn">存檔 / 讀取</button>
       </div>
     </section>
-
-    <!-- 球庫面板 -->
-    <aside class="rack" id="rack">
-      <h2 class="rack-title">球庫</h2>
-      <div class="rack-items" id="rackItems"></div>
-    </aside>
   </main>
 
   <!-- 存檔 / 讀取 視窗 -->

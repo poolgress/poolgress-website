@@ -568,8 +568,36 @@
   }
 
   // 整體依球桌比例縮放 + 依比例重新定位（球桌寬 1100 為基準）
+  // 讓球桌在「可用寬度」與「可用高度」內都塞得下，且寬高永遠維持原圖比例（不變形）。
+  // 高度一律由寬度按固定比例推算，故任何裝置都不會拉伸。球庫寬度同步對齊球桌。
+  const TABLE_ASPECT = 11784 / 6534; // = table.png 原始長寬比
+  function fitTable() {
+    const area = tableWrap.parentElement; // .table-area
+    if (!area) return;
+    const rack = document.getElementById("rack");
+    const controls = document.querySelector(".table-controls");
+    const cs = getComputedStyle(area);
+    const gap = parseFloat(cs.rowGap || cs.gap) || 12;
+    const availW = area.clientWidth;
+    let w = Math.min(availW, 1100);
+    for (let i = 0; i < 4; i++) {
+      tableWrap.style.width = w + "px";
+      if (rack) rack.style.width = w + "px";
+      document.documentElement.style.setProperty("--ui-scale", w / TARGET_REF_W);
+      const rackH = rack ? rack.offsetHeight : 0;       // 量測會觸發 reflow
+      const ctrlH = controls ? controls.offsetHeight : 0;
+      const availH = area.clientHeight - rackH - ctrlH - gap * 2; // 扣球庫 + 按鈕 + 兩個間距
+      const nw = Math.max(160, Math.min(availW, 1100, Math.max(0, availH) * TABLE_ASPECT));
+      if (Math.abs(nw - w) < 0.5) { w = nw; break; }
+      w = nw;
+    }
+    tableWrap.style.width = w + "px";
+    if (rack) rack.style.width = w + "px";
+  }
+
   function updateFloatingScale() {
     const s = tableRect().width / TARGET_REF_W;
+    document.documentElement.style.setProperty("--ui-scale", s); // 下方按鈕等 UI 依球桌比例縮放
     const cw = document.getElementById("cueballWidget");
     const nb = document.getElementById("noteBox");
     if (cw) { cw.style.transformOrigin = "top left"; cw.style.transform = "scale(" + s + ")"; positionFloatingEl(cw, cuePos); }
@@ -577,6 +605,7 @@
   }
 
   function onResize() {
+    fitTable();
     placedBalls.forEach((b) => (b.el.style.fontSize = ballDiameterPx(b.cfg) * 0.4 + "px"));
     updateSelectionUI();
     renderPaths();
@@ -1606,6 +1635,8 @@
   initRack();
   initSaveLoad();
   tableWrap.addEventListener("pointerdown", onTablePointerDown);
+  fitTable();
   updateFloatingScale();
   window.addEventListener("resize", onResize);
+  window.addEventListener("load", onResize); // 圖檔/字體載入後再校正一次，避免初次量測誤差
 })();

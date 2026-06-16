@@ -39,7 +39,7 @@ html, body {
   display: flex;
   gap: 16px;
   padding: 12px 20px 20px;
-  height: calc(100% - 70px);
+  height: 100%;
   align-items: stretch;
 }
 
@@ -57,8 +57,17 @@ html, body {
 /* 球桌下方控制列 */
 .table-controls {
   display: flex;
-  gap: 10px;
+  gap: calc(10px * var(--ui-scale, 1));
   align-items: center;
+  justify-content: center;
+}
+/* 下方按鈕：文字與內距隨球桌比例縮放（不影響存檔視窗內的按鈕）。基準 1.2 × 1.05。 */
+.table-controls .ctrl-btn {
+  font-size: calc(17.3px * var(--ui-scale, 1));
+  padding: calc(10.08px * var(--ui-scale, 1)) calc(20.16px * var(--ui-scale, 1)); /* 8/16 × 1.2 × 1.05 */
+  border-radius: calc(10.08px * var(--ui-scale, 1)); /* 8 × 1.2 × 1.05 */
+  white-space: nowrap; /* 文字永不折行，空間不足時隨球桌一起縮小 */
+  flex-shrink: 0;      /* 按鈕不被擠壓，避免文字被壓到折行 */
 }
 .ctrl-btn {
   appearance: none;
@@ -503,27 +512,26 @@ html, body {
 }
 
 /* ---------- 球庫面板 ---------- */
+/* 球庫：橫式，固定在球桌正下方，寬度對齊球桌並隨之等比縮放 */
 .rack {
-  flex: 0 0 132px;
+  width: 100%;
+  max-width: 1100px;          /* 與 .table-wrap 同寬 */
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  padding: 12px;
-  overflow-y: auto;
-}
-.rack-title {
-  margin: 0 0 10px;
-  font-size: 14px;
-  color: var(--muted);
-  font-weight: 600;
+  border-radius: 9.5px;       /* 10 × 0.95 */
+  padding: 0.665% 0.95%;      /* 0.7%/1% × 0.95，隨球桌寬度等比縮放 */
+  box-sizing: border-box;
 }
 .rack-items {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-direction: row;        /* 橫式：從左排到右 */
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 .rack-item {
   position: relative;
+  width: 4.845%;              /* 16 顆均分整列，隨球桌寬度等比縮放（5.1 × 0.95）*/
   aspect-ratio: 1 / 1;
   cursor: grab;
   touch-action: none;
