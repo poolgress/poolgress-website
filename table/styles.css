@@ -315,6 +315,39 @@ html, body {
   user-select: none;
 }
 
+/* 說明視窗：遊戲規則 單選窗格 */
+.note-rules {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.note-rules-title { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+.note-rules-group {
+  font-weight: 700;
+  font-size: 14px;
+  color: #1a1a1a;
+  margin-top: 4px;
+}
+.note-rule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding-left: 8px;
+}
+.note-rule-label { font-size: 13px; color: #333; min-width: 4.2em; }
+.note-rule-opts { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.note-rule-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  color: #222;
+  cursor: pointer;
+}
+.note-rule-opt input { margin: 0; cursor: pointer; accent-color: #ffbc00; }
+
 /* ---------- 存檔 / 讀取 視窗 ---------- */
 .save-modal {
   position: fixed;

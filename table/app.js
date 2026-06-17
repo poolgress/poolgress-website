@@ -893,12 +893,64 @@
   }
 
   // 說明：白色圓角文字方塊，寬固定 400pt、高度隨文字自動增減，可拖標題列移動
+  // 說明視窗的「遊戲規則」單選窗格設定
+  const NOTE_RULES = [
+    { group: "子球", items: [
+      { key: "ballOrder",  label: "順序規則", opts: ["任意順序", "要照順序打"] },
+      { key: "ballPlace",  label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "子球凍結球"] },
+      { key: "ballPath",   label: "路線要求", opts: ["不顯示", "需要經過目標線段"] },
+      { key: "ballPocket", label: "落點要求", opts: ["六個袋都可以打", "打進目標袋口", "停在目標區塊"] },
+    ] },
+    { group: "母球", items: [
+      { key: "cueStart",  label: "起手規則", opts: ["不顯示", "母球自由球"] },
+      { key: "cueTouch",  label: "接觸顆星", opts: ["不顯示", "母球不能到碰顆星邊"] },
+      { key: "cuePath",   label: "路線要求", opts: ["不顯示", "母球依序經過目標線段"] },
+      { key: "cuePocket", label: "落點要求", opts: ["不顯示", "母球停在目標區塊", "母球進入目標袋口"] },
+    ] },
+  ];
+
+  function buildNoteRules() {
+    const root = document.getElementById("noteRules");
+    if (!root || root.dataset.built) return;
+    let html = '<div class="note-rules-title">遊戲規則：</div>';
+    NOTE_RULES.forEach((g) => {
+      html += '<div class="note-rules-group">' + g.group + "：</div>";
+      g.items.forEach((it) => {
+        html += '<div class="note-rule"><span class="note-rule-label">' + it.label + "：</span>";
+        html += '<span class="note-rule-opts">';
+        it.opts.forEach((o, i) => {
+          html += '<label class="note-rule-opt"><input type="radio" name="nr_' + it.key + '" value="' + i + '"' +
+            (i === 0 ? " checked" : "") + ">" + o + "</label>";
+        });
+        html += "</span></div>";
+      });
+    });
+    root.innerHTML = html;
+    root.dataset.built = "1";
+  }
+  function getNoteRules() {
+    const out = {};
+    NOTE_RULES.forEach((g) => g.items.forEach((it) => {
+      const sel = document.querySelector('input[name="nr_' + it.key + '"]:checked');
+      out[it.key] = sel ? Number(sel.value) : 0;
+    }));
+    return out;
+  }
+  function setNoteRules(rules) {
+    NOTE_RULES.forEach((g) => g.items.forEach((it) => {
+      const v = rules && rules[it.key] != null ? rules[it.key] : 0;
+      const el = document.querySelector('input[name="nr_' + it.key + '"][value="' + v + '"]');
+      if (el) el.checked = true;
+    }));
+  }
+
   function initNote() {
     const btn = document.getElementById("noteBtn");
     const box = document.getElementById("noteBox");
     const header = document.getElementById("noteHeader");
     const input = document.getElementById("noteInput");
     if (!btn || !box || !header || !input) return;
+    buildNoteRules();
 
     const autoGrow = () => {
       input.style.height = "auto";
@@ -1239,6 +1291,7 @@
         desc: document.getElementById("noteInput").value,
         pass: document.getElementById("noteCondPass").value,
         total: document.getElementById("noteCondTotal").value,
+        rules: getNoteRules(),
       },
     };
   }
@@ -1271,6 +1324,7 @@
     const ni = document.getElementById("noteInput"); if (ni) ni.value = "";
     const np = document.getElementById("noteCondPass"); if (np) np.value = "";
     const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
+    setNoteRules({}); // 規則回到預設（各列第一個選項）
     // 檔名欄
     const sn = document.getElementById("saveName"); if (sn) sn.value = "";
     // 重繪
@@ -1325,6 +1379,7 @@
       ta.value = st.note.desc || "";
       document.getElementById("noteCondPass").value = st.note.pass || "";
       document.getElementById("noteCondTotal").value = st.note.total || "";
+      setNoteRules(st.note.rules);
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
       if (nbtn) { nbtn.classList.toggle("active", !!st.note.shown); nbtn.setAttribute("aria-pressed", String(!!st.note.shown)); }
       if (st.note.shown) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
