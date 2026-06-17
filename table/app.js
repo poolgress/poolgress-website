@@ -896,7 +896,7 @@
   // 說明視窗的「遊戲規則」單選窗格設定
   const NOTE_RULES = [
     { group: "子球", items: [
-      { key: "ballOrder",  label: "順序規則", opts: ["任意順序", "要照順序打"] },
+      { key: "ballOrder",  label: "順序規則", opts: ["不顯示", "任意順序", "要照順序打"] },
       { key: "ballPlace",  label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "子球凍結球"] },
       { key: "ballPath",   label: "路線要求", opts: ["不顯示", "需要經過目標線段"] },
       { key: "ballPocket", label: "落點要求", opts: ["六個袋都可以打", "打進目標袋口", "停在目標區塊"] },
