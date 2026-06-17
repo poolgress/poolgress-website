@@ -1488,9 +1488,10 @@
 
   let exportMode = "info"; // "info"=文字資訊 / "json"
   function exportContent() {
-    return exportMode === "json"
-      ? JSON.stringify(serializeState(), null, 2)
-      : buildExportText();
+    if (exportMode !== "json") return buildExportText();
+    // JSON 最上方放「備注」(資訊文字，逐行陣列方便閱讀)，其餘為完整球型資料
+    const payload = Object.assign({ 備注: buildExportText().split("\n") }, serializeState());
+    return JSON.stringify(payload, null, 2);
   }
   function initExportBtn() {
     const btn = document.getElementById("exportBtn");
