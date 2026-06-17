@@ -1253,6 +1253,43 @@
     targetZones.length = 0;
   }
 
+  // 重置：把桌面清空回到初始狀態（不影響已儲存的檔案）
+  function resetAll() {
+    clearAllDrawing();
+    // 母球打點
+    const cw = document.getElementById("cueballWidget");
+    const cb = document.getElementById("cueBtn");
+    const sp = document.getElementById("strikePoint");
+    if (cw) cw.setAttribute("hidden", "");
+    if (cb) { cb.classList.remove("active"); cb.setAttribute("aria-pressed", "false"); }
+    if (sp) { sp.style.left = "50%"; sp.style.top = "50%"; }
+    // 說明
+    const nb = document.getElementById("noteBox");
+    const nbtn = document.getElementById("noteBtn");
+    if (nb) nb.setAttribute("hidden", "");
+    if (nbtn) { nbtn.classList.remove("active"); nbtn.setAttribute("aria-pressed", "false"); }
+    const ni = document.getElementById("noteInput"); if (ni) ni.value = "";
+    const np = document.getElementById("noteCondPass"); if (np) np.value = "";
+    const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
+    // 檔名欄
+    const sn = document.getElementById("saveName"); if (sn) sn.value = "";
+    // 重繪
+    renderPaths();
+    renderPocketTargets();
+    renderTargetLines();
+    renderTargetZones();
+    updateFloatingScale();
+  }
+
+  function initResetBtn() {
+    const btn = document.getElementById("resetBtn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      if (!confirm("確定要重置嗎？\n目前桌面上的所有球、路徑、目標與說明都會清空。\n（不影響已儲存的檔案）")) return;
+      resetAll();
+    });
+  }
+
   function deserializeState(st) {
     if (!st) return;
     clearAllDrawing();
@@ -1814,6 +1851,7 @@
   initSelection();
   initRack();
   initSaveLoad();
+  initResetBtn();
   tableWrap.addEventListener("pointerdown", onTablePointerDown);
   fitTable();
   updateFloatingScale();
