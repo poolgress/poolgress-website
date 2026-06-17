@@ -552,7 +552,10 @@
   // 視窗縮放時，更新球上號碼字級（球大小本身用 % 自動縮放）與選取框尺寸
   // 母球打點 / 說明：位置以「相對球桌的比例」儲存（左上角），隨球桌移動/縮放
   let cuePos = { fx: 0.015, fy: 0.04 };
-  let notePos = { fx: 0.015, fy: 0.42 };
+  // 說明視窗預設出現位置：左上角對齊「中間上方袋口」、其下方 40px
+  // （40px 以球桌寬 1100 時的高度換算成比例，隨球桌等比縮放）
+  const _midTopPocket = (CFG.POCKETS && CFG.POCKETS[4]) || { fx: 0.4998, fy: 0.0605 };
+  let notePos = { fx: _midTopPocket.fx, fy: _midTopPocket.fy + 40 / (1100 * 6534 / 11784) };
 
   function positionFloatingEl(el, pos) {
     const r = tableRect();
