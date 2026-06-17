@@ -336,6 +336,33 @@ html, body {
 .note-type-opt:hover { background: #ffe9a8; }
 .note-cond-infinite { font-size: 15px; font-weight: 400; color: #1a1a1a; }
 .note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
+/* 星星獎勵 */
+.note-star-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  margin-top: 10px;
+}
+.note-star-item { font-size: 14px; color: #1a1a1a; white-space: nowrap; }
+.note-star-num {
+  width: 34px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #cfcfcf;
+  outline: none;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  padding: 1px 2px;
+  margin: 0 1px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.note-star-num::-webkit-inner-spin-button,
+.note-star-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 /* 過關條件：空一行後一列 → 種類選單 + 標題 + 條件 */
 .note-cond-row {
   display: flex;

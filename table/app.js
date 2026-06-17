@@ -895,13 +895,13 @@
   // 說明：白色圓角文字方塊，寬固定 400pt、高度隨文字自動增減，可拖標題列移動
   // 說明視窗的「遊戲規則」單選窗格設定
   const NOTE_RULES = [
-    { group: "子球", items: [
+    { group: "子球規則", items: [
       { key: "ballOrder",  label: "順序規則", opts: ["不顯示", "任意順序", "要照順序打"] },
       { key: "ballPlace",  label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "子球凍結球"] },
       { key: "ballPath",   label: "路線要求", opts: ["不顯示", "需要經過目標線段"] },
       { key: "ballPocket", label: "落點要求", opts: ["六個袋都可以打", "打進目標袋口", "停在目標區塊"] },
     ] },
-    { group: "母球", items: [
+    { group: "母球規則", items: [
       { key: "cueStart",  label: "起手規則", opts: ["不顯示", "母球自由球"] },
       { key: "cueTouch",  label: "接觸顆星", opts: ["不顯示", "母球不能到碰顆星邊"] },
       { key: "cuePath",   label: "路線要求", opts: ["不顯示", "母球依序經過目標線段"] },
@@ -912,7 +912,7 @@
   function buildNoteRules() {
     const root = document.getElementById("noteRules");
     if (!root || root.dataset.built) return;
-    let html = '<div class="note-rules-title">遊戲規則：</div>';
+    let html = "";
     NOTE_RULES.forEach((g) => {
       html += '<div class="note-rules-group">' + g.group + "：</div>";
       g.items.forEach((it) => {
@@ -1324,6 +1324,9 @@
         desc: document.getElementById("noteInput").value,
         pass: document.getElementById("noteCondPass").value,
         total: document.getElementById("noteCondTotal").value,
+        star1: (document.getElementById("noteStar1") || {}).value || "",
+        star2: (document.getElementById("noteStar2") || {}).value || "",
+        star3: (document.getElementById("noteStar3") || {}).value || "",
         rules: getNoteRules(),
       },
     };
@@ -1358,6 +1361,7 @@
     const ln = document.getElementById("noteLevelName"); if (ln) ln.value = "";
     const np = document.getElementById("noteCondPass"); if (np) np.value = "";
     const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
+    ["noteStar1", "noteStar2", "noteStar3"].forEach((id) => { const e = document.getElementById(id); if (e) e.value = ""; });
     setNoteRules({}); // 規則回到預設（各列第一個選項）
     setLevelType("infinite");
     // 檔名欄
@@ -1415,6 +1419,9 @@
       const ln = document.getElementById("noteLevelName"); if (ln) ln.value = st.note.name || "";
       document.getElementById("noteCondPass").value = st.note.pass || "";
       document.getElementById("noteCondTotal").value = st.note.total || "";
+      const s1 = document.getElementById("noteStar1"); if (s1) s1.value = st.note.star1 || "";
+      const s2 = document.getElementById("noteStar2"); if (s2) s2.value = st.note.star2 || "";
+      const s3 = document.getElementById("noteStar3"); if (s3) s3.value = st.note.star3 || "";
       setNoteRules(st.note.rules);
       setLevelType(st.note.type || "infinite");
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
