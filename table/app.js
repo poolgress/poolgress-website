@@ -1423,7 +1423,16 @@
 
   // 輸出：把目前關卡整理成 UI 可用的文字
   const POCKET_NAMES = ["左上", "右上", "左下", "右下", "上中", "下中"];
-  function fmtPt(fx, fy) { return "(" + fx.toFixed(3) + ", " + fy.toFixed(3) + ")"; }
+  // 顆星座標：原點＝左上角袋口，單位＝一個顆星間距（檯面長邊 8 顆星、短邊 4 顆星）
+  const STAR_ORIGIN = (CFG.POCKETS && CFG.POCKETS[0]) || { fx: 0.0498, fy: 0.0858 };
+  const _G = CFG.GRID || { left: 0.0543, right: 0.9453, top: 0.0979, bottom: 0.9014 };
+  const STAR_UX = (_G.right - _G.left) / 8;   // x 每顆星佔的寬比例
+  const STAR_UY = (_G.bottom - _G.top) / 4;   // y 每顆星佔的高比例
+  function fmtPt(fx, fy) {
+    const x = (fx - STAR_ORIGIN.fx) / STAR_UX;
+    const y = (fy - STAR_ORIGIN.fy) / STAR_UY;
+    return "(" + x.toFixed(2) + ", " + y.toFixed(2) + ")";
+  }
   function buildExportText() {
     const val = (id) => ((document.getElementById(id) || {}).value || "");
     const none = "（無）";
@@ -1445,7 +1454,7 @@
     out.push("規則需求：" + (ruleTexts.length ? ruleTexts.join("、") : none));
 
     out.push("");
-    out.push("位置需求：");
+    out.push("位置需求：（座標：左上角袋口為原點，單位＝顆星，x 往右、y 往下）");
     // 球
     const cueBalls = placedBalls.filter((b) => b.cfg.id === "cue");
     const objBalls = placedBalls.filter((b) => b.cfg.id !== "cue");
