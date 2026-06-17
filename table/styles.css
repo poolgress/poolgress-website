@@ -245,7 +245,7 @@ html, body {
   position: fixed;
   left: 30px;
   top: 330px;
-  width: 400px; /* 固定寬度 */
+  width: 500px; /* 固定寬度 */
   background: #ffffff;
   color: #1a1a1a;
   border-radius: 12px; /* 四周倒圓角 */
