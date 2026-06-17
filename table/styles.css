@@ -461,6 +461,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: hidden; /* 內容不溢出視窗 */
 }
 .save-title { font-size: 16px; font-weight: 600; color: var(--text); }
 .save-row { display: flex; gap: 8px; }
@@ -480,6 +481,8 @@ html, body {
   flex-direction: column;
   gap: 6px;
   overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: 46vh;
 }
 .save-empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
@@ -513,7 +516,7 @@ html, body {
 }
 .save-tab:hover { color: var(--text); }
 .save-tab.active { color: var(--text); border-bottom-color: #ffbc00; font-weight: 600; }
-.save-pane { display: flex; flex-direction: column; gap: 12px; }
+.save-pane { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; }
 .save-pane[hidden] { display: none; }
 .cloud-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cloud-status { color: var(--muted); font-size: 13px; margin-right: auto; }
@@ -538,7 +541,7 @@ html, body {
 /* 雲端：縮圖卡片格 */
 .cloud-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px;
-  overflow-y: auto; max-height: 52vh; align-content: start;
+  overflow-y: auto; flex: 1 1 auto; min-height: 0; align-content: start;
 }
 .cloud-grid .save-empty { grid-column: 1 / -1; }
 .cloud-card { background: #2f333a; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
@@ -560,7 +563,7 @@ html, body {
   background: #1e2024; color: var(--text); border: 1px solid var(--panel-border); max-width: 90px;
 }
 /* 雲端：儲存鈕固定在視窗右下角 */
-.cloud-save-row { display: flex; justify-content: flex-end; margin-top: 2px; }
+.cloud-save-row { display: flex; justify-content: flex-end; margin-top: 2px; flex: 0 0 auto; }
 
 /* 輸出文字視窗 */
 .export-text {
