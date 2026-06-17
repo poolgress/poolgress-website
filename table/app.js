@@ -900,13 +900,13 @@
   const NOTE_RULES = [
     { group: "子球規則", items: [
       { key: "ballOrder",  label: "順序規則", opts: ["不顯示", "任意順序", "要照順序打"] },
-      { key: "ballPlace",  label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "邊緣子球緊貼顆星邊"] },
+      { key: "ballFrozen", label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "邊緣子球緊貼顆星邊"] },
       { key: "ballPath",   label: "路線要求", opts: ["不顯示", "需要經過目標線段"] },
       { key: "ballPocket", label: "落點要求", opts: ["六個袋都可以打", "打進目標袋口", "停在目標區塊"] },
     ] },
     { group: "母球規則", items: [
       { key: "cueStart",  label: "起手規則", opts: ["不顯示", "母球自由球"] },
-      { key: "cueTouch",  label: "接觸顆星", opts: ["不顯示", "母球不能到碰顆星邊"] },
+      { key: "cueBank",   label: "接觸顆星", opts: ["不顯示", "母球不能到碰顆星邊"] },
       { key: "cuePath",   label: "路線要求", opts: ["不顯示", "母球依序經過目標線段"] },
       { key: "cuePocket", label: "落點要求", opts: ["不顯示", "母球停在目標區塊", "母球進入目標袋口"] },
     ] },
