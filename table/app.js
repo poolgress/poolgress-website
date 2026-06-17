@@ -755,12 +755,14 @@
       t.textContent = String(num);
       targetLinesG.appendChild(t);
     };
-    targetLines.forEach((ln, i) => mk(ln, i + 1, false)); // 編號 = 索引+1
+    // 子球(ball)與母球(cue)各自獨立編號，依建立順序
+    const counts = { ball: 0, cue: 0 };
+    targetLines.forEach((ln) => { const sd = ln.side || "ball"; mk(ln, ++counts[sd], false); });
     if (drawingLine) {
       mk({
         x1: drawingLine.start.fx, y1: drawingLine.start.fy,
         x2: drawingLine.end.fx, y2: drawingLine.end.fy, side: "cue",
-      }, targetLines.length + 1, true);
+      }, counts.cue + 1, true); // 繪製中預設母球，接續母球編號
     }
   }
 
@@ -1462,8 +1464,13 @@
     out.push("6. 母球目標袋口：" + (cp.length ? cp.join("、") : none));
     // 線段（依序，附顯示編號）
     const lineStr = (side) => {
-      const rows = targetLines.map((l, i) => ({ l, num: i + 1 })).filter((o) => (o.l.side || "ball") === side);
-      return rows.length ? rows.map((o) => "#" + o.num + " " + fmtPt(o.l.x1, o.l.y1) + "→" + fmtPt(o.l.x2, o.l.y2)).join("、") : none;
+      let n = 0; const rows = [];
+      targetLines.forEach((l) => {
+        if ((l.side || "ball") !== side) return;
+        n++;
+        rows.push("#" + n + " " + fmtPt(l.x1, l.y1) + "→" + fmtPt(l.x2, l.y2));
+      });
+      return rows.length ? rows.join("、") : none;
     };
     out.push("7. 子球目標線段位置（依序）：" + lineStr("ball"));
     out.push("8. 母球目標線段位置（依序）：" + lineStr("cue"));
