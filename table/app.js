@@ -637,20 +637,6 @@
   // 尺寸基準：球桌寬 1100px(max-width) 時為設定值，其餘依比例縮放 → 與球桌等比例固定
   const TARGET_REF_W = 1100;
 
-  // 在目標旁標示「子/母」字（子球=ball 黃、母球=cue 藍）
-  function appendSideLabel(g, x, y, side, s) {
-    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    t.setAttribute("class", "target-side-label");
-    t.setAttribute("x", x);
-    t.setAttribute("y", y);
-    t.setAttribute("text-anchor", "middle");
-    t.setAttribute("dominant-baseline", "central");
-    t.style.fontSize = 15 * s + "px";
-    t.style.fill = side === "cue" ? "#4aa3ff" : "#ffbc00";
-    t.textContent = side === "cue" ? "母" : "子";
-    g.appendChild(t);
-  }
-
   // ---------- 目標袋口 ----------
   let pocketEditOn = false;
   // 每個袋口：false=未選 / "ball"=子球目標 / "cue"=母球目標（預設選取為子球）
@@ -676,6 +662,7 @@
       c.setAttribute("cy", cy);
       c.setAttribute("r", rad);
       c.setAttribute("stroke-width", strokeW);
+      if (selected) c.style.stroke = side === "cue" ? "#2ecc71" : "#ffbc00"; // 子=黃、母=綠
       if (pocketEditOn) {
         c.addEventListener("click", () => {
           pocketSelected[i] = pocketSelected[i] ? false : "ball"; // 點選預設子球
@@ -690,10 +677,6 @@
         });
       }
       targetPocketsG.appendChild(c);
-      if (selected) {
-        const ux = 0.5 - p.fx, uy = 0.5 - p.fy, ul = Math.hypot(ux, uy) || 1, off = rad + 11 * s;
-        appendSideLabel(targetPocketsG, cx + (ux / ul) * off, cy + (uy / ul) * off, side, s);
-      }
     });
   }
 
@@ -746,6 +729,7 @@
       el.setAttribute("y2", ln.y2 * r.height);
       el.setAttribute("stroke-width", strokeW);
       const side = ln.side || "ball";
+      el.style.stroke = side === "cue" ? "#ffffff" : "#ffbc00"; // 子=黃、母=白
       if (!isPreview) {
         el.addEventListener("dblclick", (ev) => {
           ev.stopPropagation();
@@ -770,15 +754,12 @@
       t.style.strokeWidth = 3 * s + "px"; // 白邊依比例
       t.textContent = String(num);
       targetLinesG.appendChild(t);
-      // 子/母 標示（垂直線段方向偏移，避免與編號重疊）
-      const dx = (ln.x2 - ln.x1) * r.width, dy = (ln.y2 - ln.y1) * r.height, dl = Math.hypot(dx, dy) || 1;
-      appendSideLabel(targetLinesG, mx + (-dy / dl) * 15 * s, my + (dx / dl) * 15 * s, side, s);
     };
     targetLines.forEach((ln, i) => mk(ln, i + 1, false)); // 編號 = 索引+1
     if (drawingLine) {
       mk({
         x1: drawingLine.start.fx, y1: drawingLine.start.fy,
-        x2: drawingLine.end.fx, y2: drawingLine.end.fy,
+        x2: drawingLine.end.fx, y2: drawingLine.end.fy, side: "cue",
       }, targetLines.length + 1, true);
     }
   }
@@ -819,7 +800,7 @@
         const ff = clientToWrapFraction(ev.clientX, ev.clientY);
         const end = nearestIntersection(ff.fx, ff.fy);
         if (end.fx !== start.fx || end.fy !== start.fy) {
-          targetLines.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "ball" });
+          targetLines.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "cue" });
         }
         drawingLine = null;
         renderTargetLines();
@@ -868,6 +849,8 @@
       rect.setAttribute("height", h * r.height);
       rect.setAttribute("stroke-width", strokeW);
       const side = z.side || "ball";
+      rect.style.stroke = side === "cue" ? "rgba(255,255,255,0.85)" : "rgba(255,188,0,0.85)"; // 子=黃、母=白
+      rect.style.fill = side === "cue" ? "rgba(255,255,255,0.30)" : "rgba(255,188,0,0.30)";
       if (!isPreview) {
         rect.addEventListener("dblclick", (ev) => {
           ev.stopPropagation();
@@ -882,12 +865,10 @@
         });
       }
       targetZonesG.appendChild(rect);
-      // 子/母 標示（左上角內側）
-      appendSideLabel(targetZonesG, x * r.width + 11 * (r.width / TARGET_REF_W), y * r.height + 11 * (r.width / TARGET_REF_W), side, r.width / TARGET_REF_W);
     };
     targetZones.forEach((z) => mk(z, false));
     if (drawingZone) {
-      mk({ x1: drawingZone.start.fx, y1: drawingZone.start.fy, x2: drawingZone.end.fx, y2: drawingZone.end.fy }, true);
+      mk({ x1: drawingZone.start.fx, y1: drawingZone.start.fy, x2: drawingZone.end.fx, y2: drawingZone.end.fy, side: "cue" }, true);
     }
   }
 
@@ -928,7 +909,7 @@
         window.removeEventListener("pointerup", up);
         const end = pick(ev.clientX, ev.clientY);
         if (Math.abs(end.fx - start.fx) > 0.001 && Math.abs(end.fy - start.fy) > 0.001) {
-          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "ball" });
+          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "cue" });
         }
         drawingZone = null;
         renderTargetZones();

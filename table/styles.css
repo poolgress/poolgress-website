@@ -165,15 +165,6 @@ html, body {
   pointer-events: none;
   user-select: none;
 }
-/* 目標旁的「子/母」標示 */
-.target-side-label {
-  font-weight: 700;
-  paint-order: stroke;
-  stroke: rgba(0, 0, 0, 0.55);
-  stroke-width: 2px;
-  pointer-events: none;
-  user-select: none;
-}
 /* 目標線段編輯模式時，線段可點（雙擊刪除） */
 .target-layer.line-edit .target-line {
   pointer-events: stroke;
