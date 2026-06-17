@@ -245,7 +245,7 @@ html, body {
   position: fixed;
   left: 30px;
   top: 330px;
-  width: 500px; /* 固定寬度 */
+  width: 450px; /* 固定寬度 */
   background: #ffffff;
   color: #1a1a1a;
   border-radius: 12px; /* 四周倒圓角 */
@@ -285,7 +285,7 @@ html, body {
 }
 .note-cond-label {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 17px;
   user-select: none;
 }
 .note-cond-num {
@@ -322,7 +322,7 @@ html, body {
   flex-direction: column;
   gap: 5px;
 }
-.note-rules-title { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+.note-rules-title { font-weight: 700; font-size: 17px; color: #1a1a1a; }
 .note-rules-group {
   font-weight: 700;
   font-size: 14px;
