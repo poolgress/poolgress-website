@@ -276,10 +276,42 @@ html, body {
   line-height: 1.5;
   min-height: 1.5em;
 }
-/* 過關條件：空一行後一列 → 標題 + 兩個數字欄(通過次數 / 總次數) */
+/* 關卡名稱：最上方一列 */
+.note-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.note-name-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-bottom: 1px solid #cfcfcf;
+  outline: none;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 15px;
+  padding: 2px 2px;
+}
+/* 關卡種類 下拉選單 */
+.note-type-select {
+  font: inherit;
+  font-size: 15px;
+  color: #1a1a1a;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 6px;
+  padding: 2px 4px;
+}
+.note-cond-infinite { font-size: 15px; font-weight: 700; color: #c0392b; }
+.note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
+/* 過關條件：空一行後一列 → 種類選單 + 標題 + 條件 */
 .note-cond-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 14px; /* 與上方說明區空一行 */
 }

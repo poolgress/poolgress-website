@@ -95,14 +95,26 @@
 
   <!-- 說明：可記錄文字的白色圓角方塊（寬固定 400pt，高度隨文字增減）-->
   <div class="note-box" id="noteBox" hidden>
+    <div class="note-name-row">
+      <span class="note-cond-label">關卡名稱：</span>
+      <input type="text" class="note-name-input" id="noteLevelName" />
+    </div>
     <div class="note-header" id="noteHeader">關卡說明：</div>
     <textarea class="note-input" id="noteInput" rows="1" placeholder="在這裡輸入說明文字…"></textarea>
     <div class="note-cond-row">
+      <span class="note-cond-label">關卡種類：</span>
+      <select class="note-type-select" id="noteLevelType">
+        <option value="infinite">無限挑戰</option>
+        <option value="stage">遊戲闖關</option>
+      </select>
       <span class="note-cond-label">過關條件：</span>
-      <input type="number" class="note-cond-num" id="noteCondPass" min="0" />
-      <span class="note-cond-sep">/</span>
-      <input type="number" class="note-cond-num" id="noteCondTotal" min="0" />
-      <span class="note-cond-unit">次</span>
+      <span class="note-cond-infinite" id="noteCondInfinite">持續挑戰！直到失敗！</span>
+      <span class="note-cond-stage" id="noteCondStage">
+        <input type="number" class="note-cond-num" id="noteCondPass" min="0" />
+        <span class="note-cond-sep">/</span>
+        <input type="number" class="note-cond-num" id="noteCondTotal" min="0" />
+        <span class="note-cond-unit">次</span>
+      </span>
     </div>
     <!-- 遊戲規則：單選窗格（由 app.js 動態產生） -->
     <div class="note-rules" id="noteRules"></div>
