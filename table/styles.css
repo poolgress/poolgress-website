@@ -165,6 +165,15 @@ html, body {
   pointer-events: none;
   user-select: none;
 }
+/* 目標旁的「子/母」標示 */
+.target-side-label {
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 2px;
+  pointer-events: none;
+  user-select: none;
+}
 /* 目標線段編輯模式時，線段可點（雙擊刪除） */
 .target-layer.line-edit .target-line {
   pointer-events: stroke;
@@ -559,6 +568,26 @@ html, body {
   font: inherit; font-size: 12px; padding: 4px 6px; border-radius: 6px;
   background: #1e2024; color: var(--text); border: 1px solid var(--panel-border); max-width: 90px;
 }
+
+/* 輸出文字視窗 */
+.export-text {
+  width: 100%;
+  min-height: 320px;
+  max-height: 60vh;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--panel-border);
+  background: #1e2024;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre;
+  overflow: auto;
+}
+.export-actions { justify-content: flex-end; }
 
 /* ---------- 母球打點：浮動可拖曳母球面 + 打點 ---------- */
 .cueball-widget {

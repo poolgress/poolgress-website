@@ -637,9 +637,24 @@
   // 尺寸基準：球桌寬 1100px(max-width) 時為設定值，其餘依比例縮放 → 與球桌等比例固定
   const TARGET_REF_W = 1100;
 
+  // 在目標旁標示「子/母」字（子球=ball 黃、母球=cue 藍）
+  function appendSideLabel(g, x, y, side, s) {
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("class", "target-side-label");
+    t.setAttribute("x", x);
+    t.setAttribute("y", y);
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("dominant-baseline", "central");
+    t.style.fontSize = 15 * s + "px";
+    t.style.fill = side === "cue" ? "#4aa3ff" : "#ffbc00";
+    t.textContent = side === "cue" ? "母" : "子";
+    g.appendChild(t);
+  }
+
   // ---------- 目標袋口 ----------
   let pocketEditOn = false;
-  const pocketSelected = (CFG.POCKETS || []).map(() => false); // 哪些袋口被選為目標(綠圈)
+  // 每個袋口：false=未選 / "ball"=子球目標 / "cue"=母球目標（預設選取為子球）
+  const pocketSelected = (CFG.POCKETS || []).map(() => false);
   let targetPocketsG = null;
 
   function renderPocketTargets() {
@@ -651,21 +666,34 @@
     const strokeW = 5 * s;      // 圈圈粗度
     while (targetPocketsG.firstChild) targetPocketsG.removeChild(targetPocketsG.firstChild);
     (CFG.POCKETS || []).forEach((p, i) => {
-      const selected = pocketSelected[i];
-      if (!pocketEditOn && !selected) return; // 非編輯時只留已選(綠圈)
+      const side = pocketSelected[i]; // false | "ball" | "cue"
+      const selected = !!side;
+      if (!pocketEditOn && !selected) return; // 非編輯時只留已選
+      const cx = p.fx * r.width, cy = p.fy * r.height;
       const c = document.createElementNS(NS, "circle");
       c.setAttribute("class", "pocket-target " + (selected ? "sel" : "unsel") + (pocketEditOn ? " clickable" : ""));
-      c.setAttribute("cx", p.fx * r.width);
-      c.setAttribute("cy", p.fy * r.height);
+      c.setAttribute("cx", cx);
+      c.setAttribute("cy", cy);
       c.setAttribute("r", rad);
       c.setAttribute("stroke-width", strokeW);
       if (pocketEditOn) {
         c.addEventListener("click", () => {
-          pocketSelected[i] = !pocketSelected[i];
+          pocketSelected[i] = pocketSelected[i] ? false : "ball"; // 點選預設子球
           renderPocketTargets();
+        });
+        c.addEventListener("contextmenu", (e) => {
+          e.preventDefault(); // 右鍵：子↔母
+          if (pocketSelected[i]) {
+            pocketSelected[i] = pocketSelected[i] === "ball" ? "cue" : "ball";
+            renderPocketTargets();
+          }
         });
       }
       targetPocketsG.appendChild(c);
+      if (selected) {
+        const ux = 0.5 - p.fx, uy = 0.5 - p.fy, ul = Math.hypot(ux, uy) || 1, off = rad + 11 * s;
+        appendSideLabel(targetPocketsG, cx + (ux / ul) * off, cy + (uy / ul) * off, side, s);
+      }
     });
   }
 
@@ -717,6 +745,7 @@
       el.setAttribute("x2", ln.x2 * r.width);
       el.setAttribute("y2", ln.y2 * r.height);
       el.setAttribute("stroke-width", strokeW);
+      const side = ln.side || "ball";
       if (!isPreview) {
         el.addEventListener("dblclick", (ev) => {
           ev.stopPropagation();
@@ -724,17 +753,26 @@
           if (i >= 0) targetLines.splice(i, 1); // 刪除後 forEach 重新編號自動往前排
           renderTargetLines();
         });
+        el.addEventListener("contextmenu", (ev) => {
+          ev.preventDefault(); // 右鍵：子↔母
+          ln.side = side === "cue" ? "ball" : "cue";
+          renderTargetLines();
+        });
       }
       targetLinesG.appendChild(el);
       // 線段編號（標在中點）
+      const mx = ((ln.x1 + ln.x2) / 2) * r.width, my = ((ln.y1 + ln.y2) / 2) * r.height;
       const t = document.createElementNS(NS, "text");
       t.setAttribute("class", "target-line-num");
-      t.setAttribute("x", ((ln.x1 + ln.x2) / 2) * r.width);
-      t.setAttribute("y", ((ln.y1 + ln.y2) / 2) * r.height);
+      t.setAttribute("x", mx);
+      t.setAttribute("y", my);
       t.style.fontSize = 16 * s + "px";   // 字級依比例
       t.style.strokeWidth = 3 * s + "px"; // 白邊依比例
       t.textContent = String(num);
       targetLinesG.appendChild(t);
+      // 子/母 標示（垂直線段方向偏移，避免與編號重疊）
+      const dx = (ln.x2 - ln.x1) * r.width, dy = (ln.y2 - ln.y1) * r.height, dl = Math.hypot(dx, dy) || 1;
+      appendSideLabel(targetLinesG, mx + (-dy / dl) * 15 * s, my + (dx / dl) * 15 * s, side, s);
     };
     targetLines.forEach((ln, i) => mk(ln, i + 1, false)); // 編號 = 索引+1
     if (drawingLine) {
@@ -781,7 +819,7 @@
         const ff = clientToWrapFraction(ev.clientX, ev.clientY);
         const end = nearestIntersection(ff.fx, ff.fy);
         if (end.fx !== start.fx || end.fy !== start.fy) {
-          targetLines.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy });
+          targetLines.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "ball" });
         }
         drawingLine = null;
         renderTargetLines();
@@ -829,6 +867,7 @@
       rect.setAttribute("width", w * r.width);
       rect.setAttribute("height", h * r.height);
       rect.setAttribute("stroke-width", strokeW);
+      const side = z.side || "ball";
       if (!isPreview) {
         rect.addEventListener("dblclick", (ev) => {
           ev.stopPropagation();
@@ -836,8 +875,15 @@
           if (i >= 0) targetZones.splice(i, 1);
           renderTargetZones();
         });
+        rect.addEventListener("contextmenu", (ev) => {
+          ev.preventDefault(); // 右鍵：子↔母
+          z.side = side === "cue" ? "ball" : "cue";
+          renderTargetZones();
+        });
       }
       targetZonesG.appendChild(rect);
+      // 子/母 標示（左上角內側）
+      appendSideLabel(targetZonesG, x * r.width + 11 * (r.width / TARGET_REF_W), y * r.height + 11 * (r.width / TARGET_REF_W), side, r.width / TARGET_REF_W);
     };
     targetZones.forEach((z) => mk(z, false));
     if (drawingZone) {
@@ -882,7 +928,7 @@
         window.removeEventListener("pointerup", up);
         const end = pick(ev.clientX, ev.clientY);
         if (Math.abs(end.fx - start.fx) > 0.001 && Math.abs(end.fy - start.fy) > 0.001) {
-          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy });
+          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "ball" });
         }
         drawingZone = null;
         renderTargetZones();
@@ -1313,9 +1359,9 @@
         ball: placedBalls.indexOf(p.ball),
         vertices: p.vertices.map((vx) => ({ fx: vx.fx, fy: vx.fy, ghost: !!vx.ghost })),
       })),
-      pockets: pocketSelected.slice(),
-      lines: targetLines.map((l) => ({ x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2 })),
-      zones: targetZones.map((z) => ({ x1: z.x1, y1: z.y1, x2: z.x2, y2: z.y2 })),
+      pockets: pocketSelected.slice(), // false / "ball" / "cue"
+      lines: targetLines.map((l) => ({ x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2, side: l.side || "ball" })),
+      zones: targetZones.map((z) => ({ x1: z.x1, y1: z.y1, x2: z.x2, y2: z.y2, side: z.side || "ball" })),
       grid: gridOn,
       snap: snapOn,
       cue: {
@@ -1391,19 +1437,92 @@
     });
   }
 
-  // 輸出：把目前狀態匯出成 .json 檔下載
+  // 輸出：把目前關卡整理成 UI 可用的文字
+  const POCKET_NAMES = ["左上", "右上", "左下", "右下", "上中", "下中"];
+  function fmtPt(fx, fy) { return "(" + fx.toFixed(3) + ", " + fy.toFixed(3) + ")"; }
+  function buildExportText() {
+    const val = (id) => ((document.getElementById(id) || {}).value || "");
+    const none = "（無）";
+    const out = [];
+    const stage = val("noteLevelType") === "stage";
+    out.push("關卡名稱：" + val("noteLevelName").trim());
+    out.push("關卡說明：" + val("noteInput").trim());
+    out.push("關卡種類：" + (stage
+      ? "遊戲闖關（過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次）"
+      : "無限挑戰"));
+    out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
+    // 規則需求：列出不是「不顯示」(index 0) 的選項
+    const rules = getNoteRules();
+    const ruleTexts = [];
+    NOTE_RULES.forEach((g) => g.items.forEach((it) => {
+      const v = rules[it.key] || 0;
+      if (v !== 0) ruleTexts.push(it.opts[v]);
+    }));
+    out.push("規則需求：" + (ruleTexts.length ? ruleTexts.join("、") : none));
+
+    out.push("");
+    out.push("位置需求：");
+    // 球
+    const cueBalls = placedBalls.filter((b) => b.cfg.id === "cue");
+    const objBalls = placedBalls.filter((b) => b.cfg.id !== "cue");
+    out.push("1. 母球位置：" + (cueBalls.length ? cueBalls.map((b) => fmtPt(b.fx, b.fy)).join("、") : none));
+    out.push("2. 子球位置：" + (objBalls.length ? objBalls.map((b) => b.cfg.id + "號 " + fmtPt(b.fx, b.fy)).join("、") : none));
+    // 路線
+    const pathStr = (p) => p.vertices.map((v) => fmtPt(v.fx, v.fy)).join("→");
+    const cuePaths = paths.filter((p) => p.ball && p.ball.cfg.id === "cue");
+    const objPaths = paths.filter((p) => p.ball && p.ball.cfg.id !== "cue");
+    out.push("3. 母球路線：" + (cuePaths.length ? cuePaths.map(pathStr).join("；  ") : none));
+    out.push("4. 子球路線：" + (objPaths.length ? objPaths.map((p) => p.ball.cfg.id + "號：" + pathStr(p)).join("；  ") : none));
+    // 袋口
+    const pocketsBy = (side) => (CFG.POCKETS || []).map((p, i) => (pocketSelected[i] === side ? POCKET_NAMES[i] : null)).filter(Boolean);
+    const bp = pocketsBy("ball"), cp = pocketsBy("cue");
+    out.push("5. 子球目標袋口：" + (bp.length ? bp.join("、") : none));
+    out.push("6. 母球目標袋口：" + (cp.length ? cp.join("、") : none));
+    // 線段（依序，附顯示編號）
+    const lineStr = (side) => {
+      const rows = targetLines.map((l, i) => ({ l, num: i + 1 })).filter((o) => (o.l.side || "ball") === side);
+      return rows.length ? rows.map((o) => "#" + o.num + " " + fmtPt(o.l.x1, o.l.y1) + "→" + fmtPt(o.l.x2, o.l.y2)).join("、") : none;
+    };
+    out.push("7. 子球目標線段位置（依序）：" + lineStr("ball"));
+    out.push("8. 母球目標線段位置（依序）：" + lineStr("cue"));
+    // 區塊
+    const zoneStr = (side) => {
+      const rows = targetZones.filter((z) => (z.side || "ball") === side);
+      return rows.length ? rows.map((z) =>
+        fmtPt(Math.min(z.x1, z.x2), Math.min(z.y1, z.y2)) + "~" + fmtPt(Math.max(z.x1, z.x2), Math.max(z.y1, z.y2))
+      ).join("、") : none;
+    };
+    out.push("9. 子球目標區塊位置：" + zoneStr("ball"));
+    out.push("10. 母球目標區塊位置：" + zoneStr("cue"));
+    return out.join("\n");
+  }
+
   function initExportBtn() {
     const btn = document.getElementById("exportBtn");
-    if (!btn) return;
+    const modal = document.getElementById("exportModal");
+    const ta = document.getElementById("exportText");
+    if (!btn || !modal || !ta) return;
     btn.addEventListener("click", () => {
-      const payload = { v: 1, data: serializeState(), savedAt: Date.now() };
-      const json = JSON.stringify(payload, null, 2);
+      ta.value = buildExportText();
+      modal.removeAttribute("hidden");
+      ta.focus(); ta.select();
+    });
+    const closeBtn = document.getElementById("exportCloseBtn");
+    if (closeBtn) closeBtn.addEventListener("click", () => modal.setAttribute("hidden", ""));
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.setAttribute("hidden", ""); });
+    const copyBtn = document.getElementById("exportCopyBtn");
+    if (copyBtn) copyBtn.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(ta.value); }
+      catch (e) { ta.select(); document.execCommand("copy"); }
+      copyBtn.textContent = "已複製"; setTimeout(() => (copyBtn.textContent = "複製"), 1200);
+    });
+    const dlBtn = document.getElementById("exportDownloadBtn");
+    if (dlBtn) dlBtn.addEventListener("click", () => {
       const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
-      const fileName = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".json"; // 去除檔名非法字元
-      const blob = new Blob([json], { type: "application/json" });
+      const fileName = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".txt";
+      const blob = new Blob([ta.value], { type: "text/plain;charset=utf-8" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = fileName;
+      const a = document.createElement("a"); a.href = url; a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
@@ -1420,9 +1539,12 @@
       const ball = placedBalls[p.ball];
       if (ball) paths.push({ ball, vertices: (p.vertices || []).map((vx) => ({ fx: vx.fx, fy: vx.fy, ghost: !!vx.ghost })) });
     });
-    if (st.pockets) st.pockets.forEach((vv, i) => { if (i < pocketSelected.length) pocketSelected[i] = !!vv; });
-    (st.lines || []).forEach((l) => targetLines.push({ x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2 }));
-    (st.zones || []).forEach((z) => targetZones.push({ x1: z.x1, y1: z.y1, x2: z.x2, y2: z.y2 }));
+    if (st.pockets) st.pockets.forEach((vv, i) => {
+      if (i >= pocketSelected.length) return;
+      pocketSelected[i] = vv === "cue" ? "cue" : (vv ? "ball" : false); // 相容舊布林檔→子球
+    });
+    (st.lines || []).forEach((l) => targetLines.push({ x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2, side: l.side || "ball" }));
+    (st.zones || []).forEach((z) => targetZones.push({ x1: z.x1, y1: z.y1, x2: z.x2, y2: z.y2, side: z.side || "ball" }));
     setGrid(!!st.grid);
     setSnap(!!st.snap);
     // 母球打點

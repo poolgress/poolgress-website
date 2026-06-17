@@ -94,6 +94,19 @@
     </div>
   </div>
 
+  <!-- 輸出文字 視窗 -->
+  <div class="save-modal" id="exportModal" hidden>
+    <div class="save-panel">
+      <div class="save-title">輸出（可直接複製使用）</div>
+      <textarea id="exportText" class="export-text" readonly></textarea>
+      <div class="save-row export-actions">
+        <button type="button" id="exportCopyBtn" class="ctrl-btn">複製</button>
+        <button type="button" id="exportDownloadBtn" class="ctrl-btn">下載 .txt</button>
+        <button type="button" id="exportCloseBtn" class="ctrl-btn save-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 說明：可記錄文字的白色圓角方塊（寬固定 400pt，高度隨文字增減）-->
   <div class="note-box" id="noteBox" hidden>
     <div class="note-name-row">
