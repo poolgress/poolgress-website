@@ -997,8 +997,10 @@
       if (show) { autoGrow(); input.focus(); }
     });
 
-    // 拖曳：以「說明：」標題列當把手
-    header.addEventListener("pointerdown", (e) => {
+    // 拖曳：以「關卡名稱」列與「關卡說明：」標題列當把手
+    // （點在輸入欄／選單／選項等互動元件上時不觸發拖曳）
+    const startNoteDrag = (e) => {
+      if (e.target.closest("input, textarea, select, button, label, .note-type-list, .note-type-btn, .note-rule-opt")) return;
       e.preventDefault();
       const r = box.getBoundingClientRect();
       const offset = { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -1015,7 +1017,10 @@
       window.addEventListener("pointermove", move);
       window.addEventListener("pointerup", up);
       window.addEventListener("pointercancel", up);
-    });
+    };
+    header.addEventListener("pointerdown", startNoteDrag);
+    const nameRow = box.querySelector(".note-name-row");
+    if (nameRow) nameRow.addEventListener("pointerdown", startNoteDrag);
   }
 
   // 母球打點：浮動母球面，可拖整顆移動、可在球面上拖曳打點（限制在球內）

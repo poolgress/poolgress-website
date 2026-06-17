@@ -282,10 +282,12 @@ html, body {
   align-items: center;
   gap: 6px;
   margin-bottom: 8px;
+  cursor: grab; /* 空白處可拖曳移動視窗 */
 }
+.note-name-row:active { cursor: grabbing; }
 .note-name-input {
   flex: 0 0 auto;
-  width: 90px;               /* 底線長度縮短成約 1/3 */
+  width: 180px;              /* 底線長度（先前 90px 的 2 倍）*/
   border: none;
   border-bottom: 1px solid #cfcfcf;
   outline: none;
