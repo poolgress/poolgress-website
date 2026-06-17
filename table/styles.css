@@ -63,12 +63,11 @@ html, body {
 }
 /* 下方按鈕：文字與內距隨球桌比例縮放（不影響存檔視窗內的按鈕）。基準 1.2 × 1.05。 */
 .table-controls .ctrl-btn {
-  font-size: calc(17.3px * var(--ui-scale, 1));
+  font-size: calc(15.3px * var(--ui-scale, 1)); /* 17.3 − 2 */
   padding: calc(10.08px * var(--ui-scale, 1)) calc(20.16px * var(--ui-scale, 1)); /* 8/16 × 1.2 × 1.05 */
   border-radius: calc(10.08px * var(--ui-scale, 1)); /* 8 × 1.2 × 1.05 */
   white-space: nowrap; /* 文字永不折行，空間不足時隨球桌一起縮小 */
   flex-shrink: 0;      /* 按鈕不被擠壓，避免文字被壓到折行 */
-  transform: scaleX(0.95); /* 按鈕寬度縮成 95% */
 }
 .ctrl-btn {
   appearance: none;
