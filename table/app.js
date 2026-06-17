@@ -1767,6 +1767,25 @@
       });
       const tgtImg = await svgToImage(document.getElementById("targetLayer"), W, H);
       if (tgtImg) ctx.drawImage(tgtImg, 0, 0, TW, TH);
+      // 母球打點（若顯示）：畫在最上層
+      const cw = document.getElementById("cueballWidget");
+      if (cw && !cw.hasAttribute("hidden")) {
+        const cimg = document.getElementById("cueballImg");
+        if (cimg && cimg.naturalWidth) {
+          const cr = cimg.getBoundingClientRect();
+          ctx.drawImage(cimg, (cr.left - wr.left) * scale, (cr.top - wr.top) * scale, cr.width * scale, cr.height * scale);
+        }
+        const sp = document.getElementById("strikePoint");
+        if (sp) {
+          const spr = sp.getBoundingClientRect();
+          const cx = (spr.left + spr.width / 2 - wr.left) * scale;
+          const cy = (spr.top + spr.height / 2 - wr.top) * scale;
+          const rad = Math.max((spr.width / 2) * scale, 1.5);
+          ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(40,120,230,0.92)"; ctx.fill();
+          ctx.lineWidth = Math.max(rad * 0.2, 0.8); ctx.strokeStyle = "#ffffff"; ctx.stroke();
+        }
+      }
       return canvas.toDataURL("image/jpeg", 0.62);
     } catch (e) { return null; }
   }
