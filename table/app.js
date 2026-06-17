@@ -1666,6 +1666,14 @@
   function layerVisible(el) {
     return el && el.naturalWidth > 0 && getComputedStyle(el).display !== "none";
   }
+  // 序列化 SVG 會失去外部 CSS，需把路徑/假想球/目標的樣式內嵌，否則會變預設黑色實心
+  const SNAPSHOT_CSS =
+    ".path-line{stroke-width:2pt;stroke-dasharray:9 7;fill:none;stroke-linecap:round;stroke-linejoin:round;}" +
+    ".ghost-ball-mark{fill:rgba(255,255,255,0.14);stroke-width:1.5pt;}" +
+    ".pocket-target{fill:none;}.pocket-target.unsel{stroke:#ffffff;}.pocket-target.sel{stroke:#ffbc00;}" +
+    ".target-line{fill:none;stroke:#ffffff;stroke-linecap:butt;}" +
+    ".target-line-num{fill:#1a1a1a;stroke:#ffffff;paint-order:stroke;font-weight:700;text-anchor:middle;dominant-baseline:central;}" +
+    ".target-zone{fill:rgba(255,255,255,0.30);stroke:rgba(255,255,255,0.85);}";
   function svgToImage(svgEl, w, h) {
     return new Promise((resolve) => {
       if (!svgEl) { resolve(null); return; }
@@ -1674,6 +1682,9 @@
       clone.setAttribute("width", w);
       clone.setAttribute("height", h);
       clone.setAttribute("viewBox", "0 0 " + w + " " + h);
+      const st = document.createElementNS("http://www.w3.org/2000/svg", "style");
+      st.textContent = SNAPSHOT_CSS;
+      clone.insertBefore(st, clone.firstChild);
       const str = new XMLSerializer().serializeToString(clone);
       const img = new Image();
       img.onload = () => resolve(img);
