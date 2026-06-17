@@ -327,9 +327,9 @@ html, body {
 }
 .save-modal[hidden] { display: none; }
 .save-panel {
-  width: 420px;
-  max-width: 90vw;
-  max-height: 80vh;
+  width: 600px;
+  max-width: 92vw;
+  max-height: 86vh;
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
@@ -393,6 +393,48 @@ html, body {
 .save-pane[hidden] { display: none; }
 .cloud-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cloud-status { color: var(--muted); font-size: 13px; margin-right: auto; }
+
+/* 雲端：資料夾分類列 */
+.cloud-folders { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cloud-folder-chip {
+  appearance: none; border: 1px solid var(--panel-border); background: #2f333a; color: var(--text);
+  font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.cloud-folder-chip:hover { background: #3a3f47; }
+.cloud-folder-chip.active { background: #ffbc00; color: #1a1a1a; border-color: #ffbc00; font-weight: 600; }
+.cloud-folder-x { font-weight: 700; opacity: 0.55; }
+.cloud-folder-x:hover { opacity: 1; }
+.cloud-folder-add {
+  appearance: none; border: 1px dashed var(--panel-border); background: transparent; color: var(--muted);
+  font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+}
+.cloud-folder-add:hover { color: var(--text); border-color: var(--text); }
+
+/* 雲端：縮圖卡片格 */
+.cloud-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px;
+  overflow-y: auto; max-height: 52vh; align-content: start;
+}
+.cloud-grid .save-empty { grid-column: 1 / -1; }
+.cloud-card { background: #2f333a; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.cloud-thumb {
+  position: relative; width: 100%; aspect-ratio: 11784 / 6534; background: #0e0f12;
+  border-radius: 6px; overflow: hidden; cursor: pointer;
+}
+.cloud-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cloud-thumb.no-thumb::after {
+  content: "無預覽"; position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--muted); font-size: 12px;
+}
+.cloud-card-name { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cloud-card-time { font-size: 11px; color: var(--muted); }
+.cloud-card-actions { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.cloud-card-actions .ctrl-btn { padding: 4px 8px; font-size: 12px; }
+.cloud-move {
+  font: inherit; font-size: 12px; padding: 4px 6px; border-radius: 6px;
+  background: #1e2024; color: var(--text); border: 1px solid var(--panel-border); max-width: 90px;
+}
 
 /* ---------- 母球打點：浮動可拖曳母球面 + 打點 ---------- */
 .cueball-widget {

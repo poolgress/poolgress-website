@@ -1308,8 +1308,11 @@
     tokenClient: null,
     accessToken: null,
     tokenExpiry: 0,
-    folderId: null,
+    folderId: null,        // 主資料夾 id（root）
     signedIn: false,
+    folders: [],           // 分類子資料夾 [{id,name}]
+    currentFolderId: null, // 目前檢視的資料夾；null = 未分類（root 直屬檔案）
+    contentCache: {},      // fileId -> {modifiedTime, content}（含縮圖，避免重複下載）
   };
 
   function cloudConfigured() {
@@ -1393,42 +1396,118 @@
     return Cloud.folderId;
   }
 
-  async function cloudList() {
-    const folder = await ensureFolder();
+  // ── 縮圖擷取：把球桌各圖層合成成一張 JPEG dataURL ──
+  function layerVisible(el) {
+    return el && el.naturalWidth > 0 && getComputedStyle(el).display !== "none";
+  }
+  function svgToImage(svgEl, w, h) {
+    return new Promise((resolve) => {
+      if (!svgEl) { resolve(null); return; }
+      const clone = svgEl.cloneNode(true);
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      clone.setAttribute("width", w);
+      clone.setAttribute("height", h);
+      clone.setAttribute("viewBox", "0 0 " + w + " " + h);
+      const str = new XMLSerializer().serializeToString(clone);
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(str);
+    });
+  }
+  async function captureThumbnail() {
+    try {
+      const W = tableWrap.clientWidth, H = tableWrap.clientHeight;
+      if (!W || !H) return null;
+      const TW = 280, scale = TW / W, TH = Math.round(H * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = TW; canvas.height = TH;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#0e0f12"; ctx.fillRect(0, 0, TW, TH);
+      if (layerVisible(tableImg)) ctx.drawImage(tableImg, 0, 0, TW, TH);
+      const gridImg = document.getElementById("gridImg");
+      if (layerVisible(gridImg)) ctx.drawImage(gridImg, 0, 0, TW, TH);
+      const cushionImg = document.getElementById("cushionImg");
+      if (layerVisible(cushionImg)) ctx.drawImage(cushionImg, 0, 0, TW, TH);
+      const pathImg = await svgToImage(document.getElementById("pathLayer"), W, H);
+      if (pathImg) ctx.drawImage(pathImg, 0, 0, TW, TH);
+      const wr = tableWrap.getBoundingClientRect();
+      placedBalls.forEach((b) => {
+        const img = b.el.querySelector("img");
+        if (!img || !img.naturalWidth) return;
+        const r = b.el.getBoundingClientRect();
+        ctx.drawImage(img, (r.left - wr.left) * scale, (r.top - wr.top) * scale, r.width * scale, r.height * scale);
+      });
+      const tgtImg = await svgToImage(document.getElementById("targetLayer"), W, H);
+      if (tgtImg) ctx.drawImage(tgtImg, 0, 0, TW, TH);
+      return canvas.toDataURL("image/jpeg", 0.62);
+    } catch (e) { return null; }
+  }
+
+  // ── 資料夾（Drive 子資料夾當分類） ──
+  function currentParentId() { return Cloud.currentFolderId || Cloud.folderId; }
+
+  async function cloudListFolders() {
+    const root = await ensureFolder();
     const q = encodeURIComponent(
-      "'" + folder + "' in parents and trashed=false and mimeType='application/json'"
+      "'" + root + "' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+    );
+    const res = await driveApi("drive/v3/files?q=" + q + "&fields=files(id,name)&orderBy=name&pageSize=200");
+    Cloud.folders = (await res.json()).files || [];
+    return Cloud.folders;
+  }
+  async function cloudCreateFolder(name) {
+    const root = await ensureFolder();
+    const res = await driveApi("drive/v3/files?fields=id,name", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name, mimeType: "application/vnd.google-apps.folder", parents: [root] }),
+    });
+    return res.json();
+  }
+  async function cloudDeleteFolder(folderId) {
+    // 先把資料夾內檔案搬回未分類（root），再刪掉資料夾
+    const root = await ensureFolder();
+    const files = await cloudList(folderId);
+    for (const f of files) await cloudMoveFile(f.id, folderId, root);
+    await driveApi("drive/v3/files/" + folderId, { method: "DELETE" });
+  }
+
+  // ── 檔案（限定在某資料夾內） ──
+  async function cloudList(parentId) {
+    const q = encodeURIComponent(
+      "'" + parentId + "' in parents and trashed=false and mimeType='application/json'"
     );
     const res = await driveApi(
-      "drive/v3/files?q=" + q + "&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc&pageSize=200"
+      "drive/v3/files?q=" + q + "&fields=files(id,name,modifiedTime,parents)&orderBy=modifiedTime desc&pageSize=200"
     );
     return (await res.json()).files || [];
   }
 
-  async function cloudFindByName(fileName) {
-    const folder = await ensureFolder();
+  async function cloudFindByName(fileName, parentId) {
     const q = encodeURIComponent(
-      "'" + folder + "' in parents and name='" + fileName.replace(/'/g, "\\'") + "' and trashed=false"
+      "'" + parentId + "' in parents and name='" + fileName.replace(/'/g, "\\'") + "' and trashed=false"
     );
     const res = await driveApi("drive/v3/files?q=" + q + "&fields=files(id)");
     const files = (await res.json()).files || [];
     return files.length ? files[0].id : null;
   }
 
-  async function cloudSave(name, dataObj) {
+  async function cloudSave(name, dataObj, thumb, parentId) {
     const fileName = name + ".json";
-    const content = JSON.stringify({ data: dataObj, savedAt: Date.now() });
-    const existId = await cloudFindByName(fileName);
+    const content = JSON.stringify({ v: 1, data: dataObj, savedAt: Date.now(), thumb: thumb || "" });
+    const existId = await cloudFindByName(fileName, parentId);
     if (existId) {
       await driveApi("upload/drive/v3/files/" + existId + "?uploadType=media", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: content,
       });
+      delete Cloud.contentCache[existId];
       return existId;
     }
-    const folder = await ensureFolder();
     const boundary = "poolgress_boundary_" + name.length + "_" + content.length;
-    const metadata = { name: fileName, parents: [folder], mimeType: "application/json" };
+    const metadata = { name: fileName, parents: [parentId], mimeType: "application/json" };
     const body =
       "--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" +
       JSON.stringify(metadata) +
@@ -1443,13 +1522,29 @@
     return (await res.json()).id;
   }
 
+  async function cloudMoveFile(fileId, fromId, toId) {
+    if (fromId === toId) return;
+    await driveApi(
+      "drive/v3/files/" + fileId + "?addParents=" + toId + "&removeParents=" + fromId + "&fields=id",
+      { method: "PATCH" }
+    );
+  }
+
   async function cloudLoad(fileId) {
     const res = await driveApi("drive/v3/files/" + fileId + "?alt=media");
     return res.json();
   }
+  async function cloudGetContent(file) {
+    const c = Cloud.contentCache[file.id];
+    if (c && c.modifiedTime === file.modifiedTime) return c.content;
+    const content = await cloudLoad(file.id);
+    Cloud.contentCache[file.id] = { modifiedTime: file.modifiedTime, content };
+    return content;
+  }
 
   async function cloudDelete(fileId) {
     await driveApi("drive/v3/files/" + fileId, { method: "DELETE" });
+    delete Cloud.contentCache[fileId];
   }
 
   // 雲端 UI ───────────────────────────────────────────────
@@ -1464,30 +1559,83 @@
     });
   }
 
+  // 資料夾列（chips）
+  function renderCloudFolders() {
+    const bar = document.getElementById("cloudFolders");
+    if (!bar) return;
+    bar.innerHTML = "";
+    if (!Cloud.signedIn) return;
+    const mkChip = (label, id) => {
+      const chip = document.createElement("button");
+      chip.className = "cloud-folder-chip" + (Cloud.currentFolderId === id ? " active" : "");
+      chip.textContent = label;
+      chip.addEventListener("click", () => { Cloud.currentFolderId = id; refreshCloudList(); });
+      // 非「未分類」可刪除
+      if (id) {
+        const x = document.createElement("span");
+        x.className = "cloud-folder-x"; x.textContent = "×"; x.title = "刪除資料夾（內含檔案會移回未分類）";
+        x.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          if (!confirm('刪除資料夾「' + label + '」？\n裡面的檔案會移回「未分類」。')) return;
+          try {
+            await cloudDeleteFolder(id);
+            if (Cloud.currentFolderId === id) Cloud.currentFolderId = null;
+            await refreshCloudList();
+          } catch (err) { alert("刪除資料夾失敗：" + err.message); }
+        });
+        chip.appendChild(x);
+      }
+      return chip;
+    };
+    bar.appendChild(mkChip("未分類", null));
+    Cloud.folders.forEach((f) => bar.appendChild(mkChip(f.name, f.id)));
+    const add = document.createElement("button");
+    add.className = "cloud-folder-add"; add.textContent = "＋ 新資料夾";
+    add.addEventListener("click", async () => {
+      const name = (prompt("新資料夾名稱：") || "").trim();
+      if (!name) return;
+      try { await cloudCreateFolder(name); await cloudListFolders(); renderCloudFolders(); }
+      catch (e) { alert("建立資料夾失敗：" + e.message); }
+    });
+    bar.appendChild(add);
+  }
+
   function renderCloudList(files) {
     const list = document.getElementById("cloudList");
     if (!list) return;
     list.innerHTML = "";
     if (!Cloud.signedIn) { list.innerHTML = '<div class="save-empty">登入後即可看到雲端存檔</div>'; return; }
-    if (!files || !files.length) { list.innerHTML = '<div class="save-empty">雲端尚無存檔</div>'; return; }
+    if (!files || !files.length) { list.innerHTML = '<div class="save-empty">這個資料夾還沒有存檔</div>'; return; }
+    const root = Cloud.folderId;
     files.forEach((f) => {
       const name = f.name.replace(/\.json$/i, "");
-      const row = document.createElement("div"); row.className = "save-item";
-      const info = document.createElement("div"); info.className = "save-item-info";
-      const nm = document.createElement("span"); nm.className = "save-item-name"; nm.textContent = name;
-      const tm = document.createElement("span"); tm.className = "save-item-time";
+      const card = document.createElement("div"); card.className = "cloud-card";
+      const thumb = document.createElement("div"); thumb.className = "cloud-thumb";
+      const timg = document.createElement("img"); timg.alt = ""; timg.loading = "lazy";
+      thumb.appendChild(timg);
+      // 點縮圖 = 讀取
+      thumb.addEventListener("click", () => loadCloudFile(f, name));
+      const nm = document.createElement("div"); nm.className = "cloud-card-name"; nm.textContent = name; nm.title = name;
+      const tm = document.createElement("div"); tm.className = "cloud-card-time";
       tm.textContent = f.modifiedTime ? new Date(f.modifiedTime).toLocaleString() : "";
-      info.appendChild(nm); info.appendChild(tm);
+      const actions = document.createElement("div"); actions.className = "cloud-card-actions";
       const loadB = document.createElement("button"); loadB.className = "ctrl-btn"; loadB.textContent = "讀取";
-      loadB.addEventListener("click", async () => {
-        loadB.disabled = true;
-        try {
-          const obj = await cloudLoad(f.id);
-          deserializeState(obj && obj.data ? obj.data : obj);
-          document.getElementById("saveName").value = name;
-          document.getElementById("saveModal").setAttribute("hidden", "");
-        } catch (e) { alert("讀取失敗：" + e.message); }
-        finally { loadB.disabled = false; }
+      loadB.addEventListener("click", () => loadCloudFile(f, name));
+      // 移動到…
+      const sel = document.createElement("select"); sel.className = "cloud-move";
+      const cur = (f.parents && f.parents[0]) || root;
+      const opt0 = document.createElement("option"); opt0.value = "__move__"; opt0.textContent = "移動到…"; opt0.disabled = true; opt0.selected = true;
+      sel.appendChild(opt0);
+      const dests = [{ id: root, name: "未分類" }].concat(Cloud.folders);
+      dests.forEach((d) => {
+        if (d.id === cur) return;
+        const o = document.createElement("option"); o.value = d.id; o.textContent = "→ " + d.name; sel.appendChild(o);
+      });
+      sel.addEventListener("change", async () => {
+        const to = sel.value; if (to === "__move__") return;
+        sel.disabled = true;
+        try { await cloudMoveFile(f.id, cur, to); await refreshCloudList(); }
+        catch (e) { alert("移動失敗：" + e.message); sel.disabled = false; sel.value = "__move__"; }
       });
       const delB = document.createElement("button"); delB.className = "ctrl-btn"; delB.textContent = "刪除";
       delB.addEventListener("click", async () => {
@@ -1496,17 +1644,40 @@
         try { await cloudDelete(f.id); await refreshCloudList(); }
         catch (e) { alert("刪除失敗：" + e.message); delB.disabled = false; }
       });
-      row.appendChild(info); row.appendChild(loadB); row.appendChild(delB);
-      list.appendChild(row);
+      actions.appendChild(loadB); actions.appendChild(sel); actions.appendChild(delB);
+      card.appendChild(thumb); card.appendChild(nm); card.appendChild(tm); card.appendChild(actions);
+      list.appendChild(card);
+      // 非同步載入縮圖
+      cloudGetContent(f).then((obj) => {
+        if (obj && obj.thumb) timg.src = obj.thumb;
+        else thumb.classList.add("no-thumb");
+      }).catch(() => thumb.classList.add("no-thumb"));
     });
   }
 
+  async function loadCloudFile(f, name) {
+    try {
+      const obj = await cloudGetContent(f);
+      deserializeState(obj && obj.data ? obj.data : obj);
+      document.getElementById("saveName").value = name;
+      document.getElementById("saveModal").setAttribute("hidden", "");
+    } catch (e) { alert("讀取失敗：" + e.message); }
+  }
+
   async function refreshCloudList() {
-    if (!Cloud.signedIn) { renderCloudList(null); return; }
     const list = document.getElementById("cloudList");
+    if (!Cloud.signedIn) { renderCloudFolders(); renderCloudList(null); return; }
     if (list) list.innerHTML = '<div class="save-empty">讀取中…</div>';
-    try { renderCloudList(await cloudList()); }
-    catch (e) { if (list) list.innerHTML = '<div class="save-empty">讀取失敗：' + e.message + "</div>"; }
+    try {
+      await cloudListFolders();
+      // 若目前資料夾已被刪除，退回未分類
+      if (Cloud.currentFolderId && !Cloud.folders.some((x) => x.id === Cloud.currentFolderId)) Cloud.currentFolderId = null;
+      renderCloudFolders();
+      const files = await cloudList(currentParentId());
+      renderCloudList(files);
+    } catch (e) {
+      if (list) list.innerHTML = '<div class="save-empty">讀取失敗：' + e.message + "</div>";
+    }
   }
 
   async function cloudSignIn() {
@@ -1609,11 +1780,20 @@
       const name = nameInput.value.trim();
       if (!name) { alert("請先輸入檔名"); return; }
       if (!Cloud.signedIn) { await cloudSignIn(); if (!Cloud.signedIn) return; }
-      const existId = await cloudFindByName(name + ".json").catch(() => null);
-      if (existId && !confirm('雲端已存在同名存檔「' + name + '」，要覆蓋嗎？')) return;
       cloudSaveBtn.disabled = true;
       const old = cloudSaveBtn.textContent; cloudSaveBtn.textContent = "儲存中…";
-      try { await cloudSave(name, serializeState()); await refreshCloudList(); }
+      try {
+        await ensureFolder();
+        const parent = currentParentId();
+        const fLabel = Cloud.currentFolderId
+          ? ((Cloud.folders.find((x) => x.id === Cloud.currentFolderId) || {}).name || "資料夾")
+          : "未分類";
+        const existId = await cloudFindByName(name + ".json", parent).catch(() => null);
+        if (existId && !confirm('「' + fLabel + '」已有同名存檔「' + name + '」，要覆蓋嗎？')) return;
+        const thumb = await captureThumbnail();
+        await cloudSave(name, serializeState(), thumb, parent);
+        await refreshCloudList();
+      }
       catch (e) { alert("雲端儲存失敗：" + e.message); }
       finally { cloudSaveBtn.textContent = old; cloudSaveBtn.disabled = !Cloud.signedIn; }
     });
