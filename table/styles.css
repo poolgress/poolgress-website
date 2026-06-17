@@ -334,6 +334,7 @@ html, body {
   white-space: nowrap;
 }
 .note-type-opt:hover { background: #ffe9a8; }
+.note-cond-gap { margin-left: 16px; } /* 過關條件左邊加空格 */
 .note-cond-infinite { font-size: 15px; font-weight: 400; color: #1a1a1a; }
 .note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
 /* 星星獎勵 */
@@ -346,7 +347,7 @@ html, body {
 }
 .note-star-item { font-size: 14px; color: #1a1a1a; white-space: nowrap; }
 .note-star-num {
-  width: 34px;
+  width: 26px;
   box-sizing: border-box;
   border: none;
   border-bottom: 1px solid #cfcfcf;
