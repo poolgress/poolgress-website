@@ -1423,16 +1423,16 @@
 
   // 輸出：把目前關卡整理成 UI 可用的文字
   const POCKET_NAMES = ["左上", "右上", "左下", "右下", "上中", "下中"];
-  // 顆星座標：原點＝左上角袋口，單位＝一個顆星間距（檯面長邊 8 顆星、短邊 4 顆星）
-  const STAR_ORIGIN = (CFG.POCKETS && CFG.POCKETS[0]) || { fx: 0.0498, fy: 0.0858 };
+  // 顆星座標：原點＝左上角庫鼻交點，單位＝一個顆星間距（檯面長邊 8 顆星、短邊 4 顆星）
+  // → 顆星點剛好落在整數，x:0~8、y:0~4，中心 (4,2)
   const _G = CFG.GRID || { left: 0.0543, right: 0.9453, top: 0.0979, bottom: 0.9014 };
+  const STAR_ORIGIN = { fx: _G.left, fy: _G.top };
   const STAR_UX = (_G.right - _G.left) / 8;   // x 每顆星佔的寬比例
   const STAR_UY = (_G.bottom - _G.top) / 4;   // y 每顆星佔的高比例
-  function fmtPt(fx, fy) {
-    const x = (fx - STAR_ORIGIN.fx) / STAR_UX;
-    const y = (fy - STAR_ORIGIN.fy) / STAR_UY;
-    return "(" + x.toFixed(2) + ", " + y.toFixed(2) + ")";
-  }
+  function starX(fx) { return (fx - STAR_ORIGIN.fx) / STAR_UX; }
+  function starY(fy) { return (fy - STAR_ORIGIN.fy) / STAR_UY; }
+  function round3(n) { return Math.round(n * 1000) / 1000; }
+  function fmtPt(fx, fy) { return "(" + starX(fx).toFixed(2) + ", " + starY(fy).toFixed(2) + ")"; }
   function buildExportText() {
     const val = (id) => ((document.getElementById(id) || {}).value || "");
     const none = "（無）";
@@ -1454,7 +1454,7 @@
     out.push("規則需求：" + (ruleTexts.length ? ruleTexts.join("、") : none));
 
     out.push("");
-    out.push("位置需求：（座標：左上角袋口為原點，單位＝顆星，x 往右、y 往下）");
+    out.push("位置需求：（座標：左上角庫鼻交點為原點，單位＝顆星，x:0~8、y:0~4，往右往下為正）");
     // 球
     const cueBalls = placedBalls.filter((b) => b.cfg.id === "cue");
     const objBalls = placedBalls.filter((b) => b.cfg.id !== "cue");
@@ -1495,10 +1495,26 @@
     return out.join("\n");
   }
 
+  // JSON 用的顆星座標版本（座標改成 0~8 / 0~4，整數＝顆星點）
+  function serializeStateStar() {
+    const s = serializeState();
+    const P = (fx, fy) => ({ x: round3(starX(fx)), y: round3(starY(fy)) });
+    return {
+      v: s.v,
+      座標: "顆星：原點＝左上角庫鼻交點，x:0~8、y:0~4，整數＝顆星點",
+      balls: s.balls.map((b) => { const p = P(b.fx, b.fy); return { id: b.id, x: p.x, y: p.y }; }),
+      paths: s.paths.map((pa) => ({ ball: pa.ball, vertices: pa.vertices.map((v) => { const p = P(v.fx, v.fy); return { x: p.x, y: p.y, ghost: v.ghost }; }) })),
+      pockets: s.pockets,
+      lines: s.lines.map((l) => { const a = P(l.x1, l.y1), b = P(l.x2, l.y2); return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, side: l.side }; }),
+      zones: s.zones.map((z) => { const a = P(z.x1, z.y1), b = P(z.x2, z.y2); return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, side: z.side }; }),
+      grid: s.grid, snap: s.snap,
+      cue: s.cue, note: s.note,
+    };
+  }
   let exportMode = "info"; // "info"=文字資訊 / "json"
   function exportContent() {
     return exportMode === "json"
-      ? JSON.stringify(serializeState(), null, 2)
+      ? JSON.stringify(serializeStateStar(), null, 2)
       : buildExportText();
   }
   function initExportBtn() {
