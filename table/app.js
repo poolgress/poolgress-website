@@ -930,6 +930,7 @@
       { key: "ballFrozen", label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "邊緣子球緊貼顆星邊"] },
       { key: "ballPath",   label: "路線要求", opts: ["不顯示", "需要依序經過目標線段"] },
       { key: "ballPocket", label: "落點要求", opts: ["不顯示", "全都可以打", "打進目標袋口", "停在目標區塊"] },
+      { key: "ballHit",    label: "擊球規則", opts: ["不顯示", "直接擊打子球"] },
     ] },
     { group: "母球規則", items: [
       { key: "cueStart",  label: "起手規則", opts: ["不顯示", "母球自由球"] },
