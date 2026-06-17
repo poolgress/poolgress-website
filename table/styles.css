@@ -336,13 +336,13 @@ html, body {
   gap: 2px 8px;
   padding-left: 8px;
 }
-.note-rule-label { font-size: 15px; color: #333; min-width: 4.5em; }
+.note-rule-label { font-size: 14px; color: #333; min-width: 4.5em; }
 .note-rule-opts { display: flex; flex-wrap: wrap; gap: 2px 10px; }
 .note-rule-opt {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 15px;
+  font-size: 14px;
   color: #222;
   cursor: pointer;
 }
