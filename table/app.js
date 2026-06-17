@@ -954,6 +954,14 @@
     inf.style.display = infinite ? "" : "none";
     stg.style.display = infinite ? "none" : "";
   }
+  function setLevelType(v) {
+    const hid = document.getElementById("noteLevelType");
+    const lbl = document.querySelector("#noteTypeBtn .note-type-label");
+    const val = v === "stage" ? "stage" : "infinite";
+    if (hid) hid.value = val;
+    if (lbl) lbl.textContent = val === "stage" ? "遊戲闖關" : "無限挑戰";
+    applyLevelType();
+  }
 
   function initNote() {
     const btn = document.getElementById("noteBtn");
@@ -962,8 +970,17 @@
     const input = document.getElementById("noteInput");
     if (!btn || !box || !header || !input) return;
     buildNoteRules();
-    const typeSel = document.getElementById("noteLevelType");
-    if (typeSel) typeSel.addEventListener("change", applyLevelType);
+    // 關卡種類自訂下拉
+    const typeBtn = document.getElementById("noteTypeBtn");
+    const typeList = document.getElementById("noteTypeList");
+    const typeWrap = document.getElementById("noteType");
+    if (typeBtn && typeList && typeWrap) {
+      typeBtn.addEventListener("click", (e) => { e.stopPropagation(); typeList.toggleAttribute("hidden"); });
+      typeList.querySelectorAll(".note-type-opt").forEach((opt) => {
+        opt.addEventListener("click", () => { setLevelType(opt.dataset.value); typeList.setAttribute("hidden", ""); });
+      });
+      document.addEventListener("click", (e) => { if (!typeWrap.contains(e.target)) typeList.setAttribute("hidden", ""); });
+    }
     applyLevelType();
 
     const autoGrow = () => {
@@ -1339,11 +1356,10 @@
     if (nbtn) { nbtn.classList.remove("active"); nbtn.setAttribute("aria-pressed", "false"); }
     const ni = document.getElementById("noteInput"); if (ni) ni.value = "";
     const ln = document.getElementById("noteLevelName"); if (ln) ln.value = "";
-    const lt = document.getElementById("noteLevelType"); if (lt) lt.value = "infinite";
     const np = document.getElementById("noteCondPass"); if (np) np.value = "";
     const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
     setNoteRules({}); // 規則回到預設（各列第一個選項）
-    applyLevelType();
+    setLevelType("infinite");
     // 檔名欄
     const sn = document.getElementById("saveName"); if (sn) sn.value = "";
     // 重繪
@@ -1397,11 +1413,10 @@
       const ta = document.getElementById("noteInput");
       ta.value = st.note.desc || "";
       const ln = document.getElementById("noteLevelName"); if (ln) ln.value = st.note.name || "";
-      const lt = document.getElementById("noteLevelType"); if (lt) lt.value = st.note.type || "infinite";
       document.getElementById("noteCondPass").value = st.note.pass || "";
       document.getElementById("noteCondTotal").value = st.note.total || "";
       setNoteRules(st.note.rules);
-      applyLevelType();
+      setLevelType(st.note.type || "infinite");
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
       if (nbtn) { nbtn.classList.toggle("active", !!st.note.shown); nbtn.setAttribute("aria-pressed", String(!!st.note.shown)); }
       if (st.note.shown) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }

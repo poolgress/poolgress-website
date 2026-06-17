@@ -103,12 +103,18 @@
     <textarea class="note-input" id="noteInput" rows="1" placeholder="在這裡輸入說明文字…"></textarea>
     <div class="note-cond-row">
       <span class="note-cond-label">關卡種類：</span>
-      <select class="note-type-select" id="noteLevelType">
-        <option value="infinite">無限挑戰</option>
-        <option value="stage">遊戲闖關</option>
-      </select>
+      <span class="note-type" id="noteType">
+        <button type="button" class="note-type-btn" id="noteTypeBtn">
+          <span class="note-type-label">無限挑戰</span><span class="note-type-arrow">▾</span>
+        </button>
+        <input type="hidden" id="noteLevelType" value="infinite" />
+        <div class="note-type-list" id="noteTypeList" hidden>
+          <div class="note-type-opt" data-value="infinite">無限挑戰</div>
+          <div class="note-type-opt" data-value="stage">遊戲闖關</div>
+        </div>
+      </span>
       <span class="note-cond-label">過關條件：</span>
-      <span class="note-cond-infinite" id="noteCondInfinite">持續挑戰！直到失敗！</span>
+      <span class="note-cond-infinite" id="noteCondInfinite">無限</span>
       <span class="note-cond-stage" id="noteCondStage">
         <input type="number" class="note-cond-num" id="noteCondPass" min="0" />
         <span class="note-cond-sep">/</span>
