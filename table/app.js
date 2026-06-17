@@ -2023,7 +2023,8 @@
     if (!openBtn || !modal) return;
     openBtn.addEventListener("click", () => { renderSaveList(); modal.removeAttribute("hidden"); nameInput.focus(); });
     if (closeBtn) closeBtn.addEventListener("click", () => modal.setAttribute("hidden", ""));
-    modal.addEventListener("click", (e) => { if (e.target === modal) modal.setAttribute("hidden", ""); });
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.setAttribute("hidden", ""); }); // 點視窗外關閉
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hasAttribute("hidden")) modal.setAttribute("hidden", ""); }); // Esc 關閉
     if (doBtn) doBtn.addEventListener("click", () => {
       const name = nameInput.value.trim();
       if (!name) { alert("請先輸入檔名"); return; }
