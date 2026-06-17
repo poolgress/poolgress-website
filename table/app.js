@@ -1486,16 +1486,32 @@
     return out.join("\n");
   }
 
+  let exportMode = "info"; // "info"=文字資訊 / "json"
+  function exportContent() {
+    return exportMode === "json"
+      ? JSON.stringify(serializeState(), null, 2)
+      : buildExportText();
+  }
   function initExportBtn() {
     const btn = document.getElementById("exportBtn");
     const modal = document.getElementById("exportModal");
     const ta = document.getElementById("exportText");
     if (!btn || !modal || !ta) return;
+    const tabInfo = document.getElementById("expTabInfo");
+    const tabJson = document.getElementById("expTabJson");
+    const refresh = () => {
+      ta.value = exportContent();
+      if (tabInfo) tabInfo.classList.toggle("active", exportMode === "info");
+      if (tabJson) tabJson.classList.toggle("active", exportMode === "json");
+    };
     btn.addEventListener("click", () => {
-      ta.value = buildExportText();
+      exportMode = "info";
+      refresh();
       modal.removeAttribute("hidden");
       ta.focus(); ta.select();
     });
+    if (tabInfo) tabInfo.addEventListener("click", () => { exportMode = "info"; refresh(); ta.focus(); ta.select(); });
+    if (tabJson) tabJson.addEventListener("click", () => { exportMode = "json"; refresh(); ta.focus(); ta.select(); });
     const closeBtn = document.getElementById("exportCloseBtn");
     if (closeBtn) closeBtn.addEventListener("click", () => modal.setAttribute("hidden", ""));
     modal.addEventListener("click", (e) => { if (e.target === modal) modal.setAttribute("hidden", ""); });
@@ -1508,8 +1524,10 @@
     const dlBtn = document.getElementById("exportDownloadBtn");
     if (dlBtn) dlBtn.addEventListener("click", () => {
       const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
-      const fileName = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".txt";
-      const blob = new Blob([ta.value], { type: "text/plain;charset=utf-8" });
+      const ext = exportMode === "json" ? ".json" : ".txt";
+      const type = exportMode === "json" ? "application/json" : "text/plain;charset=utf-8";
+      const fileName = rawName.replace(/[\\/:*?"<>|]/g, "_") + ext;
+      const blob = new Blob([ta.value], { type: type });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a"); a.href = url; a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove();
