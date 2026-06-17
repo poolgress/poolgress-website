@@ -662,7 +662,7 @@
       c.setAttribute("cy", cy);
       c.setAttribute("r", rad);
       c.setAttribute("stroke-width", strokeW);
-      if (selected) c.style.stroke = side === "cue" ? "#2ecc71" : "#ffbc00"; // 子=黃、母=綠
+      if (selected) c.style.stroke = side === "cue" ? "#15803d" : "#ffbc00"; // 子=黃、母=深綠
       if (pocketEditOn) {
         c.addEventListener("click", () => {
           pocketSelected[i] = pocketSelected[i] ? false : "ball"; // 點選預設子球
