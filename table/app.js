@@ -1391,6 +1391,24 @@
     });
   }
 
+  // 輸出：把目前狀態匯出成 .json 檔下載
+  function initExportBtn() {
+    const btn = document.getElementById("exportBtn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const payload = { v: 1, data: serializeState(), savedAt: Date.now() };
+      const json = JSON.stringify(payload, null, 2);
+      const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
+      const fileName = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".json"; // 去除檔名非法字元
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+  }
+
   function deserializeState(st) {
     if (!st) return;
     clearAllDrawing();
@@ -1959,6 +1977,7 @@
   initRack();
   initSaveLoad();
   initResetBtn();
+  initExportBtn();
   tableWrap.addEventListener("pointerdown", onTablePointerDown);
   fitTable();
   updateFloatingScale();
