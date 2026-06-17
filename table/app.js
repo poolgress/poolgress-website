@@ -1008,7 +1008,7 @@
     const btn = document.getElementById("gridToggle");
     if (gridImg) gridImg.style.display = on ? "block" : "none";
     if (btn) {
-      btn.textContent = on ? "隱藏格線" : "顯示格線";
+      btn.textContent = "格線";
       btn.classList.toggle("active", on);
       btn.setAttribute("aria-pressed", String(on));
     }
@@ -1175,7 +1175,7 @@
     if (!btn) return;
     btn.addEventListener("click", () => {
       pathMode = !pathMode;
-      btn.textContent = pathMode ? "結束繪製" : "繪製路徑";
+      btn.textContent = "路線";
       btn.classList.toggle("active", pathMode);
       btn.setAttribute("aria-pressed", String(pathMode));
     });
