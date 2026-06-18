@@ -1724,14 +1724,15 @@
     ".target-line{fill:none;stroke:#ffffff;stroke-linecap:butt;}" +
     ".target-line-num{fill:#1a1a1a;stroke:#ffffff;paint-order:stroke;font-weight:700;text-anchor:middle;dominant-baseline:central;}" +
     ".target-zone{fill:rgba(255,255,255,0.30);stroke:rgba(255,255,255,0.85);}";
-  function svgToImage(svgEl, w, h) {
+  // vbW/vbH = 內容座標空間（球桌實際 px）；outW/outH = 輸出點陣尺寸（縮圖解析度）
+  function svgToImage(svgEl, vbW, vbH, outW, outH) {
     return new Promise((resolve) => {
       if (!svgEl) { resolve(null); return; }
       const clone = svgEl.cloneNode(true);
       clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-      clone.setAttribute("width", w);
-      clone.setAttribute("height", h);
-      clone.setAttribute("viewBox", "0 0 " + w + " " + h);
+      clone.setAttribute("width", outW);
+      clone.setAttribute("height", outH);
+      clone.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
       const st = document.createElementNS("http://www.w3.org/2000/svg", "style");
       st.textContent = SNAPSHOT_CSS;
       clone.insertBefore(st, clone.firstChild);
@@ -1746,7 +1747,7 @@
     try {
       const W = tableWrap.clientWidth, H = tableWrap.clientHeight;
       if (!W || !H) return null;
-      const TW = 560, scale = TW / W, TH = Math.round(H * scale); // 高解析度，顯示放大後仍清晰
+      const TW = 900, scale = TW / W, TH = Math.round(H * scale); // 高解析度，顯示放大後仍清晰
       const canvas = document.createElement("canvas");
       canvas.width = TW; canvas.height = TH;
       const ctx = canvas.getContext("2d");
@@ -1756,7 +1757,7 @@
       if (layerVisible(gridImg)) ctx.drawImage(gridImg, 0, 0, TW, TH);
       const cushionImg = document.getElementById("cushionImg");
       if (layerVisible(cushionImg)) ctx.drawImage(cushionImg, 0, 0, TW, TH);
-      const pathImg = await svgToImage(document.getElementById("pathLayer"), W, H);
+      const pathImg = await svgToImage(document.getElementById("pathLayer"), W, H, TW, TH);
       if (pathImg) ctx.drawImage(pathImg, 0, 0, TW, TH);
       const wr = tableWrap.getBoundingClientRect();
       placedBalls.forEach((b) => {
@@ -1765,7 +1766,7 @@
         const r = b.el.getBoundingClientRect();
         ctx.drawImage(img, (r.left - wr.left) * scale, (r.top - wr.top) * scale, r.width * scale, r.height * scale);
       });
-      const tgtImg = await svgToImage(document.getElementById("targetLayer"), W, H);
+      const tgtImg = await svgToImage(document.getElementById("targetLayer"), W, H, TW, TH);
       if (tgtImg) ctx.drawImage(tgtImg, 0, 0, TW, TH);
       // 母球打點（若顯示）：畫在最上層
       const cw = document.getElementById("cueballWidget");
