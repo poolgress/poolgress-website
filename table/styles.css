@@ -451,9 +451,9 @@ html, body {
 }
 .save-modal[hidden] { display: none; }
 .save-panel {
-  width: 600px;
+  width: 860px;
   max-width: 92vw;
-  max-height: 86vh;
+  max-height: 88vh;
   background: var(--panel);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
@@ -540,7 +540,7 @@ html, body {
 
 /* 雲端：縮圖卡片格 */
 .cloud-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 12px;
   overflow-y: auto; flex: 1 1 auto; min-height: 0; align-content: start;
 }
 .cloud-grid .save-empty { grid-column: 1 / -1; }
