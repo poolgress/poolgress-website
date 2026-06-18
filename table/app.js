@@ -1746,7 +1746,7 @@
     try {
       const W = tableWrap.clientWidth, H = tableWrap.clientHeight;
       if (!W || !H) return null;
-      const TW = 280, scale = TW / W, TH = Math.round(H * scale);
+      const TW = 560, scale = TW / W, TH = Math.round(H * scale); // 高解析度，顯示放大後仍清晰
       const canvas = document.createElement("canvas");
       canvas.width = TW; canvas.height = TH;
       const ctx = canvas.getContext("2d");
@@ -1786,7 +1786,7 @@
           ctx.lineWidth = Math.max(rad * 0.2, 0.8); ctx.strokeStyle = "#ffffff"; ctx.stroke();
         }
       }
-      return canvas.toDataURL("image/jpeg", 0.62);
+      return canvas.toDataURL("image/jpeg", 0.72);
     } catch (e) { return null; }
   }
 
