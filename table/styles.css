@@ -339,8 +339,6 @@ html, body {
 .note-cond-gap { margin-left: 16px; } /* 過關條件左邊加空格 */
 .note-cond-infinite { font-size: 15px; font-weight: 400; color: #1a1a1a; }
 .note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
-.note-once { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #1a1a1a; cursor: pointer; margin-left: 10px; }
-.note-once input { cursor: pointer; accent-color: #ffbc00; margin: 0; }
 /* 星星獎勵 */
 .note-star-row {
   display: flex;

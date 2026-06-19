@@ -128,8 +128,9 @@
         </button>
         <input type="hidden" id="noteLevelType" value="infinite" />
         <div class="note-type-list" id="noteTypeList" hidden>
+          <div class="note-type-opt" data-value="repeat">重複關卡</div>
+          <div class="note-type-opt" data-value="pattern">球型關卡</div>
           <div class="note-type-opt" data-value="infinite">無限挑戰</div>
-          <div class="note-type-opt" data-value="stage">遊戲闖關</div>
         </div>
       </span>
       <span class="note-cond-label note-cond-gap">過關條件：</span>
@@ -140,7 +141,6 @@
         <input type="number" class="note-cond-num" id="noteCondTotal" min="0" />
         <span class="note-cond-unit">次</span>
       </span>
-      <label class="note-once"><input type="checkbox" id="noteOnce" />只需完成一次</label>
     </div>
     <!-- 星星獎勵 -->
     <div class="note-star-row">
