@@ -986,13 +986,6 @@
     const infinite = sel.value === "infinite";
     inf.style.display = infinite ? "" : "none";
     stg.style.display = infinite ? "none" : "";
-    // 只需完成一次：勾選時停用次數欄
-    const once = document.getElementById("noteOnce");
-    const onceOn = !!(once && once.checked);
-    ["noteCondPass", "noteCondTotal"].forEach((id) => {
-      const e = document.getElementById(id);
-      if (e) { e.disabled = onceOn; e.style.opacity = onceOn ? "0.4" : ""; }
-    });
   }
   function setLevelType(v) {
     const hid = document.getElementById("noteLevelType");
@@ -1021,8 +1014,6 @@
       });
       document.addEventListener("click", (e) => { if (!typeWrap.contains(e.target)) typeList.setAttribute("hidden", ""); });
     }
-    const onceCb = document.getElementById("noteOnce");
-    if (onceCb) onceCb.addEventListener("change", applyLevelType);
     applyLevelType();
 
     const autoGrow = () => {
@@ -1453,11 +1444,8 @@
     out.push("關卡說明：" + val("noteInput").trim());
     const once = !!(document.getElementById("noteOnce") || {}).checked;
     out.push("關卡種類：" + (stage ? "遊戲闖關" : "無限挑戰"));
-    if (stage) {
-      out.push(once
-        ? "過關需求：只需完成一次"
-        : "過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
-    }
+    if (stage) out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
+    if (once) out.push("過關需求：只需完成一次");
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
     // 規則需求：列出不是「不顯示」(index 0) 的選項
     const rules = getNoteRules();
