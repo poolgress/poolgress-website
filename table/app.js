@@ -1452,9 +1452,12 @@
     out.push("關卡名稱：" + val("noteLevelName").trim());
     out.push("關卡說明：" + val("noteInput").trim());
     const once = !!(document.getElementById("noteOnce") || {}).checked;
-    out.push("關卡種類：" + (stage
-      ? "遊戲闖關（過關條件：" + (once ? "只需完成一次" : (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次") + "）"
-      : "無限挑戰"));
+    out.push("關卡種類：" + (stage ? "遊戲闖關" : "無限挑戰"));
+    if (stage) {
+      out.push(once
+        ? "過關需求：只需完成一次"
+        : "過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
+    }
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
     // 規則需求：列出不是「不顯示」(index 0) 的選項
     const rules = getNoteRules();
