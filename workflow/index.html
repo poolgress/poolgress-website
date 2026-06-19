@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遊戲流程示意</title>
+<style>
+  :root {
+    --blue: #3b82f6;
+    --blue-dark: #2563eb;
+    --blue-soft: #eaf2ff;
+    --orange: #ff7a45;
+    --green: #22c55e;
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --text: #1f2937;
+    --text-soft: #6b7280;
+    --line: #cbd5e1;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px;
+  }
+  header.top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 0 auto 28px; flex-wrap: wrap; gap: 12px; max-width: 1100px;
+  }
+  h1 { font-size: 22px; font-weight: 700; }
+  h1 .sub { font-size: 13px; font-weight: 400; color: var(--text-soft); display: block; margin-top: 4px; }
+  #resetBtn {
+    background: var(--blue); color: #fff; border: none; padding: 12px 26px;
+    border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+  }
+  #resetBtn:hover { background: var(--blue-dark); }
+
+  .layout {
+    display: grid; grid-template-columns: 1fr 360px; gap: 40px;
+    max-width: 1360px; margin: 0 auto; align-items: start;
+  }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; justify-items: center; } }
+
+  /* ===== 流程圖 ===== */
+  .flow { display: flex; flex-direction: column; align-items: center; }
+  .connector { width: 2px; height: 18px; background: var(--line); position: relative; }
+  .connector::after {
+    content: ""; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+    border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid var(--line);
+  }
+  .connector.lit { background: var(--blue); }
+  .connector.lit::after { border-top-color: var(--blue); }
+
+  .node {
+    width: 300px; max-width: 100%; background: var(--card); border: 2px solid var(--line);
+    border-radius: 12px; padding: 9px 14px; text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); opacity: .5; position: relative;
+  }
+  .node .num {
+    position: absolute; left: -12px; top: -12px; width: 28px; height: 28px; border-radius: 50%;
+    background: #eef0f4; color: var(--text-soft); display: flex; align-items: center;
+    justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #fff;
+  }
+  .node .title { font-size: 16px; font-weight: 600; }
+  .node.terminal { border-radius: 999px; background: var(--blue-soft); }
+  .node.active {
+    opacity: 1; border-color: var(--blue); background: var(--blue-soft);
+    box-shadow: 0 0 0 1px var(--blue), 0 6px 16px rgba(59,130,246,0.18);
+  }
+  .node.done { opacity: 1; border-color: var(--green); }
+  .node.active .num { background: var(--blue); color:#fff; }
+  .node.done .num { background: var(--green); color:#fff; }
+
+  /* ===== 手機預覽框 ===== */
+  .phone-wrap { position: sticky; top: 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .phone-label { font-size: 13px; color: var(--text-soft); font-weight: 600; }
+  .phone {
+    width: 320px; height: 660px; background: #fff; border-radius: 38px;
+    border: 10px solid #1f2937; box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    overflow: hidden; position: relative; display: flex; flex-direction: column;
+  }
+  .app-header {
+    flex: 0 0 auto; text-align: center; font-weight: 700; font-size: 17px;
+    padding: 16px 0 12px; background: #fff; border-bottom: 1px solid #f0f0f0; z-index: 2;
+  }
+  .app-body { flex: 1 1 auto; position: relative; overflow: hidden; }
+  .phone.no-chrome .app-header, .phone.no-chrome .nav { display: none; }
+
+  .screen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 14px; overflow-y: auto; }
+  .screen.show { display: flex; }
+
+  .nav {
+    flex: 0 0 auto; display: flex; justify-content: space-around; align-items: center;
+    padding: 8px 4px 10px; border-top: 1px solid #f0f0f0; background: #fff;
+  }
+  .nav .item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: #9aa3b2; }
+  .nav .ico { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .nav .item.active { color: var(--blue); }
+  .nav .item.active .ico { background: var(--blue); color: #fff; }
+
+  /* --- step0：黑畫面 --- */
+  .screen[data-screen="0"] { background: #000; padding: 0; align-items: center; justify-content: center; cursor: pointer; }
+  .screen[data-screen="0"] .power { color:#fff; text-align:center; opacity:.85; }
+  .screen[data-screen="0"] .power .circle { width:60px; height:60px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 12px; }
+  .screen[data-screen="0"] .power .t { font-size:13px; }
+
+  /* --- step1：手機桌布 --- */
+  .screen[data-screen="1"] { padding: 0; background: linear-gradient(160deg, #6a8cff, #9a6cff 55%, #c86bd6); align-items: center; }
+  .wp-clock { color:#fff; text-align:center; margin-top: 54px; }
+  .wp-clock .time { font-size: 56px; font-weight: 300; letter-spacing: 1px; }
+  .wp-clock .date { font-size: 15px; opacity: .9; margin-top: 2px; }
+  .wp-grid { margin: auto; display: flex; justify-content: center; padding: 0 22px; width: 100%; }
+  .wp-app { display: flex; flex-direction: column; align-items: center; gap: 5px; color:#fff; font-size: 10px; }
+  .wp-icon { width: 50px; height: 50px; border-radius: 14px; display:flex; align-items:center; justify-content:center; font-size: 24px; background: rgba(255,255,255,0.25); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+  .wp-app.target { font-weight: 700; cursor: pointer; }
+  .wp-app.target .wp-icon { background: var(--blue); box-shadow: 0 0 0 3px rgba(255,255,255,0.7); }
+  .wp-dock { width: calc(100% - 24px); margin: 0 12px 16px; background: rgba(255,255,255,0.22); border-radius: 26px; padding: 12px; display: flex; justify-content: space-around; backdrop-filter: blur(4px); }
+  .wp-dock .wp-icon { background: rgba(255,255,255,0.35); }
+  .tap-pill { position:absolute; top:18px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.55); color:#fff; font-size:12px; padding:6px 12px; border-radius:999px; }
+
+  /* --- 闖關遊戲首頁（點選關卡） --- */
+  .game-bg { flex: 1; border-radius: 16px; background: linear-gradient(160deg, #dbe7f7, #cdddf2); padding: 18px 16px; display: flex; flex-direction: column; align-items: center; }
+  .game-title { display: flex; align-items: center; gap: 10px; margin: 6px 0 22px; }
+  .game-title b { font-size: 24px; }
+  .badge { background: var(--orange); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; }
+  .lock { width: 56px; height: 56px; border-radius: 50%; background: #e3e8f0; color: #9aa3b2; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .lvl-label { text-align: center; color: #8a93a3; font-weight: 700; margin: 6px 0 12px; }
+  .path { width: 3px; height: 22px; background: var(--blue); margin: 2px auto; opacity: .6; }
+  .lvl-card { background: var(--blue); color: #fff; border-radius: 16px; padding: 18px; text-align: center; box-shadow: 0 6px 16px rgba(59,130,246,0.35); margin-top: 4px; width: 100%; cursor: pointer; }
+  .lvl-card:hover { background: var(--blue-dark); }
+  .lvl-card .target { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 22px; margin: 0 auto 10px; }
+  .lvl-card .name { font-size: 17px; font-weight: 700; }
+  .lvl-card .stars { margin-top: 6px; font-size: 14px; }
+  .lvl-bottom { text-align: center; font-weight: 700; font-size: 17px; margin-top: 12px; }
+  .tap-hint { text-align:center; color: var(--blue-dark); font-size:12px; font-weight:700; margin-top:10px; }
+
+  /* --- 載入關卡資訊（輸入） --- */
+  .screen[data-screen="4"] { gap: 4px; }
+  .info-title { font-weight:700; font-size:16px; margin: 4px 0; }
+  .info-tip { font-size: 12px; color: var(--text-soft); margin-bottom: 8px; }
+  .field-label { font-size: 13px; font-weight: 700; margin: 4px 0 6px; }
+  .upload-zone {
+    align-self: flex-start; border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; text-align: center; color: var(--text-soft);
+    cursor: pointer; background: #fafbfd;
+  }
+  .upload-zone:hover { border-color: var(--blue); color: var(--blue); }
+  .upload-preview { display: none; margin-top: 8px; position: relative; }
+  .upload-preview img { width: 100%; max-height: 120px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+  .upload-preview .remove { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color:#fff; border:none; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:13px; }
+  .text-input { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); font-size: 14px; font-family: inherit; }
+  .info-area { width: 100%; min-height: 56px; resize: vertical; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); font-size: 14px; line-height: 1.6; font-family: inherit; }
+  .pill-btn { background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 15px; font-weight: 700; cursor: pointer; width: 100%; box-shadow: 0 6px 16px rgba(59,130,246,0.3); }
+  .pill-btn:hover { background: var(--blue-dark); }
+  .pill-btn:disabled { background: #c7d2da; cursor: default; box-shadow: none; }
+
+  /* --- 遊戲說明畫面 --- */
+  .screen[data-screen="5"] { background: linear-gradient(160deg, #dbe7f7, #cdddf2); gap: 12px; padding: 12px; }
+  .lvl-image { background:#141414; border-radius:12px; padding:6px; }
+  .lvl-image img { width:100%; max-height:180px; object-fit:contain; border-radius:8px; display:block; }
+  .lvl-image.empty { background:#e3e8f0; color:#9aa3b2; height:120px; display:flex; align-items:center; justify-content:center; font-size:13px; padding:0; }
+  .lvl-image.empty img { display:none; }
+  .lvl-image .ph { display:none; }
+  .lvl-image.empty .ph { display:block; }
+  .info-card { background:#fff; border-radius:16px; padding:16px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+  .info-card .sec { margin-bottom:14px; }
+  .info-card .sec:last-child { margin-bottom:0; }
+  .info-card .sec-t { font-size:14px; font-weight:700; color:var(--blue-dark); margin-bottom:4px; }
+  .info-card .sec p { font-size:13px; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+  .info-card .sec p:empty::before { content:"—"; color:var(--text-soft); }
+
+  /* --- 選擇遊戲地點 --- */
+  .screen[data-screen="7"] { gap: 6px; }
+  .loc-option {
+    width: 100%; border: 2px solid var(--line); border-radius: 14px; padding: 16px;
+    margin-top: 10px; cursor: pointer; background: #fff; display: flex;
+    justify-content: space-between; align-items: center;
+  }
+  .loc-option:hover { border-color: var(--blue); background: var(--blue-soft); }
+  .loc-option .ln { font-size: 16px; font-weight: 600; }
+  .loc-option .ls { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+  .loc-option .arrow { color: var(--blue); font-size: 18px; }
+
+  /* --- 步驟 6 子步驟 --- */
+  .substeps { margin-top: 12px; display: flex; flex-direction: column; gap: 17px; text-align: left; position: relative; }
+  /* 步驟 6 / 6′ 加寬，並在右側預留迴圈線空間 */
+  .node[data-step="6"], .node.six-once { width: 360px; }
+  .node[data-step="6"] .substeps, .node.six-once .substeps { padding-right: 70px; }
+  /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
+  .loop-back { position: absolute; right: 6px; top: 80px; bottom: 52px; width: 50px; border: 2px solid var(--blue); border-left: none; border-radius: 0 10px 10px 0; }
+  .loop-back::after { content: ""; position: absolute; left: -7px; top: -6px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 7px solid var(--blue); }
+  .loop-count { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); white-space: nowrap; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  /* 6.15 把 6.1 包起來 */
+  .sub615 { border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: #fff; }
+  .sub615-label { font-size: 12px; font-weight: 400; color: var(--text-soft); margin-bottom: 6px; line-height: 1.5; }
+  .sub615-note { font-size: 11px; color: var(--text-soft); margin-bottom: 6px; }
+  .sub615.on { border-color: var(--blue); border-style: solid; background: var(--blue-soft); }
+  .sub615.on .sub615-label, .sub615.on .sub615-note { color: var(--blue-dark); }
+  /* 6.0 標示用的小按鈕 */
+  .info-chips { font-size: 11px; color: var(--text-soft); margin-top: 5px; }
+  .chip { display: inline-block; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; margin: 2px 3px; background: #fafbfd; color: var(--text); font-weight: 600; }
+  /* 步驟 6 子流程之間的連接線 */
+  .substeps > .substep, .substeps > .sub615 { position: relative; }
+  .substeps > .substep:not(:first-child)::before,
+  .substeps > .sub615::before { content: ""; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 2px; height: 15px; background: var(--line); }
+
+  /* 擊球判定後的成功／失敗分岔 */
+  .result-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 16px; padding: 17px 0; }
+  .result-fork::before, .result-fork::after { content: ""; position: absolute; left: 27%; right: 27%; height: 2px; background: var(--line); }
+  .result-fork::before { top: 0; }
+  .result-fork::after { bottom: 0; }
+  .rf-stem { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 2px; height: 15px; background: var(--line); }
+  .rf-col { position: relative; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+  .rf-col::before, .rf-col::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: 2px; height: 17px; background: var(--line); }
+  .rf-col::before { top: -17px; }
+  .rf-col::after { bottom: -17px; }
+  .fork-step { position: relative; font-size: 11px; text-align: center; border: 1px solid var(--line); border-radius: 6px; padding: 6px 4px; background: #fff; color: var(--text-soft); }
+  .rf-col .fork-step:not(:first-child)::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 2px; height: 10px; background: var(--line); }
+  .fork-step.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); font-weight: 700; }
+  .fork-step.done { border-color: rgba(34,197,94,0.55); }
+  .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
+  .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
+  .substep.done { border-left-color: var(--green); }
+  .subflow { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .subnode { flex: 0 0 calc(20% - 4px); min-width: 0; font-size: 11px; text-align: center; border: 1px solid var(--line); border-radius: 6px; padding: 6px 2px; background: #fff; color: var(--text-soft); }
+  .subnode.on { border-color: var(--green); background: #dcfce7; color: #166534; font-weight: 700; }
+
+  /* --- 放棄遊戲分支（流程圖） --- */
+  /* 返回／說明分支：置於 6 與 6′ 中間，兩者共用 */
+  .mid-branches { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; flex-direction: column; gap: 22px; width: 150px; }
+  .giveup-branch, .detail-branch { position: relative; }
+  .mb-label { text-align: center; font-size: 11px; color: var(--text-soft); margin-bottom: 4px; }
+  /* 左右兩側連線（連到 6 與 6′） */
+  .giveup-branch::before, .giveup-branch::after,
+  .detail-branch::before, .detail-branch::after { content: ""; position: absolute; top: 55%; transform: translateY(-50%); width: 40px; height: 2px; background: var(--line); }
+  .giveup-branch::before, .detail-branch::before { right: 100%; }
+  .giveup-branch::after, .detail-branch::after { left: 100%; }
+  .gb-decision, .db-decision { border: 2px solid var(--line); border-radius: 12px; padding: 10px; background: #fff; font-weight: 700; font-size: 14px; text-align: center; }
+  .gb-opts, .db-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .gb-opt, .db-opt { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: #fafbfd; color: var(--text-soft); text-align: center; }
+  .giveup-branch.active .gb-decision, .detail-branch.active .db-decision { border-color: var(--blue); background: var(--blue-soft); box-shadow: 0 0 0 1px var(--blue); }
+  .giveup-branch.active::before, .giveup-branch.active::after,
+  .detail-branch.active::before, .detail-branch.active::after { background: var(--blue); }
+  .giveup-branch.active .mb-label, .detail-branch.active .mb-label { color: var(--blue-dark); }
+
+  /* 步驟 6 與 6′ 的並排分岔（都從 5 連入、都接到結算） */
+  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 230px; padding: 24px 0; }
+  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 19%; right: 19%; height: 2px; background: var(--line); }
+  .six-fork::before { top: 0; }
+  .six-fork::after { bottom: 0; }
+  .six-col { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .six-col::before, .six-col::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: 2px; height: 24px; background: var(--line); }
+  .six-col::before { top: -24px; }
+  .six-col::after { bottom: -24px; }
+  .branch-tag { font-size: 11px; font-weight: 700; color: var(--blue-dark); background: var(--blue-soft); border: 1px solid var(--blue); border-radius: 999px; padding: 3px 10px; margin-bottom: 8px; }
+  .six-once { border-style: solid; }
+
+  @media (max-width: 980px) {
+    .six-fork { flex-direction: column; align-items: center; gap: 28px; }
+    .six-fork::before, .six-fork::after, .six-col::before, .six-col::after { display: none; }
+    .mid-branches { position: static; transform: none; width: 100%; }
+    .giveup-branch::before, .giveup-branch::after, .detail-branch::before, .detail-branch::after { display: none; }
+  }
+
+  /* --- 進入遊戲關卡 --- */
+  .screen[data-screen="8"] { padding: 0; background: #fff; }
+  .level-top {
+    flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px; border-bottom: 1px solid #f0f0f0;
+  }
+  .level-top .back { font-size: 20px; color: #333; cursor: pointer; width: 30px; }
+  .level-top .level-name { flex: 1; text-align: center; font-size: 17px; font-weight: 700; }
+  .level-top .detail { width: 30px; height: 30px; border: 2px solid #c2c2c2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #888; }
+  .table-area { flex: 1 1 auto; min-height: 0; margin: 2px 2px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .table-portrait { width: 100%; height: 100%; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; }
+  .table-portrait svg { width: 100%; height: 100%; display: block; }
+  .chances-wrap { flex: 0 0 auto; position: relative; }
+  .table-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; background: rgba(0,0,0,0.5); color: #fff; padding: 10px 22px; border-radius: 26px; font-size: 28px; font-weight: 700; white-space: nowrap; pointer-events: none; display: none; animation: hintPulse 2.4s ease-in-out infinite; }
+  .table-hint.show { display: block; }
+  @keyframes hintPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.05; } }
+  .shot-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 6; padding: 16px 28px; border-radius: 16px; font-size: 24px; font-weight: 800; text-align: center; line-height: 1.4; color: #fff; white-space: nowrap; display: none; }
+  .shot-msg.show { display: block; animation: shotFade 1.5s ease forwards; }
+  @keyframes shotFade { 0% { opacity: 0; } 30% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+  .shot-msg.ok { background: rgba(22,101,52,0.92); }
+  .shot-msg.no { background: rgba(185,28,28,0.92); }
+  .shot-face { display: inline-block; font-size: 38px; margin-top: 8px; }
+  .check-pop { animation: checkPop 1s ease forwards; }
+  @keyframes checkPop { 0% { opacity: 0; } 10% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+  .chances { flex: 0 0 auto; display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; padding: 6px 0 4px; margin: 0 auto; }
+  .chance { flex: 0 1 26px; min-width: 0; aspect-ratio: 1; border-radius: 50%; border: 2px dashed #b0b0b0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .chance.hit { border: 2px solid #22c55e; background: #dcfce7; }
+  .chance.miss { border: 2px solid #ef4444; background: #fee2e2; }
+  .sim-bar { flex: 0 0 auto; height: 70px; padding: 4px 12px 8px; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; }
+  .sim-status { font-size: 12px; color: var(--text-soft); min-height: 15px; text-align: center; }
+  .sim-status.blink { font-size: 16px; font-weight: 800; color: var(--blue-dark); animation: blink 1s ease-in-out infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  .sim-btn { border: none; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 700; cursor: pointer; background: var(--blue); color: #fff; }
+  .sim-btn:hover { background: var(--blue-dark); }
+  .sim-ready { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; width: 100%; max-height: 56px; overflow-y: auto; }
+  .sim-ready .sim-btn { flex: 0 0 calc(20% - 4px); min-width: 0; font-size: 12px; padding: 6px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sim-btn.done { background: #22c55e; }
+  .sim-btn:disabled { cursor: default; opacity: 0.95; }
+  .sim-hit { display: flex; gap: 8px; }
+  .sim-btn.ok { background: #22c55e; }
+  .sim-btn.ok:hover { background: #16a34a; }
+  .sim-btn.no { background: #ef4444; }
+  .sim-btn.no:hover { background: #dc2626; }
+
+  /* --- 放棄遊戲確認視窗 --- */
+  .modal { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 20; }
+  .modal.show { display: flex; }
+  .modal-box { background: #fff; border-radius: 16px; padding: 24px 18px 18px; width: 78%; text-align: center; box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+  .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; border: none; border-radius: 10px; padding: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .modal-btn.ghost { background: #eef0f4; color: #444; }
+  .modal-btn.ghost:hover { background: #e2e6ec; }
+  .modal-btn.primary { background: var(--blue); color: #fff; }
+  .modal-btn.primary:hover { background: var(--blue-dark); }
+  .modal-box.detail-box { position: relative; text-align: left; width: 82%; max-height: 80%; overflow-y: auto; padding: 20px 18px 18px; }
+  .modal-x { position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border: none; border-radius: 50%; background: #eef0f4; color: #555; font-size: 13px; cursor: pointer; }
+  .modal-x:hover { background: #e2e6ec; }
+  .detail-content .sec { margin-bottom: 14px; }
+  .detail-content .sec:last-child { margin-bottom: 0; }
+  .detail-content .sec-t { font-size: 14px; font-weight: 700; color: var(--blue-dark); margin-bottom: 4px; }
+  .detail-content .sec p { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+  .detail-content .sec p:empty::before { content: "—"; color: var(--text-soft); }
+
+  /* --- 結算畫面 --- */
+  .result { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 4px 2px; }
+  .r-name { font-size: 20px; font-weight: 800; text-align: center; }
+  .r-stars { font-size: 30px; letter-spacing: 4px; line-height: 1; }
+  .r-stars .on { color: #f5b400; }
+  .r-stars .off { color: #d4d8de; }
+  .r-image { width: 100%; max-width: 240px; background: #141414; border-radius: 10px; padding: 5px; }
+  .r-image img { width: 100%; max-height: 150px; object-fit: contain; border-radius: 6px; display: block; }
+  .r-image.empty { background: #e3e8f0; color: #9aa3b2; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 13px; padding: 0; }
+  .r-image.empty img { display: none; }
+  .r-image .ph { display: none; }
+  .r-image.empty .ph { display: block; }
+  .r-row { width: 100%; max-width: 260px; display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
+  .r-row span { color: var(--text-soft); }
+  .r-row b { font-weight: 700; }
+  .r-faces-title { font-size: 14px; font-weight: 700; margin-top: 4px; }
+  .r-faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .r-face { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .r-face.hit { background: #dcfce7; border: 2px solid #22c55e; }
+  .r-face.miss { background: #fee2e2; border: 2px solid #ef4444; }
+</style>
+</head>
+<body>
+  <header class="top">
+    <h1>遊戲流程示意
+      <span class="sub">在右側手機上逐步操作，左側流程圖會即時對應目前步驟</span>
+    </h1>
+    <button id="resetBtn">重新開始</button>
+  </header>
+
+  <div class="layout">
+    <!-- ===== 流程圖 ===== -->
+    <div class="flow" id="flow">
+      <div class="node terminal" data-step="0"><div class="title">開始</div></div>
+      <div class="connector" data-conn="0"></div>
+
+      <div class="node" data-step="1">
+        <div class="num">1</div><div class="title">打開 APP</div>
+      </div>
+      <div class="connector" data-conn="1"></div>
+
+      <div class="node" data-step="2">
+        <div class="num">2</div><div class="title">點選遊戲關卡</div>
+      </div>
+      <div class="connector" data-conn="2"></div>
+
+      <div class="node" data-step="3">
+        <div class="num">3</div><div class="title">載入關卡資訊</div>
+      </div>
+      <div class="connector" data-conn="3"></div>
+
+      <div class="node" data-step="4">
+        <div class="num">4</div><div class="title">進入遊戲說明視窗</div>
+      </div>
+      <div class="connector" data-conn="4"></div>
+
+      <div class="node" data-step="5">
+        <div class="num">5</div><div class="title">選擇遊戲地點</div>
+      </div>
+      <div class="connector" data-conn="5"></div>
+
+      <div class="six-fork">
+        <!-- 一般流程：步驟 6 -->
+        <div class="six-col">
+          <div class="branch-tag">一般流程</div>
+          <div class="node" data-step="6">
+            <div class="num">6</div><div class="title">進入遊戲關卡</div>
+            <div class="substeps">
+              <div class="substep" data-sub="6.0">6.0 模板載入
+                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              </div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
+                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="substep" data-sub="6.2">6.2 播放音效：請擺球（請擺球.mp3）</div>
+              <div class="sub615" id="sub615">
+                <div class="sub615-label">6.3 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.3">假設放好球了
+                  <div class="subflow" id="subFlow"></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球（請開始.mp3）</div>
+              <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
+              <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
+              <div class="result-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.8-1 播放音效：成功（漂亮.mp3）</div>
+                  <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功... 😀</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.8-2 播放音效：失敗（加油.mp3）</div>
+                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗... 😢</div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
+              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
+              <div class="loop-back"><div class="loop-count" id="loopCount">第 1 次</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 返回／說明分支（位於 6 與 6′ 中間，兩者共用） -->
+        <div class="mid-branches">
+          <div class="giveup-branch" id="giveupBranch">
+            <div class="mb-label">返回</div>
+            <div class="gb-decision">要放棄遊戲嗎？</div>
+            <div class="gb-opts">
+              <div class="gb-opt">放棄 → 步驟 4</div>
+              <div class="gb-opt">繼續玩 → 步驟 6</div>
+            </div>
+          </div>
+          <div class="detail-branch" id="detailBranch">
+            <div class="mb-label">說明</div>
+            <div class="db-decision">關卡說明視窗</div>
+            <div class="db-opts">
+              <div class="db-opt">關閉 → 步驟 6</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 變體流程：步驟 6′（過關需求：只需完成一次） -->
+        <div class="six-col">
+          <div class="branch-tag">過關需求：只需完成一次</div>
+          <div class="node six-once" id="sixOnceNode">
+            <div class="num">6′</div><div class="title">進入遊戲關卡</div>
+            <div class="substeps">
+              <div class="substep" data-sub="6.0">6.0 模板載入
+                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              </div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
+                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="substep" data-sub="6.2">6.2 播放音效：請擺球（請擺球.mp3）</div>
+              <div class="sub615" id="sub615_6p">
+                <div class="sub615-label">6.3 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.3">假設放好球了
+                  <div class="subflow" id="subFlow6p"></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球（請開始.mp3）</div>
+              <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
+              <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
+              <div class="result-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.8-1 播放音效：成功（漂亮.mp3）</div>
+                  <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功... 😀</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.8-2 播放音效：失敗（加油.mp3）</div>
+                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗... 😢</div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
+              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
+              <div class="loop-back"><div class="loop-count" id="loopCount6p">第 1 次</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="connector" data-conn="6"></div>
+
+      <div class="node terminal" data-step="7"><div class="title">結算畫面</div></div>
+    </div>
+
+    <!-- ===== 手機預覽框 ===== -->
+    <div class="phone-wrap">
+      <div class="phone-label">APP 畫面預覽（可直接操作）</div>
+      <div class="phone no-chrome" id="phone">
+        <div class="app-header" id="appHeader">APP 畫面預覽</div>
+        <div class="app-body">
+
+          <!-- step 0：黑畫面 -->
+          <div class="screen show" data-screen="0" id="screen0">
+            <div class="power">
+              <div class="circle">⏻</div>
+              <div class="t">點擊螢幕開始</div>
+            </div>
+          </div>
+
+          <!-- step 1：手機桌布 -->
+          <div class="screen" data-screen="1">
+            <div class="wp-clock">
+              <div class="time">9:41</div>
+              <div class="date">6 月 19 日 星期五</div>
+            </div>
+            <div class="wp-grid">
+              <div class="wp-app target" id="appIcon"><div class="wp-icon">🎱</div>Poolgress</div>
+            </div>
+          </div>
+
+          <!-- step 2：闖關遊戲首頁（點選關卡） -->
+          <div class="screen" data-screen="2">
+            <div class="game-bg">
+              <div class="game-title"><b>落袋球</b></div>
+              <div class="lock">🔒</div><div class="lvl-label">第 3 關</div>
+              <div class="path"></div>
+              <div class="lock">🔒</div><div class="lvl-label">第 2 關</div>
+              <div class="lvl-card" id="levelCard">
+                <div class="target">◎</div>
+                <div class="name">第一關</div>
+              </div>
+              <div class="tap-hint">👆 點選此關卡</div>
+            </div>
+          </div>
+
+          <!-- step 3：載入關卡資訊 -->
+          <div class="screen" data-screen="4">
+            <div class="field-label">上傳圖片</div>
+            <div class="upload-zone" id="uploadZone">選擇圖片</div>
+            <div class="upload-preview" id="imgPreview">
+              <img id="imgPreviewImg" alt="預覽圖片">
+              <button class="remove" id="imgRemove" title="移除圖片">✕</button>
+            </div>
+            <input type="file" accept="image/*" id="imgInput" hidden>
+
+            <div class="field-label" style="margin-top:10px;">上傳文字資訊</div>
+            <textarea id="infoInput" class="info-area" style="min-height:150px;" placeholder="可依下列格式輸入：&#10;關卡名稱：基本控球-Ⅰ型五顆&#10;關卡說明：將一到五號球平均排列…&#10;規則需求：不可敲擊目標球以外的子球&#10;過關條件：5/5"></textarea>
+
+            <button class="pill-btn" id="confirmBtn" disabled style="margin-top:14px;">確認載入</button>
+          </div>
+
+          <!-- step 4：遊戲說明視窗 -->
+          <div class="screen" data-screen="5">
+            <div class="lvl-image" id="outImageWrap">
+              <img id="outImage" alt="關卡圖片">
+              <span class="ph">（未上傳圖片）</span>
+            </div>
+            <div class="info-card">
+              <div class="sec"><div class="sec-t">關卡說明</div><p id="outDesc"></p></div>
+              <div class="sec"><div class="sec-t">規則需求</div><p id="outRule"></p></div>
+              <div class="sec"><div class="sec-t">過關條件</div><p id="outCond"></p></div>
+            </div>
+            <button class="pill-btn" id="finishBtn">選擇遊戲地點</button>
+          </div>
+
+          <!-- step 5：選擇遊戲地點 -->
+          <div class="screen" data-screen="7">
+            <div class="info-title">選擇遊戲地點</div>
+            <div class="info-tip">請選擇要進行遊戲的撞球桌</div>
+            <div class="loc-option" data-loc="1993撞球館 2號桌">
+              <div><div class="ln">1993 撞球館</div><div class="ls">2 號桌</div></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="loc-option" data-loc="1993撞球館 3號桌">
+              <div><div class="ln">1993 撞球館</div><div class="ls">3 號桌</div></div>
+              <div class="arrow">›</div>
+            </div>
+          </div>
+
+          <!-- step 6：進入遊戲關卡 -->
+          <div class="screen" data-screen="8">
+            <div class="level-top">
+              <span class="back" id="playBack">←</span>
+              <span class="level-name" id="playLevelName">關卡名稱</span>
+              <span class="detail" id="playDetail">?</span>
+            </div>
+            <div class="table-area">
+              <div class="table-portrait" id="tableSurface"></div>
+              <div class="shot-msg" id="shotMsg"></div>
+            </div>
+            <div class="chances-wrap">
+              <div class="chances" id="chances"></div>
+              <div class="table-hint" id="tableHint">請把球放在圈圈中</div>
+              <div class="table-hint" id="shootHint">開始擊球</div>
+            </div>
+            <div class="sim-bar">
+              <div class="sim-status" id="simStatus">點「球體就位」開始偵測</div>
+              <button class="sim-btn" id="btnTemplate" style="display:none;">模板載入完成</button>
+              <button class="sim-btn" id="btnLoaded" style="display:none;">位置標記完成</button>
+              <div class="sim-ready" id="simReady"></div>
+              <button class="sim-btn" id="btnShoot" style="display:none;">擊球</button>
+              <button class="sim-btn" id="btnRolling" style="display:none;">球正在滾</button>
+              <div class="sim-hit" id="simHit" style="display:none;">
+                <button class="sim-btn ok" id="btnHit">本桿成功 😀</button>
+                <button class="sim-btn no" id="btnMiss">本桿失敗 😢</button>
+              </div>
+              <button class="sim-btn" id="simResult" style="display:none;">查看結算 →</button>
+            </div>
+          </div>
+
+          <!-- step 7：結算畫面 -->
+          <div class="screen" data-screen="6">
+            <div class="result">
+              <div class="r-name" id="rName">關卡名稱</div>
+              <div class="r-stars" id="rStars"></div>
+              <div class="r-image" id="rImageWrap"><img id="rImage" alt="關卡圖片"><span class="ph">（未上傳圖片）</span></div>
+              <div class="r-row"><span>通關成績</span><b id="rScore">—</b></div>
+              <div class="r-row"><span>通關日期</span><b id="rDate">—</b></div>
+              <div class="r-row"><span>通關地點</span><b id="rLoc">—</b></div>
+              <div class="r-faces-title">本次成績</div>
+              <div class="r-faces" id="rFaces"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 底部導覽列 -->
+        <div class="nav">
+          <div class="item"><div class="ico">📖</div>課程學習</div>
+          <div class="item"><div class="ico">♛</div>練習模式</div>
+          <div class="item active"><div class="ico">🏆</div>闖關遊戲</div>
+          <div class="item"><div class="ico">⏳</div>活動專區</div>
+          <div class="item"><div class="ico">👤</div>個人資料</div>
+        </div>
+
+        <!-- 放棄遊戲確認視窗 -->
+        <div class="modal" id="giveupModal">
+          <div class="modal-box">
+            <div class="modal-title">要放棄遊戲嗎？</div>
+            <div class="modal-actions">
+              <button class="modal-btn ghost" id="btnGiveUp">放棄</button>
+              <button class="modal-btn primary" id="btnContinue">繼續玩</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 關卡說明視窗 -->
+        <div class="modal" id="detailModal">
+          <div class="modal-box detail-box">
+            <button class="modal-x" id="detailClose">✕</button>
+            <div class="modal-title" style="margin-bottom:14px;">關卡說明</div>
+            <div class="detail-content">
+              <div class="sec"><div class="sec-t">關卡說明</div><p id="dDesc"></p></div>
+              <div class="sec"><div class="sec-t">規則需求</div><p id="dRule"></p></div>
+              <div class="sec"><div class="sec-t">過關條件</div><p id="dCond"></p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const resetBtn = document.getElementById('resetBtn');
+  const phone = document.getElementById('phone');
+  const appHeader = document.getElementById('appHeader');
+  const screens = Array.from(document.querySelectorAll('.screen'));
+  const connectors = Array.from(document.querySelectorAll('.connector'));
+  const allSteps = [0,1,2,3,4,5,6,7];
+
+  const screen0 = document.getElementById('screen0');
+  const appIcon = document.getElementById('appIcon');
+  const levelCard = document.getElementById('levelCard');
+  const infoInput = document.getElementById('infoInput');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const finishBtn = document.getElementById('finishBtn');
+  const uploadZone = document.getElementById('uploadZone');
+  const imgInput = document.getElementById('imgInput');
+  const imgPreview = document.getElementById('imgPreview');
+  const imgPreviewImg = document.getElementById('imgPreviewImg');
+  const imgRemove = document.getElementById('imgRemove');
+  // 遊戲說明畫面輸出元素
+  const outImageWrap = document.getElementById('outImageWrap');
+  const outImage = document.getElementById('outImage');
+  const outDesc = document.getElementById('outDesc');
+  const outRule = document.getElementById('outRule');
+  const outCond = document.getElementById('outCond');
+  // 進入遊戲關卡畫面元素
+  const playLevelName = document.getElementById('playLevelName');
+  const playBack = document.getElementById('playBack');
+  const chances = document.getElementById('chances');
+  const playDetail = document.getElementById('playDetail');
+  // 放棄遊戲視窗 / 分支
+  const giveupBranch = document.getElementById('giveupBranch');
+  const giveupModal = document.getElementById('giveupModal');
+  const btnGiveUp = document.getElementById('btnGiveUp');
+  const btnContinue = document.getElementById('btnContinue');
+  // 關卡說明視窗 / 分支
+  const detailBranch = document.getElementById('detailBranch');
+  const detailModal = document.getElementById('detailModal');
+  const detailClose = document.getElementById('detailClose');
+  const dDesc = document.getElementById('dDesc');
+  const dRule = document.getElementById('dRule');
+  const dCond = document.getElementById('dCond');
+  // 模擬遊玩
+  const simStatus = document.getElementById('simStatus');
+  const simReady = document.getElementById('simReady');
+  const subFlow = document.getElementById('subFlow');
+  const simHit = document.getElementById('simHit');
+  const btnHit = document.getElementById('btnHit');
+  const btnMiss = document.getElementById('btnMiss');
+  const simResult = document.getElementById('simResult');
+  const tableHint = document.getElementById('tableHint');
+  const shootHint = document.getElementById('shootHint');
+  const btnShoot = document.getElementById('btnShoot');
+  const btnRolling = document.getElementById('btnRolling');
+  // 播放資料夾中的音效（檔案不存在時略過）
+  function playSound(file) { try { const a = new Audio(file); a.play().catch(() => {}); } catch (e) {} }
+  const shotMsg = document.getElementById('shotMsg');
+  // 每顆球的就定位狀態
+  let placedSet = new Set(), playBalls = [];
+  // 是否為「只需完成一次」變體
+  let onceMode = false, activeSix = null;
+  const sixOnceNode = document.getElementById('sixOnceNode');
+  const loopCount = document.getElementById('loopCount');
+  const sub615 = document.getElementById('sub615');
+  const btnTemplate = document.getElementById('btnTemplate');
+  const subFlow6p = document.getElementById('subFlow6p');
+  const sub615_6p = document.getElementById('sub615_6p');
+  const loopCount6p = document.getElementById('loopCount6p');
+  // 目前使用中的分支（6 或 6′）對應的流程圖元素
+  let curSubFlow = subFlow, curSub615 = sub615, curLoopCount = loopCount;
+  const btnLoaded = document.getElementById('btnLoaded');
+  // 結算畫面
+  const rName = document.getElementById('rName');
+  const rStars = document.getElementById('rStars');
+  const rImage = document.getElementById('rImage');
+  const rImageWrap = document.getElementById('rImageWrap');
+  const rScore = document.getElementById('rScore');
+  const rDate = document.getElementById('rDate');
+  const rLoc = document.getElementById('rLoc');
+  const rFaces = document.getElementById('rFaces');
+
+  // 步驟 → 對應畫面 data-screen
+  const screenMap = { 0:0, 1:1, 2:2, 3:4, 4:5, 5:7, 6:8, 7:6 };
+  const headers = { 0:'', 1:'', 2:'闖關遊戲', 3:'載入關卡資訊', 4:'基本控球-Ⅰ型五顆', 5:'選擇遊戲地點', 6:'', 7:'關卡結果' };
+  const noChrome = { 0:true, 1:true, 6:true };
+
+  let current = 0;
+  // 遊玩 / 結算狀態
+  let chancesTotal = 0, simIdx = 0, simResults = [];
+  let curText = '', levelNameStr = '', levelImageSrc = '', levelStarThresh = {}, chosenLocation = '';
+
+  function nodeEl(step) { return document.querySelector('.node[data-step="' + step + '"]'); }
+
+  function showScreen(step) {
+    const sc = screenMap[step];
+    screens.forEach(s => s.classList.toggle('show', +s.dataset.screen === sc));
+    appHeader.textContent = headers[step] || 'APP 畫面預覽';
+    phone.classList.toggle('no-chrome', !!noChrome[step]);
+  }
+
+  function closeModals() {
+    giveupModal.classList.remove('show');
+    giveupBranch.classList.remove('active');
+    detailModal.classList.remove('show');
+    detailBranch.classList.remove('active');
+  }
+
+  function goToStep(n) {
+    closeModals();
+    allSteps.forEach(s => {
+      const el = nodeEl(s);
+      if (!el) return;
+      el.classList.remove('active','done');
+      if (s < n) el.classList.add('done');
+    });
+    nodeEl(n).classList.add('active');
+    // 變體節點 6′ 的狀態（進入步驟 6 時由 setupPlay 決定走哪條）
+    if (sixOnceNode) {
+      sixOnceNode.classList.remove('active');
+      sixOnceNode.classList.toggle('done', n > 6);
+    }
+    connectors.forEach(c => c.classList.toggle('lit', +c.dataset.conn < n));
+    current = n;
+    showScreen(n);
+  }
+
+  function updateConfirm() {
+    const hasText = infoInput.value.trim().length > 0;
+    const hasImg = imgPreview.style.display === 'block';
+    confirmBtn.disabled = !(hasText || hasImg);
+  }
+
+  // 只抓取需要的 4 個欄位，其餘資訊忽略
+  function getLineField(text, label) {
+    // 取「標籤：值」整行的值（標籤需在行首）
+    const m = text.match(new RegExp('^\\s*' + label + '\\s*[:：]\\s*(.+)$', 'm'));
+    return m ? m[1].trim() : '';
+  }
+  function parseInfo(text) {
+    const result = {
+      關卡名稱: getLineField(text, '關卡名稱'),
+      關卡說明: getLineField(text, '關卡說明'),
+      規則需求: getLineField(text, '規則需求'),
+      過關條件: ''
+    };
+    // 過關條件可能包在括號內，例如「（過關條件：7 / 10 次）」
+    const cm = text.match(/過關條件\s*[:：]\s*([^）)\n]+)/);
+    result.過關條件 = cm ? cm[1].trim() : getLineField(text, '過關條件');
+    // 完全沒有標籤時，整段文字當成關卡說明
+    if (!result.關卡名稱 && !result.關卡說明 && !result.規則需求 && !result.過關條件) {
+      result.關卡說明 = text.trim();
+    }
+    return result;
+  }
+
+  function reset() {
+    infoInput.value = '';
+    imgInput.value = '';
+    imgPreview.style.display = 'none';
+    imgPreviewImg.removeAttribute('src');
+    confirmBtn.disabled = true;
+    const ov = document.getElementById('tableOverlay');
+    if (ov) ov.innerHTML = '';
+    simIdx = 0; simResults = []; chosenLocation = '';
+    tableHint.classList.remove('show'); sub615.classList.remove('on'); sub615_6p.classList.remove('on');
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none';
+    btnRolling.style.display = 'none';
+    btnLoaded.style.display = 'none'; btnTemplate.style.display = 'none';
+    shotMsg.className = 'shot-msg';
+    sixOnceNode.classList.remove('active');
+    setSub('');
+    goToStep(0);
+  }
+
+  // step0：點黑畫面 → step1
+  screen0.addEventListener('click', () => { if (current === 0) goToStep(1); });
+
+  // step1：點 App 圖示 → step2
+  appIcon.addEventListener('click', () => { if (current === 1) goToStep(2); });
+
+  // step2：點關卡卡片 → step3（載入關卡資訊）
+  levelCard.addEventListener('click', () => {
+    if (current !== 2) return;
+    goToStep(3);
+    infoInput.focus();
+  });
+
+  // step3：上傳圖片或輸入文字即可載入
+  infoInput.addEventListener('input', updateConfirm);
+
+  // 圖片上傳
+  uploadZone.addEventListener('click', () => imgInput.click());
+  imgInput.addEventListener('change', () => {
+    const file = imgInput.files && imgInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      imgPreviewImg.src = e.target.result;
+      imgPreview.style.display = 'block';
+      updateConfirm();
+    };
+    reader.readAsDataURL(file);
+  });
+  imgRemove.addEventListener('click', () => {
+    imgInput.value = '';
+    imgPreview.style.display = 'none';
+    imgPreviewImg.removeAttribute('src');
+    updateConfirm();
+  });
+
+  // step3：確認載入 → 解析文字並帶入遊戲說明畫面 → step4
+  confirmBtn.addEventListener('click', () => {
+    if (current !== 3) return;
+    const hasText = infoInput.value.trim().length > 0;
+    const hasImg = imgPreview.style.display === 'block';
+    if (!hasText && !hasImg) return;
+
+    const info = parseInfo(infoInput.value);
+
+    // 標題 = 關卡名稱
+    headers[4] = info.關卡名稱 || '關卡說明';
+
+    // 圖片 = 上傳的圖片
+    if (hasImg && imgPreviewImg.src) {
+      outImage.src = imgPreviewImg.src;
+      outImageWrap.classList.remove('empty');
+    } else {
+      outImage.removeAttribute('src');
+      outImageWrap.classList.add('empty');
+    }
+
+    // 中間文字 = 關卡說明 / 規則需求 / 過關條件
+    outDesc.textContent = info.關卡說明;
+    outRule.textContent = info.規則需求;
+    outCond.textContent = info.過關條件;
+
+    // 關卡說明視窗（進入遊戲關卡時的「說明」彈窗）
+    dDesc.textContent = info.關卡說明;
+    dRule.textContent = info.規則需求;
+    dCond.textContent = info.過關條件;
+
+    // 進入遊戲關卡畫面：標題 = 關卡名稱
+    playLevelName.textContent = info.關卡名稱 || '遊戲關卡';
+    levelNameStr = info.關卡名稱 || '關卡名稱';
+
+    // 機會次數 = 過關條件的「總次數」(分母)，例如 7/10 → 10 次
+    const cm2 = info.過關條件.match(/(\d+)\s*\/\s*(\d+)/);
+    chancesTotal = cm2 ? parseInt(cm2[2], 10) : 0;
+
+    // 「過關需求：只需完成一次」變體
+    onceMode = /過關需求[^\n]*只需完成一次/.test(infoInput.value) || infoInput.value.includes('只需完成一次');
+
+    // 星星門檻（解析「一顆星 7 分、兩顆星 9 分、三顆星 10 分」）
+    levelStarThresh = parseStars(infoInput.value);
+
+    // 結算用：圖片
+    levelImageSrc = (imgPreview.style.display === 'block' && imgPreviewImg.src) ? imgPreviewImg.src : '';
+
+    // 把位置需求資料畫到步驟 6 的桌面上
+    curText = infoInput.value;
+    renderPositions(curText, false);
+
+    goToStep(4);
+  });
+
+  // step4：選擇遊戲地點 → step5（地點選擇畫面）
+  finishBtn.addEventListener('click', () => { if (current === 4) goToStep(5); });
+
+  // step5：選定地點 → step6（進入遊戲關卡）
+  document.querySelectorAll('.loc-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (current !== 5) return;
+      chosenLocation = opt.dataset.loc || '';
+      goToStep(6);
+      setupPlay();
+    });
+  });
+
+  // step6：返回 → 跳出「要放棄遊戲嗎？」視窗（並在流程圖點亮分支）
+  playBack.addEventListener('click', () => {
+    if (current !== 6) return;
+    giveupModal.classList.add('show');
+    giveupBranch.classList.add('active');
+  });
+  // 放棄 → 回到步驟 4（進入遊戲說明視窗）
+  btnGiveUp.addEventListener('click', () => { closeModals(); goToStep(4); });
+  // 繼續玩 → 回到步驟 6（關閉視窗）
+  btnContinue.addEventListener('click', () => { closeModals(); });
+
+  // step6：點「說明」→ 跳出關卡說明視窗（並點亮右側分支）
+  playDetail.addEventListener('click', () => {
+    if (current !== 6) return;
+    detailModal.classList.add('show');
+    detailBranch.classList.add('active');
+  });
+  // 關閉關卡說明視窗 → 回到步驟 6
+  detailClose.addEventListener('click', () => { closeModals(); });
+
+  // 建立步驟 6 的撞球桌與座標系統（左下角庫鼻交點為原點，往右 0-4、往上 0-8）
+  function buildTable() {
+    const unit = 70, cols = 4, rows = 8;
+    const playW = cols * unit, playH = rows * unit;     // 280 x 560
+    const rail = 44, margin = 4;
+    const x0 = margin + rail, y0 = margin + rail;        // 62, 62
+    const pr = x0 + playW, pb = y0 + playH;              // 342, 622
+    const W = playW + 2 * (rail + margin), H = playH + 2 * (rail + margin); // 404, 684
+    const cx = x0 + playW / 2, cyMid = y0 + playH / 2;
+    const railL = margin + rail / 2;                     // 39
+    const dia = (x, y, r = 6) => `<polygon points="${x},${y-r} ${x+r},${y} ${x},${y+r} ${x-r},${y}" fill="#fff"/>`;
+    const pocket = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#111"/>`;
+
+    // 細格線 + 主格線
+    let grid = '';
+    for (let x = x0; x <= pr + 0.1; x += unit / 4) grid += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${pb}" stroke="#5fa0e2" stroke-width="0.6" opacity="0.35"/>`;
+    for (let y = y0; y <= pb + 0.1; y += unit / 4) grid += `<line x1="${x0}" y1="${y}" x2="${pr}" y2="${y}" stroke="#5fa0e2" stroke-width="0.6" opacity="0.35"/>`;
+    for (let i = 0; i <= cols; i++) { const x = x0 + i * unit; grid += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${pb}" stroke="#3f7ec8" stroke-width="1" opacity="0.55"/>`; }
+    for (let i = 0; i <= rows; i++) { const y = y0 + i * unit; grid += `<line x1="${x0}" y1="${y}" x2="${pr}" y2="${y}" stroke="#3f7ec8" stroke-width="1" opacity="0.55"/>`; }
+
+    // 顆星（白色菱形）
+    let dm = '';
+    [1,2,3].forEach(j => { const x = x0 + j * unit; dm += dia(x, railL) + dia(x, H - railL); });
+    [1,2,3,5,6,7].forEach(i => { const y = y0 + i * unit; dm += dia(railL, y) + dia(W - railL, y); });
+
+    // 袋口（四角 + 兩中袋）
+    const pk = pocket(x0,y0,17) + pocket(pr,y0,17) + pocket(x0,pb,17) + pocket(pr,pb,17) + pocket(x0,cyMid,13) + pocket(pr,cyMid,13);
+
+    // 中心點與腳點
+    const footY = y0 + 6 * unit;
+    const spots = `<circle cx="${cx}" cy="${cyMid}" r="3" fill="#1c2b40"/><circle cx="${cx}" cy="${footY}" r="3" fill="#1c2b40"/>`;
+
+    // 座標數字 + 原點 + 軸線
+    let coord = '';
+    for (let i = 0; i <= rows; i++) { const y = pb - i * unit; coord += `<text x="${x0+12}" y="${y+4}" font-size="12" font-weight="700" fill="#13356b" text-anchor="middle">${i}</text>`; }
+    for (let j = 1; j <= cols; j++) { const x = x0 + j * unit; coord += `<text x="${x}" y="${pb-9}" font-size="12" font-weight="700" fill="#13356b" text-anchor="middle">${j}</text>`; }
+    coord += `<circle cx="${x0}" cy="${pb}" r="4" fill="#ff7a45"/>`;
+    coord += `<line x1="${x0}" y1="${pb}" x2="${x0}" y2="${y0-2}" stroke="#ff7a45" stroke-width="1.5" opacity="0.85" marker-end="url(#axA)"/>`;
+    coord += `<line x1="${x0}" y1="${pb}" x2="${pr+2}" y2="${pb}" stroke="#ff7a45" stroke-width="1.5" opacity="0.85" marker-end="url(#axA)"/>`;
+
+    document.getElementById('tableSurface').innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="frameGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#62666c"/><stop offset="1" stop-color="#46494e"/>
+          </linearGradient>
+          <marker id="axA" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+            <path d="M0,0 L7,3.5 L0,7 Z" fill="#ff7a45"/>
+          </marker>
+          <marker id="routeW" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#ffffff"/>
+          </marker>
+          <marker id="routeY" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#f5d000"/>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="${W}" height="${H}" rx="26" fill="url(#frameGrad)"/>
+        <rect x="${margin-2}" y="${margin-2}" width="${W-2*(margin-2)}" height="${H-2*(margin-2)}" rx="20" fill="none" stroke="#2f3236" stroke-width="2"/>
+        <rect x="${x0-3}" y="${y0-3}" width="${playW+6}" height="${playH+6}" rx="6" fill="#2f3236"/>
+        <rect x="${x0}" y="${y0}" width="${playW}" height="${playH}" fill="#8fbff0"/>
+        ${grid}
+        <line x1="${x0}" y1="${cyMid}" x2="${pr}" y2="${cyMid}" stroke="#26405f" stroke-width="1.2" opacity="0.55"/>
+        ${pk}${dm}${spots}
+        <g transform="translate(${W-9},${cyMid}) rotate(-90)">
+          <text x="0" y="0" font-size="13" font-weight="700" fill="#0e1216" text-anchor="middle">Poolgress</text>
+        </g>
+        <g id="tableOverlay"></g>
+      </svg>`;
+
+    // 提供座標 → SVG 座標的換算（往上 0-8、往右 0-4），供之後放球使用
+    window.TABLE = { x0, y0, unit, pr, pb, cols, rows,
+      toSvg: (up, right) => ({ x: x0 + right * unit, y: pb - up * unit }) };
+  }
+  buildTable();
+
+  // 把「位置需求」的資料畫到桌面上
+  function renderPositions(text, placed, justPlaced, targetsOnly) {
+    const T = window.TABLE;
+    const ov = document.getElementById('tableOverlay');
+    if (!T || !ov) return;
+    const u = T.unit;
+    const P = (x, y) => T.toSvg(x, y);     // 資料座標 (長軸 0-8, 短軸 0-4) → SVG
+    const R = r => r * u;                  // 顆星單位 → SVG 長度
+    // 每顆球對應顏色
+    const BALL_COLORS = { 1:'#faba02', 2:'#074282', 3:'#bf000d', 4:'#d94a66', 5:'#563f8e', 6:'#03774d', 7:'#964117', 8:'#000000', 9:'#faba02', 10:'#074282', 11:'#bf000d', 12:'#d94a66', 13:'#563f8e', 14:'#03774d', 15:'#964117' };
+    const ballColor = n => BALL_COLORS[n] || '#f5d000';
+    // 就位後：虛線圈 → 深綠色方框（放大 1.5 倍、線粗 0.05）
+    const greenBox = (p, r) => { const rr = r * 1.5; return `<rect x="${p.x-rr}" y="${p.y-rr}" width="${2*rr}" height="${2*rr}" fill="none" stroke="#166534" stroke-width="${R(0.05)}"/>`; };
+    // placed 為已就位球的 Set（id：'cue'、'obj-1'、'obj-2'…）
+    const has = id => placed instanceof Set && placed.has(id);
+    // 就位打勾（綠框右上角，2 秒淡出）
+    const boxHalf = R(0.225);
+    const cr = R(0.36); // 打勾半徑（放大 3 倍）
+    const check = (p) => {
+      const cx = p.x + boxHalf + cr * 0.7;   // 框框右上角外側
+      const cy = p.y - boxHalf - cr * 0.7;
+      return `<g transform="translate(${cx},${cy})"><g class="check-pop"><circle r="${cr}" fill="#16a34a"/><path d="M${-cr*0.45},0 L${-cr*0.1},${cr*0.4} L${cr*0.5},${-cr*0.45}" stroke="#fff" stroke-width="${cr*0.18}" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
+    };
+
+    const valOf = (label) => { const m = text.match(new RegExp(label + '\\s*[:：]?\\s*([^\\n]*)')); return m ? m[1].trim() : ''; };
+    const coords = (s) => { const o = []; const re = /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g; let m; while ((m = re.exec(s))) o.push([parseFloat(m[1]), parseFloat(m[2])]); return o; };
+    const ballSegs = (s) => { const res = []; const re = /(\d+)\s*號[：:]?\s*([\s\S]*?)(?=\d+\s*號|$)/g; let m; while ((m = re.exec(s))) res.push({ num: parseInt(m[1], 10), pts: coords(m[2]) }); return res; };
+    const pockets = { '左上':[0,0], '右上':[8,0], '左下':[0,4], '右下':[8,4], '上中':[4,0], '下中':[4,4] };
+
+    const dashCircle = (p, r, color) => `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="${color}" stroke-width="2.4" stroke-dasharray="6 5"/>`;
+    const ghost = (p, r) => `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.9)" stroke-width="1"/>`;
+    const poly = (pts, color) => {
+      let s = `<polyline points="${pts.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${color}" stroke-width="2.6" stroke-dasharray="7 5"/>`;
+      const a = pts[pts.length - 2], b = pts[pts.length - 1];
+      const ang = Math.atan2(b.y - a.y, b.x - a.x), sz = 10;
+      const x1 = b.x - sz * Math.cos(ang - Math.PI / 6), y1 = b.y - sz * Math.sin(ang - Math.PI / 6);
+      const x2 = b.x - sz * Math.cos(ang + Math.PI / 6), y2 = b.y - sz * Math.sin(ang + Math.PI / 6);
+      s += `<polygon points="${b.x},${b.y} ${x1},${y1} ${x2},${y2}" fill="${color}"/>`;
+      return s;
+    };
+
+    let out = '';
+
+    if (!targetsOnly) {
+    // 母球位置（白色虛線圈 r0.25）
+    const cueC = coords(valOf('母球位置'));
+    let cueCenter = null;
+    if (cueC.length) {
+      cueCenter = P(cueC[0][0], cueC[0][1]);
+      out += has('cue') ? greenBox(cueCenter, R(0.15)) : dashCircle(cueCenter, R(0.15), '#ffffff');
+      if (has('cue') && justPlaced === 'cue') out += check(cueCenter);
+    }
+
+    // 子球位置（黃色虛線圈 r0.25）
+    const ballCenters = {};
+    let objSegs = ballSegs(valOf('子球位置'));
+    if (!objSegs.length) objSegs = coords(valOf('子球位置')).map((c, i) => ({ num: i + 1, pts: [c] }));
+    objSegs.forEach(seg => { if (seg.pts.length) { const p = P(seg.pts[0][0], seg.pts[0][1]); ballCenters[seg.num] = p; const on = has('obj-' + seg.num); out += on ? greenBox(p, R(0.15)) : dashCircle(p, R(0.15), ballColor(seg.num)); if (on && justPlaced === 'obj-' + seg.num) out += check(p); } });
+
+    // 母球路線（白色虛線，轉彎點白色半透明球 r0.15，結尾箭頭）
+    const cueRoute = coords(valOf('母球路線'));
+    if (cueRoute.length && cueCenter) {
+      const pts = [cueCenter, ...cueRoute.map(c => P(c[0], c[1]))];
+      out += poly(pts, '#ffffff');
+      for (let i = 1; i < pts.length - 1; i++) out += ghost(pts[i], R(0.15));
+    }
+
+    // 子球路線（黃色虛線，按球號從球心出發）
+    ballSegs(valOf('子球路線')).forEach(seg => {
+      const start = ballCenters[seg.num];
+      if (start && seg.pts.length) {
+        const pts = [start, ...seg.pts.map(c => P(c[0], c[1]))];
+        out += poly(pts, ballColor(seg.num));
+        for (let i = 1; i < pts.length - 1; i++) out += ghost(pts[i], R(0.15));
+      }
+    });
+
+    }
+
+    // 子球 / 母球目標袋口（r0.4 圈，線粗0.1）
+    const drawPocket = (val, color) => {
+      Object.keys(pockets).forEach(name => {
+        if (val.includes(name)) { const [a, b] = pockets[name]; const p = P(a, b); out += `<circle cx="${p.x}" cy="${p.y}" r="${R(0.2)}" fill="none" stroke="${color}" stroke-width="${R(0.1)}"/>`; }
+      });
+    };
+    drawPocket(valOf('子球目標袋口'), '#f5d000');
+    drawPocket(valOf('母球目標袋口'), '#1b5e20');
+
+    // 子球 / 母球目標線段位置（線粗0.1，旁邊標編號）
+    const drawSegs = (val, color, labelColor) => {
+      const cs = coords(val);
+      for (let i = 0; i + 1 < cs.length; i += 2) {
+        const a = P(cs[i][0], cs[i][1]), b = P(cs[i+1][0], cs[i+1][1]);
+        out += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${color}" stroke-width="${R(0.1)}" stroke-linecap="round"/>`;
+        out += `<text x="${(a.x+b.x)/2 + 10}" y="${(a.y+b.y)/2}" font-size="13" font-weight="700" fill="${labelColor}">${i/2 + 1}</text>`;
+      }
+    };
+    drawSegs(valOf('子球目標線段位置'), '#f5d000', '#8a6d00');
+    drawSegs(valOf('母球目標線段位置'), '#ffffff', '#0e1216');
+
+    // 子球 / 母球目標區塊位置（半透明方塊）
+    const drawBlocks = (val, fill) => {
+      const cs = coords(val);
+      for (let i = 0; i + 1 < cs.length; i += 2) {
+        const a = P(cs[i][0], cs[i][1]), b = P(cs[i+1][0], cs[i+1][1]);
+        const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y), w = Math.abs(a.x - b.x), h = Math.abs(a.y - b.y);
+        out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"/>`;
+      }
+    };
+    drawBlocks(valOf('子球目標區塊位置'), 'rgba(245,208,0,0.32)');
+    drawBlocks(valOf('母球目標區塊位置'), 'rgba(255,255,255,0.42)');
+
+    ov.innerHTML = out;
+  }
+
+  // 解析星星門檻：一顆星 7 分、兩顆星 9 分、三顆星 10 分
+  function parseStars(text) {
+    const f = re => { const m = text.match(re); return m ? parseInt(m[1], 10) : null; };
+    return { 1: f(/一顆星\s*(\d+)\s*分/), 2: f(/(?:兩|二)顆星\s*(\d+)\s*分/), 3: f(/三顆星\s*(\d+)\s*分/) };
+  }
+
+  // 子步驟高亮
+  // 線性子步驟順序（分岔的 fork-step 不在此列，另外處理）
+  const LINEAR = ['6.0','6.1','6.2','6.3','6.4','6.5','6.6','6.7','6.10','6.11'];
+
+  function clearFork() {
+    document.querySelectorAll('.fork-step').forEach(el => el.classList.remove('active', 'done'));
+  }
+
+  function setSub(name) {
+    document.querySelectorAll('.substep').forEach(el => el.classList.remove('active', 'done'));
+    clearFork();
+    const ki = LINEAR.indexOf(name);
+    const scope = activeSix || document;
+    scope.querySelectorAll('.substep').forEach(el => {
+      const i = LINEAR.indexOf(el.dataset.sub);
+      if (i < 0) return;
+      if (ki >= 0 && i < ki) el.classList.add('done');
+      if (el.dataset.sub === name) el.classList.add('active');
+    });
+  }
+
+  // 標記線性步驟到 6.7 完成（分支另外逐步推進）
+  function markLinearDone() {
+    document.querySelectorAll('.substep').forEach(el => el.classList.remove('active', 'done'));
+    clearFork();
+    const scope = activeSix || document;
+    const upto = LINEAR.indexOf('6.7');
+    scope.querySelectorAll('.substep').forEach(el => {
+      const i = LINEAR.indexOf(el.dataset.sub);
+      if (i >= 0 && i <= upto) el.classList.add('done');
+    });
+  }
+
+  // 還原「就定位」按鈕與球圈（虛線）狀態
+  // 解析本關有哪些球（母球＋各號子球），一顆球一個按鈕
+  function getPlayBalls(text) {
+    const list = [];
+    if (/母球位置\s*[:：]?\s*\([^)]*\)/.test(text)) list.push({ id: 'cue', label: '母球' });
+    const m = text.match(/子球位置\s*[:：]?\s*([^\n]*)/);
+    if (m) {
+      const seg = m[1];
+      const nums = []; let mm; const rb = /(\d+)\s*號/g;
+      while ((mm = rb.exec(seg)) !== null) nums.push(parseInt(mm[1], 10));
+      if (nums.length) nums.forEach(n => list.push({ id: 'obj-' + n, label: '子' + n }));
+      else { const cnt = (seg.match(/\([^)]*\)/g) || []).length; for (let i = 1; i <= cnt; i++) list.push({ id: 'obj-' + i, label: '子' + i }); }
+    }
+    return list;
+  }
+
+  // 依本關球數動態建立「就定位」按鈕與流程圖子節點
+  function buildReadyUI() {
+    playBalls = getPlayBalls(curText);
+    simReady.innerHTML = '';
+    curSubFlow.innerHTML = '';
+    playBalls.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = 'sim-btn';
+      btn.dataset.id = b.id;
+      btn.dataset.label = b.label;
+      btn.textContent = b.label;
+      btn.addEventListener('click', () => placeBall(b.id));
+      simReady.appendChild(btn);
+
+      const sn = document.createElement('div');
+      sn.className = 'subnode';
+      sn.dataset.id = b.id;
+      sn.textContent = b.label;
+      curSubFlow.appendChild(sn);
+    });
+  }
+
+  // 6.0：模板載入（球桌空白，只顯示「模板載入完成」鈕）
+  function enterTemplate() {
+    placedSet.clear();
+    simReady.querySelectorAll('.sim-btn').forEach(btn => { btn.classList.remove('done'); btn.textContent = btn.dataset.label; });
+    curSubFlow.querySelectorAll('.subnode').forEach(sn => sn.classList.remove('on'));
+    simStatus.classList.remove('blink'); simStatus.textContent = '';
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none';
+    btnRolling.style.display = 'none';
+    shotMsg.className = 'shot-msg';
+    simHit.style.display = 'none';
+    simResult.style.display = 'none';
+    simReady.style.display = 'none';
+    tableHint.classList.remove('show'); curSub615.classList.remove('on');
+    btnLoaded.style.display = 'none';
+    btnTemplate.style.display = '';
+    const ov = document.getElementById('tableOverlay');
+    if (ov) ov.innerHTML = '';   // 球桌上沒有任何資訊
+    setSub('6.0');
+  }
+
+  // 6.1：球桌資訊標記（球桌畫出球位／路線／目標，顯示「位置標記完成」鈕）
+  function enterInfo() {
+    placedSet.clear();
+    simReady.querySelectorAll('.sim-btn').forEach(btn => { btn.classList.remove('done'); btn.textContent = btn.dataset.label; });
+    curSubFlow.querySelectorAll('.subnode').forEach(sn => sn.classList.remove('on'));
+    btnTemplate.style.display = 'none';
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none';
+    btnRolling.style.display = 'none';
+    shotMsg.className = 'shot-msg';
+    simHit.style.display = 'none';
+    simReady.style.display = 'none';
+    tableHint.classList.remove('show'); curSub615.classList.remove('on');
+    btnLoaded.style.display = '';
+    renderPositions(curText, placedSet, null);
+    setSub('6.1');
+  }
+
+  // 6.1：按「資訊載入完成」→ 顯示球按鈕與「請把球放在圈圈中」提示
+  function enterDetect() {
+    if (current !== 6) return;
+    btnLoaded.style.display = 'none';
+    // 6.2 播放音效：請擺球（先單獨進行）
+    playSound('請擺球.mp3');
+    setSub('6.2');
+    setTimeout(() => {
+      if (current !== 6) return;
+      // 6.3 開始偵測球體
+      simReady.style.display = 'flex';
+      tableHint.classList.add('show'); curSub615.classList.add('on');
+      setSub('6.3');
+    }, 800);
+  }
+
+  // 進入步驟 6 時初始化模擬
+  function setupPlay() {
+    simIdx = 0; simResults = [];
+    chances.innerHTML = '';
+    for (let i = 0; i < chancesTotal; i++) {
+      const c = document.createElement('div');
+      c.className = 'chance';
+      chances.appendChild(c);
+    }
+    // 依過關需求決定走 6 或 6′，並指向該分支的流程圖元素
+    const node6 = nodeEl(6);
+    if (onceMode) {
+      node6.classList.remove('active'); sixOnceNode.classList.add('active'); activeSix = sixOnceNode;
+      curSubFlow = subFlow6p; curSub615 = sub615_6p; curLoopCount = loopCount6p;
+    } else {
+      sixOnceNode.classList.remove('active'); node6.classList.add('active'); activeSix = node6;
+      curSubFlow = subFlow; curSub615 = sub615; curLoopCount = loopCount;
+    }
+    buildReadyUI();
+    curLoopCount.textContent = '第 1 / ' + chancesTotal + ' 次';
+    enterTemplate();
+    adjustChances();
+  }
+
+  // 讓下方虛線圈圈列寬度不超過球桌的左右
+  function adjustChances() {
+    const svg = document.querySelector('#tableSurface svg');
+    if (!svg) return;
+    const r = svg.getBoundingClientRect();
+    if (!r.height) return;
+    const aspect = 404 / 684;                 // 球桌 viewBox 比例
+    const drawnW = Math.min(r.width, r.height * aspect);  // 球桌實際渲染寬度
+    chances.style.maxWidth = Math.floor(drawnW) + 'px';
+  }
+  window.addEventListener('resize', () => { if (current === 6) adjustChances(); });
+
+  // 記錄一桿成績
+  function recordShot(ok) {
+    if (simIdx >= chancesTotal) return;
+    simResults.push(ok);
+    const c = chances.children[simIdx];
+    if (c) { c.classList.add(ok ? 'hit' : 'miss'); c.textContent = ok ? '😀' : '😢'; }
+    simIdx++;
+    simStatus.classList.remove('blink');
+    simHit.style.display = 'none';
+    // 只需完成一次：成功一桿即過關；否則用完次數才結束
+    const finished = (onceMode && ok) || simIdx >= chancesTotal;
+
+    // 線性 6.0-6.7 完成；分支兩步逐一進行（音效 → 結果宣告）
+    markLinearDone();
+    const scope = activeSix || document;
+    const steps = Array.from(scope.querySelectorAll('.fork-step[data-result="' + (ok ? 'ok' : 'no') + '"]'));
+    const activate = i => { if (steps[i]) steps[i].classList.add('active'); };
+    const finish = i => { if (steps[i]) { steps[i].classList.remove('active'); steps[i].classList.add('done'); } };
+
+    // 6.8-x 播放音效
+    activate(0);
+    playSound(ok ? '漂亮.mp3' : '加油.mp3');
+    setTimeout(() => {
+      if (current !== 6) return;
+      // 6.9-x 結果宣告：畫面中央顯示本桿成功／失敗
+      finish(0); activate(1);
+      shotMsg.className = 'shot-msg show ' + (ok ? 'ok' : 'no');
+      shotMsg.innerHTML = ok ? '本桿成功😀' : '本桿失敗😢';
+      setTimeout(() => {
+        if (current !== 6) return;
+        shotMsg.className = 'shot-msg';
+        finish(1);
+        if (finished) {
+          simResult.style.display = '';
+          simStatus.textContent = '已完成 ' + chancesTotal + ' 桿';
+          setSub('6.11');
+        } else {
+          // 6.10 關卡重複 → 迴圈回 6.1
+          curLoopCount.textContent = '第 ' + (simIdx + 1) + ' / ' + chancesTotal + ' 次';
+          enterInfo();
+        }
+      }, 1300);
+    }, 800);
+  }
+
+  // 結算畫面內容
+  function renderResult() {
+    rName.textContent = levelNameStr || '關卡名稱';
+    const made = simResults.filter(Boolean).length;
+    let earned = 0;
+    [1, 2, 3].forEach(k => { if (levelStarThresh[k] != null && made >= levelStarThresh[k]) earned = k; });
+    rStars.innerHTML = [1, 2, 3].map(k => `<span class="${k <= earned ? 'on' : 'off'}">★</span>`).join('');
+    if (levelImageSrc) { rImage.src = levelImageSrc; rImageWrap.classList.remove('empty'); }
+    else { rImage.removeAttribute('src'); rImageWrap.classList.add('empty'); }
+    rScore.textContent = made + '/' + chancesTotal;
+    const d = new Date();
+    rDate.textContent = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+    rLoc.textContent = chosenLocation || '—';
+    rFaces.innerHTML = simResults.map(ok => `<div class="r-face ${ok ? 'hit' : 'miss'}">${ok ? '😀' : '😢'}</div>`).join('');
+  }
+
+  // 6.1：每顆球各自就定位（可再按一次取消）→ 對應球圈變綠方框，流程圖子節點前進
+  function placeBall(id) {
+    if (current !== 6) return;
+    let justPlaced = null;
+    if (placedSet.has(id)) placedSet.delete(id);
+    else { placedSet.add(id); justPlaced = id; }
+    const on = placedSet.has(id);
+    const btn = simReady.querySelector('.sim-btn[data-id="' + id + '"]');
+    if (btn) { btn.classList.toggle('done', on); btn.textContent = btn.dataset.label + (on ? ' ✓' : ''); }
+    const sn = curSubFlow.querySelector('.subnode[data-id="' + id + '"]');
+    if (sn) sn.classList.toggle('on', on);
+    renderPositions(curText, placedSet, justPlaced);
+    setSub('6.3');
+    // 6.2：所有球都就位後 → 顯示開始擊球
+    if (playBalls.length && placedSet.size === playBalls.length) {
+      tableHint.classList.remove('show'); curSub615.classList.remove('on');
+      simReady.style.display = 'none';
+      setTimeout(() => {
+        if (current !== 6 || placedSet.size !== playBalls.length) return;
+        // 6.4 播放音效：開始擊球（先單獨進行）
+        playSound('請開始.mp3');
+        setSub('6.4');
+        setTimeout(() => {
+          if (current !== 6 || placedSet.size !== playBalls.length) return;
+          // 6.5 等待玩家擊球，顯示「開始擊球」
+          shootHint.classList.add('show');
+          btnShoot.style.display = '';
+          setSub('6.5');
+        }, 800);
+      }, 1000);
+    }
+  }
+
+  // 6.3：擊球 → 出現成功／失敗判定
+  // 6.0：模板載入完成 → 進入 6.1 球桌資訊標記
+  btnTemplate.addEventListener('click', () => { if (current === 6) enterInfo(); });
+  // 6.1：位置標記完成 → 進入 6.3 偵測
+  btnLoaded.addEventListener('click', enterDetect);
+
+  btnShoot.addEventListener('click', () => {
+    if (current !== 6) return;
+    shootHint.classList.remove('show');
+    btnShoot.style.display = 'none';
+    // 6.6 擊球瞬間：桌上只保留目標物，出現「球正在滾」
+    renderPositions(curText, false, null, true);
+    btnRolling.style.display = '';
+    setSub('6.6');
+  });
+  // 6.7：點「球正在滾」→ 出現判定按鈕
+  btnRolling.addEventListener('click', () => {
+    if (current !== 6) return;
+    btnRolling.style.display = 'none';
+    simHit.style.display = 'flex';
+    setSub('6.7');
+  });
+  // 6.3：成功 / 失敗
+  btnHit.addEventListener('click', () => { if (current === 6) recordShot(true); });
+  btnMiss.addEventListener('click', () => { if (current === 6) recordShot(false); });
+  // 完成所有桿次 → 結算
+  simResult.addEventListener('click', () => { if (current !== 6) return; renderResult(); goToStep(7); });
+
+  resetBtn.addEventListener('click', reset);
+  reset();
+</script>
+</body>
+</html>
