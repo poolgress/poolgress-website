@@ -986,6 +986,13 @@
     const infinite = sel.value === "infinite";
     inf.style.display = infinite ? "" : "none";
     stg.style.display = infinite ? "none" : "";
+    // 只需完成一次：勾選時停用次數欄
+    const once = document.getElementById("noteOnce");
+    const onceOn = !!(once && once.checked);
+    ["noteCondPass", "noteCondTotal"].forEach((id) => {
+      const e = document.getElementById(id);
+      if (e) { e.disabled = onceOn; e.style.opacity = onceOn ? "0.4" : ""; }
+    });
   }
   function setLevelType(v) {
     const hid = document.getElementById("noteLevelType");
@@ -1014,6 +1021,8 @@
       });
       document.addEventListener("click", (e) => { if (!typeWrap.contains(e.target)) typeList.setAttribute("hidden", ""); });
     }
+    const onceCb = document.getElementById("noteOnce");
+    if (onceCb) onceCb.addEventListener("change", applyLevelType);
     applyLevelType();
 
     const autoGrow = () => {
@@ -1362,6 +1371,7 @@
         desc: document.getElementById("noteInput").value,
         pass: document.getElementById("noteCondPass").value,
         total: document.getElementById("noteCondTotal").value,
+        once: !!(document.getElementById("noteOnce") || {}).checked,
         star1: (document.getElementById("noteStar1") || {}).value || "",
         star2: (document.getElementById("noteStar2") || {}).value || "",
         star3: (document.getElementById("noteStar3") || {}).value || "",
@@ -1399,6 +1409,7 @@
     const ln = document.getElementById("noteLevelName"); if (ln) ln.value = "";
     const np = document.getElementById("noteCondPass"); if (np) np.value = "";
     const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
+    const oc = document.getElementById("noteOnce"); if (oc) oc.checked = false;
     ["noteStar1", "noteStar2", "noteStar3"].forEach((id) => { const e = document.getElementById(id); if (e) e.value = ""; });
     setNoteRules({}); // 規則回到預設（各列第一個選項）
     setLevelType("infinite");
@@ -1440,8 +1451,9 @@
     const stage = val("noteLevelType") === "stage";
     out.push("關卡名稱：" + val("noteLevelName").trim());
     out.push("關卡說明：" + val("noteInput").trim());
+    const once = !!(document.getElementById("noteOnce") || {}).checked;
     out.push("關卡種類：" + (stage
-      ? "遊戲闖關（過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次）"
+      ? "遊戲闖關（過關條件：" + (once ? "只需完成一次" : (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次") + "）"
       : "無限挑戰"));
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
     // 規則需求：列出不是「不顯示」(index 0) 的選項
@@ -1599,11 +1611,12 @@
       const ln = document.getElementById("noteLevelName"); if (ln) ln.value = st.note.name || "";
       document.getElementById("noteCondPass").value = st.note.pass || "";
       document.getElementById("noteCondTotal").value = st.note.total || "";
+      const oc = document.getElementById("noteOnce"); if (oc) oc.checked = !!st.note.once;
       const s1 = document.getElementById("noteStar1"); if (s1) s1.value = st.note.star1 || "";
       const s2 = document.getElementById("noteStar2"); if (s2) s2.value = st.note.star2 || "";
       const s3 = document.getElementById("noteStar3"); if (s3) s3.value = st.note.star3 || "";
       setNoteRules(st.note.rules);
-      setLevelType(st.note.type || "infinite");
+      setLevelType(st.note.type || "infinite"); // 內含 applyLevelType（會套用 once 停用狀態）
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
       if (nbtn) { nbtn.classList.toggle("active", !!st.note.shown); nbtn.setAttribute("aria-pressed", String(!!st.note.shown)); }
       if (st.note.shown) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
