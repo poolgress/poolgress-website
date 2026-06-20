@@ -42,7 +42,7 @@
   @media (max-width: 980px) { .layout { grid-template-columns: 1fr; justify-items: center; } }
 
   /* ===== 流程圖 ===== */
-  .flow { display: flex; flex-direction: column; align-items: center; }
+  .flow { display: flex; flex-direction: column; align-items: center; position: relative; }
   .connector { width: 2px; height: 18px; background: var(--line); position: relative; }
   .connector::after {
     content: ""; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
@@ -227,25 +227,20 @@
 
   /* --- 放棄遊戲分支（流程圖） --- */
   /* 返回／說明分支：置於 6 與 6′ 中間，兩者共用 */
-  .mid-branches { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; flex-direction: column; gap: 22px; width: 150px; }
+  /* 返回／說明分支：移到步驟 1–5 左側，連線由 6／6′ 以 SVG 畫過來 */
+  .side-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+  .side-branches { position: absolute; left: 26px; top: 96px; z-index: 2; display: flex; flex-direction: column; gap: 18px; width: 150px; }
   .giveup-branch, .detail-branch { position: relative; }
   .mb-label { text-align: center; font-size: 11px; color: var(--text-soft); margin-bottom: 4px; }
-  /* 左右兩側連線（連到 6 與 6′） */
-  .giveup-branch::before, .giveup-branch::after,
-  .detail-branch::before, .detail-branch::after { content: ""; position: absolute; top: 55%; transform: translateY(-50%); width: 40px; height: 2px; background: var(--line); }
-  .giveup-branch::before, .detail-branch::before { right: 100%; }
-  .giveup-branch::after, .detail-branch::after { left: 100%; }
   .gb-decision, .db-decision { border: 2px solid var(--line); border-radius: 12px; padding: 10px; background: #fff; font-weight: 700; font-size: 14px; text-align: center; }
   .gb-opts, .db-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
   .gb-opt, .db-opt { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: #fafbfd; color: var(--text-soft); text-align: center; }
   .giveup-branch.active .gb-decision, .detail-branch.active .db-decision { border-color: var(--blue); background: var(--blue-soft); box-shadow: 0 0 0 1px var(--blue); }
-  .giveup-branch.active::before, .giveup-branch.active::after,
-  .detail-branch.active::before, .detail-branch.active::after { background: var(--blue); }
   .giveup-branch.active .mb-label, .detail-branch.active .mb-label { color: var(--blue-dark); }
 
   /* 步驟 6 與 6′ 的並排分岔（都從 5 連入、都接到結算） */
-  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 230px; padding: 24px 0; }
-  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 19%; right: 19%; height: 2px; background: var(--line); }
+  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 56px; padding: 24px 0; }
+  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 23%; right: 23%; height: 2px; background: var(--line); }
   .six-fork::before { top: 0; }
   .six-fork::after { bottom: 0; }
   .six-col { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -258,8 +253,8 @@
   @media (max-width: 980px) {
     .six-fork { flex-direction: column; align-items: center; gap: 28px; }
     .six-fork::before, .six-fork::after, .six-col::before, .six-col::after { display: none; }
-    .mid-branches { position: static; transform: none; width: 100%; }
-    .giveup-branch::before, .giveup-branch::after, .detail-branch::before, .detail-branch::after { display: none; }
+    .side-branches { position: static; width: 100%; margin-top: 12px; }
+    .side-conn { display: none; }
   }
 
   /* --- 進入遊戲關卡 --- */
@@ -359,6 +354,27 @@
   <div class="layout">
     <!-- ===== 流程圖 ===== -->
     <div class="flow" id="flow">
+      <!-- 從 6／6′ 連到「返回／說明」的連線（JS 繪製） -->
+      <svg class="side-conn" id="sideConn" xmlns="http://www.w3.org/2000/svg"></svg>
+      <!-- 返回／說明分支（位於步驟 1–5 左側，由 6／6′ 連過來） -->
+      <div class="side-branches">
+        <div class="giveup-branch" id="giveupBranch">
+          <div class="mb-label">返回</div>
+          <div class="gb-decision">要放棄遊戲嗎？</div>
+          <div class="gb-opts">
+            <div class="gb-opt">放棄 → 步驟 4</div>
+            <div class="gb-opt">繼續玩 → 步驟 6</div>
+          </div>
+        </div>
+        <div class="detail-branch" id="detailBranch">
+          <div class="mb-label">說明</div>
+          <div class="db-decision">關卡說明視窗</div>
+          <div class="db-opts">
+            <div class="db-opt">關閉 → 步驟 6</div>
+          </div>
+        </div>
+      </div>
+
       <div class="node terminal" data-step="0"><div class="title">開始</div></div>
       <div class="connector" data-conn="0"></div>
 
@@ -430,24 +446,6 @@
         </div>
 
         <!-- 返回／說明分支（位於 6 與 6′ 中間，兩者共用） -->
-        <div class="mid-branches">
-          <div class="giveup-branch" id="giveupBranch">
-            <div class="mb-label">返回</div>
-            <div class="gb-decision">要放棄遊戲嗎？</div>
-            <div class="gb-opts">
-              <div class="gb-opt">放棄 → 步驟 4</div>
-              <div class="gb-opt">繼續玩 → 步驟 6</div>
-            </div>
-          </div>
-          <div class="detail-branch" id="detailBranch">
-            <div class="mb-label">說明</div>
-            <div class="db-decision">關卡說明視窗</div>
-            <div class="db-opts">
-              <div class="db-opt">關閉 → 步驟 6</div>
-            </div>
-          </div>
-        </div>
-
         <!-- 變體流程：步驟 6′（過關需求：只需完成一次） -->
         <div class="six-col">
           <div class="branch-tag">過關需求：只需完成一次</div>
@@ -1440,6 +1438,32 @@
 
   resetBtn.addEventListener('click', reset);
   reset();
+
+  // 從 6／6′ 連到左側「返回／說明」分支的連線
+  function drawSideConnectors() {
+    const flow = document.getElementById('flow');
+    const svg = document.getElementById('sideConn');
+    const sb = document.querySelector('.side-branches');
+    const n6 = nodeEl(6), n6p = sixOnceNode;
+    if (!flow || !svg || !sb || !n6 || !n6p) return;
+    const fr = flow.getBoundingClientRect();
+    if (!fr.width) return;
+    svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, cy: (r.top + r.bottom) / 2 - fr.top, b: r.bottom - fr.top }; };
+    const B = rel(sb), A6 = rel(n6), A6p = rel(n6p);
+    const jx = B.l + sb.offsetWidth / 2;     // 分支底部中心（匯入點）
+    const jy = B.b + 4;
+    const railX = B.l - 8;                    // 左側豎線
+    const elbow = (a, rx) => `M ${a.l} ${a.cy} L ${rx} ${a.cy} L ${rx} ${jy} L ${jx} ${jy}`;
+    svg.innerHTML =
+      `<path d="${elbow(A6, railX)}" fill="none" stroke="#cbd5e1" stroke-width="2"/>` +
+      `<path d="${elbow(A6p, railX - 9)}" fill="none" stroke="#cbd5e1" stroke-width="2"/>` +
+      `<text x="${railX - 4}" y="${(A6.cy + jy) / 2}" font-size="10" fill="#9aa3b2" text-anchor="end" transform="rotate(-90 ${railX - 4} ${(A6.cy + jy) / 2})">由 6／6′ 觸發</text>`;
+  }
+  drawSideConnectors();
+  window.addEventListener('resize', drawSideConnectors);
+  window.addEventListener('load', drawSideConnectors);
+  setTimeout(drawSideConnectors, 300);
 </script>
 </body>
 </html>
