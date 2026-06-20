@@ -231,6 +231,11 @@
   .ball-redetect .br-title { font-size: 12px; font-weight: 700; color: var(--blue-dark); line-height: 1.4; }
   .ball-redetect .br-note { font-size: 11px; color: var(--text); margin-top: 4px; line-height: 1.4; }
   .ball-redetect.active { box-shadow: 0 0 0 2px var(--blue); background: #dbeafe; }
+  /* 任意順序：確認打進的子球（位於 6′ 左側、6.3-1 下方） */
+  .ball-confirm { position: absolute; left: -140px; top: 480px; width: 124px; border: 2px dashed var(--blue); border-radius: 10px; background: #fff; padding: 8px 8px; z-index: 2; }
+  .ball-confirm .br-title { font-size: 12px; font-weight: 700; color: var(--blue-dark); line-height: 1.4; }
+  .ball-confirm .br-note { font-size: 11px; color: var(--text-soft); margin-top: 4px; line-height: 1.4; }
+  .ball-confirm.active { border-style: solid; box-shadow: 0 0 0 2px var(--blue); background: #dbeafe; }
   .fork-step.terminal-ok.active { box-shadow: 0 0 0 2px var(--green); }
   .fork-step.terminal-no.active { box-shadow: 0 0 0 2px #ef4444; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
@@ -504,7 +509,11 @@
           </div>
           <div class="ball-redetect" id="ballRedetect">
             <div class="br-title">6.3-1 確定剩下的球體在圈圈中</div>
-            <div class="br-note">只需要有（N−1）顆球在圈圈中</div>
+            <div class="br-note">只需要有（N−1）顆球在圈圈中<br>（照順序：自動移除最小號）</div>
+          </div>
+          <div class="ball-confirm" id="ballConfirm">
+            <div class="br-title">確認打進的子球</div>
+            <div class="br-note">（任意順序）點選已打進的子球 → 該顆不需再確認</div>
           </div>
         </div>
 
@@ -660,6 +669,7 @@
               <button class="sim-btn" id="btnTemplate" style="display:none;">模板載入完成</button>
               <button class="sim-btn" id="btnLoaded" style="display:none;">位置標記完成</button>
               <div class="sim-ready" id="simReady"></div>
+              <div class="sim-ready" id="simConfirm" style="display:none;"></div>
               <button class="sim-btn" id="btnShoot" style="display:none;">擊球</button>
               <button class="sim-btn" id="btnRolling" style="display:none;">球正在滾</button>
               <div class="sim-hit" id="simHit" style="display:none;">
@@ -767,6 +777,7 @@
   // 模擬遊玩
   const simStatus = document.getElementById('simStatus');
   const simReady = document.getElementById('simReady');
+  const simConfirm = document.getElementById('simConfirm');
   const subFlow = document.getElementById('subFlow');
   const simHit = document.getElementById('simHit');
   const btnHit = document.getElementById('btnHit');
@@ -810,6 +821,15 @@
     if (v.indexOf('球型') >= 0) return 'ball';
     if (v.indexOf('無限') >= 0) return 'infinite';
     return 'repeat';
+  }
+  // 球型關卡的擊球順序規則：sequential（要照順序打）/ any（任意順序）
+  let levelOrder = 'sequential';
+  function orderOf(text) {
+    const m = text.match(/規則需求\s*[:：]\s*([^\n]*)/);
+    const v = (m ? m[1] : '') + text;
+    if (v.indexOf('任意順序') >= 0) return 'any';
+    if (v.indexOf('照順序') >= 0) return 'sequential';
+    return 'sequential';
   }
   const btnLoaded = document.getElementById('btnLoaded');
   // 結算畫面
@@ -922,7 +942,9 @@
     btnLoaded.style.display = 'none'; btnTemplate.style.display = 'none';
     shotMsg.className = 'shot-msg';
     variantNodes.forEach(n => n && n.classList.remove('active', 'done'));
-    document.querySelectorAll('.ball-redetect, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.ball-redetect, .ball-confirm, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.subflow').forEach(sf => sf.innerHTML = '');
+    simConfirm.style.display = 'none';
     ballsPotted = 0; ballRepeat = false;
     setSub('');
     goToStep(0);
@@ -1005,6 +1027,7 @@
 
     // 依「關卡種類」決定走哪一條變體流程
     levelVariant = variantOf(infoInput.value);
+    levelOrder = orderOf(infoInput.value);
 
     // 星星門檻（解析「一顆星 7 分、兩顆星 9 分、三顆星 10 分」）
     levelStarThresh = parseStars(infoInput.value);
@@ -1333,7 +1356,8 @@
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = 'none';
     btnTemplate.style.display = '';
-    document.querySelectorAll('.ball-redetect, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
+    simConfirm.style.display = 'none';
+    document.querySelectorAll('.ball-redetect, .ball-confirm, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
     const ov = document.getElementById('tableOverlay');
     if (ov) ov.innerHTML = '';   // 球桌上沒有任何資訊
     setSub('6.0');
@@ -1350,6 +1374,7 @@
     shotMsg.className = 'shot-msg';
     simHit.style.display = 'none';
     simReady.style.display = 'none';
+    simConfirm.style.display = 'none';
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = '';
     renderPositions(curText, placedSet, null);
@@ -1379,7 +1404,8 @@
     playBalls = getPlayBalls(curText);
     ballsTotal = playBalls.filter(b => b.id !== 'cue').length;
     ballsPotted = 0; ballRepeat = false;
-    currentObjIds = playBalls.filter(b => b.id !== 'cue').map(b => b.id);
+    currentObjIds = playBalls.filter(b => b.id !== 'cue').map(b => b.id)
+      .sort((a, b) => parseInt(a.split('-')[1], 10) - parseInt(b.split('-')[1], 10));
     if (isBallMode()) chancesTotal = ballsTotal;
     chances.innerHTML = '';
     for (let i = 0; i < chancesTotal; i++) {
@@ -1453,9 +1479,14 @@
           } else if (ballFail) {     // 6.9-2 → 6.11-2 關卡失敗
             markTerminal('no');
             simResult.style.display = ''; simStatus.textContent = '關卡失敗';
-          } else {                   // 6.10-1 繼續下一桿 → 6.3-1 重新偵測
+          } else {                   // 6.10-1 繼續下一桿
             activate(2);
-            enterRedetect();
+            if (levelOrder === 'any') {
+              enterConfirmPotted();    // 任意順序：先確認打進哪一顆
+            } else {
+              currentObjIds.shift();   // 要照順序打：移除最小號子球
+              enterRedetect();
+            }
           }
         } else if (finished) {       // 6.11 關卡重複結束 → 結算
           simResult.style.display = '';
@@ -1476,11 +1507,37 @@
     if (el) el.classList.add('active');
   }
 
-  // 6.3-1：打進一顆後，重新偵測剩餘球體（子球數量−1），完成後 → 6.5
+  // 任意順序：確認打進哪一顆子球（出現目前桌上的子球按鈕）
+  function enterConfirmPotted() {
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none';
+    btnRolling.style.display = 'none'; simHit.style.display = 'none';
+    shotMsg.className = 'shot-msg'; simReady.style.display = 'none';
+    tableHint.classList.remove('show'); curSub615.classList.remove('on');
+    simConfirm.innerHTML = '';
+    simStatus.textContent = '確認打進的子球';
+    currentObjIds.slice().sort((a, b) => parseInt(a.split('-')[1], 10) - parseInt(b.split('-')[1], 10)).forEach(id => {
+      const num = id.split('-')[1];
+      const btn = document.createElement('button');
+      btn.className = 'sim-btn';
+      btn.textContent = '子' + num;
+      btn.addEventListener('click', () => {
+        if (current !== 6) return;
+        currentObjIds = currentObjIds.filter(x => x !== id);  // 該顆已打進 → 移除
+        simConfirm.style.display = 'none'; simStatus.textContent = '';
+        const cb = document.getElementById('ballConfirm'); if (cb) cb.classList.remove('active');
+        enterRedetect();
+      });
+      simConfirm.appendChild(btn);
+    });
+    simConfirm.style.display = 'flex';
+    const cb = document.getElementById('ballConfirm'); if (cb) cb.classList.add('active');
+  }
+
+  // 6.3-1：重新偵測剩餘球體（子球數量−1），完成後 → 6.5
   function enterRedetect() {
-    if (currentObjIds.length) currentObjIds.pop();   // 移除一顆已打進的子球
     ballRepeat = true;
     placedSet.clear();
+    simConfirm.style.display = 'none';
     buildReadyUI();                                   // 重建按鈕（少一顆）
     shootHint.classList.remove('show'); btnShoot.style.display = 'none';
     btnRolling.style.display = 'none';
@@ -1609,25 +1666,30 @@
     const svg = document.getElementById('ballLoop');
     const cont = document.getElementById('six6pContinue');
     const rd = document.getElementById('ballRedetect');
+    const cf = document.getElementById('ballConfirm');
     const step5 = sixOnceNode.querySelector('.substep[data-sub="6.5"]');
-    if (!svg || !cont || !rd || !step5) return;
-    // 先把 6.3-1 對齊 6.5 的高度
+    if (!svg || !cont || !rd || !cf || !step5) return;
     const col = sixOnceNode.closest('.six-col');
-    rd.style.top = (step5.getBoundingClientRect().top - col.getBoundingClientRect().top) + 'px';
+    const colTop = col.getBoundingClientRect().top;
+    // 6.3-1 對齊 6.5 的高度；確認框放在 6.3-1 下方
+    rd.style.top = (step5.getBoundingClientRect().top - colTop) + 'px';
+    cf.style.top = (rd.getBoundingClientRect().bottom - colTop + 16) + 'px';
 
     const subs = sixOnceNode.querySelector('.substeps');
     const fr = subs.getBoundingClientRect();
     if (!fr.width) return;
     svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
     const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, r: r.right - fr.left, t: r.top - fr.top, b: r.bottom - fr.top, cy: (r.top + r.bottom) / 2 - fr.top }; };
-    const C = rel(cont), R = rel(rd), F = rel(step5);
-    const rcx = (R.l + R.r) / 2;
-    // 6.3-1 → 6.5（從框右緣水平進入 6.5 左緣）
-    const d2 = `M ${R.r} ${R.cy} L ${F.l} ${F.cy}`;
+    const C = rel(cont), R = rel(rd), K = rel(cf), F = rel(step5);
+    const kcx = (K.l + K.r) / 2;
     svg.innerHTML =
       `<defs><marker id="blArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#3b82f6"/></marker></defs>` +
-      `<path d="M ${C.l} ${C.cy} L ${rcx} ${C.cy} L ${rcx} ${R.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
-      `<path d="${d2}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>`;
+      // 6.10-1 → 確認打進的子球（往左、再往上進入框底）
+      `<path d="M ${C.l} ${C.cy} L ${kcx} ${C.cy} L ${kcx} ${K.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      // 確認 → 6.3-1（往上進入框底）
+      `<path d="M ${kcx} ${K.t} L ${kcx} ${R.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      // 6.3-1 → 6.5（從框右緣水平進入 6.5 左緣）
+      `<path d="M ${R.r} ${R.cy} L ${F.l} ${F.cy}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>`;
   }
 
   function redrawConnectors() { drawSideConnectors(); drawBallLoop(); }
