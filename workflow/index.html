@@ -509,11 +509,11 @@
           </div>
           <div class="ball-redetect" id="ballRedetect">
             <div class="br-title">6.3-1 確定剩下的球體在圈圈中</div>
-            <div class="br-note">只需要有（N−1）顆球在圈圈中<br>（照順序：自動移除最小號）</div>
+            <div class="br-note">自動移除最小號子球</div>
           </div>
           <div class="ball-confirm" id="ballConfirm">
-            <div class="br-title">確認打進的子球</div>
-            <div class="br-note">（任意順序）點選已打進的子球 → 該顆不需再確認</div>
+            <div class="br-title">6.3-2 確認打進的子球</div>
+            <div class="br-note">點選已打進的子球 → 移除該顆</div>
           </div>
         </div>
 
@@ -1217,8 +1217,9 @@
       for (let i = 1; i < pts.length - 1; i++) out += ghost(pts[i], R(0.15));
     }
 
-    // 子球路線（黃色虛線，按球號從球心出發）
+    // 子球路線（黃色虛線，按球號從球心出發；已打進的子球路線一併刪除）
     ballSegs(valOf('子球路線')).forEach(seg => {
+      if (objShow instanceof Set && !objShow.has(seg.num)) return;
       const start = ballCenters[seg.num];
       if (start && seg.pts.length) {
         const pts = [start, ...seg.pts.map(c => P(c[0], c[1]))];
@@ -1479,13 +1480,13 @@
           } else if (ballFail) {     // 6.9-2 → 6.11-2 關卡失敗
             markTerminal('no');
             simResult.style.display = ''; simStatus.textContent = '關卡失敗';
-          } else {                   // 6.10-1 繼續下一桿
+          } else {                   // 6.10-1 繼續下一桿 → 依規則分岔
             activate(2);
             if (levelOrder === 'any') {
-              enterConfirmPotted();    // 任意順序：先確認打進哪一顆
+              enterConfirmPotted();    // 任意順序 → 6.3-2 確認打進哪一顆 → 6.3
             } else {
-              currentObjIds.shift();   // 要照順序打：移除最小號子球
-              enterRedetect();
+              currentObjIds.shift();   // 要照順序打 → 6.3-1 移除最小號 → 6.3
+              enterRedetect(true);
             }
           }
         } else if (finished) {       // 6.11 關卡重複結束 → 結算
@@ -1533,8 +1534,8 @@
     const cb = document.getElementById('ballConfirm'); if (cb) cb.classList.add('active');
   }
 
-  // 6.3-1：重新偵測剩餘球體（子球數量−1），完成後 → 6.5
-  function enterRedetect() {
+  // 6.3-1／6.3-2 → 6.3：重新偵測剩餘球體（少一顆），完成後 → 6.4 → 6.5
+  function enterRedetect(seqHighlight) {
     ballRepeat = true;
     placedSet.clear();
     simConfirm.style.display = 'none';
@@ -1545,8 +1546,9 @@
     shotMsg.className = 'shot-msg';
     simReady.style.display = 'flex';
     tableHint.classList.add('show'); curSub615.classList.add('on');
-    const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.add('active');
-    renderPositions(curText, placedSet, null, false, currentObjNums());  // 只畫剩餘球
+    const rd = document.getElementById('ballRedetect');
+    if (rd) rd.classList.toggle('active', !!seqHighlight);   // 6.3-1 僅在「要照順序打」亮起
+    renderPositions(curText, placedSet, null, false, currentObjNums());  // 只畫剩餘球（含路線）
     setSub('6.3');
   }
 
@@ -1595,15 +1597,10 @@
       };
       setTimeout(() => {
         if (current !== 6 || placedSet.size !== need) return;
-        if (isBallMode() && ballRepeat) {
-          // 6.3-1 → 6.5（重複時略過 6.4 音效）
-          goShoot();
-        } else {
-          // 6.4 播放音效：開始擊球
-          playSound('請開始.mp3');
-          setSub('6.4');
-          setTimeout(goShoot, 800);
-        }
+        // 6.3 → 6.4 播放音效：開始擊球 → 6.5（重複時同樣經過 6.4）
+        playSound('請開始.mp3');
+        setSub('6.4');
+        setTimeout(goShoot, 800);
       }, 1000);
     }
   }
@@ -1667,12 +1664,12 @@
     const cont = document.getElementById('six6pContinue');
     const rd = document.getElementById('ballRedetect');
     const cf = document.getElementById('ballConfirm');
-    const step5 = sixOnceNode.querySelector('.substep[data-sub="6.5"]');
-    if (!svg || !cont || !rd || !cf || !step5) return;
+    const box63 = sub615_6p;   // 6.3 開始偵測球體
+    if (!svg || !cont || !rd || !cf || !box63) return;
     const col = sixOnceNode.closest('.six-col');
     const colTop = col.getBoundingClientRect().top;
-    // 6.3-1 對齊 6.5 的高度；確認框放在 6.3-1 下方
-    rd.style.top = (step5.getBoundingClientRect().top - colTop) + 'px';
+    // 6.3-1 對齊 6.3 框；6.3-2 放其下方
+    rd.style.top = (box63.getBoundingClientRect().top - colTop) + 'px';
     cf.style.top = (rd.getBoundingClientRect().bottom - colTop + 16) + 'px';
 
     const subs = sixOnceNode.querySelector('.substeps');
@@ -1680,16 +1677,22 @@
     if (!fr.width) return;
     svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
     const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, r: r.right - fr.left, t: r.top - fr.top, b: r.bottom - fr.top, cy: (r.top + r.bottom) / 2 - fr.top }; };
-    const C = rel(cont), R = rel(rd), K = rel(cf), F = rel(step5);
-    const kcx = (K.l + K.r) / 2;
+    const C = rel(cont), RD = rel(rd), CF = rel(cf), B = rel(box63);
+    const seqRail = RD.l - 14;             // 6.10-1→6.3-1 的左豎線
+    const cfcx = (CF.l + CF.r) / 2;        // 6.3-2 中心
+    const lbl = (x, y, t) => `<text x="${x}" y="${y}" font-size="10" font-weight="700" fill="#2563eb" text-anchor="middle">${t}</text>`;
     svg.innerHTML =
       `<defs><marker id="blArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#3b82f6"/></marker></defs>` +
-      // 6.10-1 → 確認打進的子球（往左、再往上進入框底）
-      `<path d="M ${C.l} ${C.cy} L ${kcx} ${C.cy} L ${kcx} ${K.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
-      // 確認 → 6.3-1（往上進入框底）
-      `<path d="M ${kcx} ${K.t} L ${kcx} ${R.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
-      // 6.3-1 → 6.5（從框右緣水平進入 6.5 左緣）
-      `<path d="M ${R.r} ${R.cy} L ${F.l} ${F.cy}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>`;
+      // 分叉：6.10-1 → 6.3-1（要照順序打）
+      `<path d="M ${C.l} ${C.cy} L ${seqRail} ${C.cy} L ${seqRail} ${RD.cy} L ${RD.l} ${RD.cy}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      lbl(seqRail, RD.b + 18, '要照順序打') +
+      // 分叉：6.10-1 → 6.3-2（任意順序）
+      `<path d="M ${C.l} ${C.cy} L ${cfcx} ${C.cy} L ${cfcx} ${CF.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      lbl(cfcx, CF.b + 16, '任意順序') +
+      // 6.3-1 → 6.3
+      `<path d="M ${RD.r} ${RD.cy} L ${B.l} ${B.cy}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      // 6.3-2 → 6.3
+      `<path d="M ${CF.r} ${CF.cy} L ${(CF.r + B.l) / 2} ${CF.cy} L ${(CF.r + B.l) / 2} ${B.cy} L ${B.l} ${B.cy}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>`;
   }
 
   function redrawConnectors() { drawSideConnectors(); drawBallLoop(); }
