@@ -232,7 +232,7 @@
   .fork-step.active { box-shadow: 0 0 0 2px var(--blue); }
   /* 6′ 重複迴圈：右側回流通道（規則需求 → 6.3-1 / 6.3-2 → 回到 6.3），連線以 SVG 畫 */
   #sixOnceNode .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
-  #sixOnceNode .ball-loop { position: absolute; left: 6px; bottom: 8px; width: 148px; display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 2; pointer-events: none; }
+  #sixOnceNode .ball-loop { position: absolute; left: 6px; top: 380px; width: 148px; display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 2; pointer-events: none; }
   #sixOnceNode .ball-loop .loop-decision, #sixOnceNode .ball-loop .fork-step { pointer-events: auto; }
   .loop-decision { align-self: center; font-size: 11px; font-weight: 700; text-align: center; color: var(--blue-dark); border: 2px solid var(--line); border-radius: 10px; padding: 5px 12px; background: #fff; }
   #sixOnceNode .loop-branches { display: flex; flex-direction: row; gap: 6px; width: 100%; align-items: flex-start; }
@@ -1690,10 +1690,13 @@
     const b64 = sixOnceNode.querySelector('.substep[data-sub="6.4"]');
     const b65 = sixOnceNode.querySelector('.substep[data-sub="6.5"]');
     if (!dec || !b64 || !b65) return;
-    const sr = subs.getBoundingClientRect();   // 回流通道由 CSS 固定在右下角，這裡只負責畫線
+    const sr = subs.getBoundingClientRect();
     if (!sr.height || !sr.width) return;
     svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
     const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - sr.left, r: r.right - sr.left, t: r.top - sr.top, b: r.bottom - sr.top, cx: (r.left + r.right) / 2 - sr.left, cy: (r.top + r.bottom) / 2 - sr.top }; };
+    // 將重複迴圈通道上移：讓 6.3-1／6.3-2 對齊 6.5 左側（off = 通道頂→框頂的標籤高度，為固定值）
+    const off = rel(rd).t - rel(lane).t;
+    lane.style.top = Math.round(rel(b65).t - off) + 'px';
     const C = rel(cont), B = rel(box63), D = rel(dec), R = rel(rd), F = rel(cf), G = rel(b64), H = rel(b65);
     const BLUE = '#3b82f6', SOLID = '#64748b';
     const arrow = (x, y, dir, col) => {
