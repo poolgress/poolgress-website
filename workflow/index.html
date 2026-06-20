@@ -37,7 +37,7 @@
 
   .layout {
     display: grid; grid-template-columns: 1fr 360px; gap: 40px;
-    max-width: 1480px; margin: 0 auto; align-items: start;
+    max-width: 1620px; margin: 0 auto; align-items: start;
   }
   @media (max-width: 980px) { .layout { grid-template-columns: 1fr; justify-items: center; } }
 
@@ -224,8 +224,12 @@
   .fork-step.terminal-ok { border-color: var(--green); background: #e9f9ef; color: #166534; font-weight: 700; }
   .fork-step.terminal-no { border-color: #ef4444; background: #fdecec; color: #b91c1c; font-weight: 700; }
   .ball-continue { position: relative; }
-  /* 6.10-1 → 6.3 的迴圈線（6′ 內，JS 繪製） */
+  /* 6.10-1 → 6.3-1 → 6.5 的迴圈線（6′ 內，JS 繪製） */
   .ball-loop { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
+  /* 6.3-1 確定剩餘球體（位於 6′ 左側） */
+  .ball-redetect { position: absolute; left: -140px; top: 360px; width: 124px; border: 2px solid var(--blue); border-radius: 10px; background: var(--blue-soft); padding: 8px 8px; z-index: 2; }
+  .ball-redetect .br-title { font-size: 12px; font-weight: 700; color: var(--blue-dark); line-height: 1.4; }
+  .ball-redetect .br-note { font-size: 11px; color: var(--text); margin-top: 4px; line-height: 1.4; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
   .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
   .substep.done { border-left-color: var(--green); }
@@ -247,8 +251,8 @@
   .giveup-branch.active .mb-label, .detail-branch.active .mb-label { color: var(--blue-dark); }
 
   /* 步驟 6 與 6′ 的並排分岔（都從 5 連入、都接到結算） */
-  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 36px; padding: 24px 0; }
-  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 16%; right: 16%; height: 2px; background: var(--line); }
+  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 150px; padding: 24px 0; }
+  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 12.5%; right: 12.5%; height: 2px; background: var(--line); }
   .six-fork::before { top: 0; }
   .six-fork::after { bottom: 0; }
   .six-col { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -494,6 +498,10 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div class="ball-redetect" id="ballRedetect">
+            <div class="br-title">6.3-1 確定剩下的球體在圈圈中</div>
+            <div class="br-note">只需要有（N−1）顆球在圈圈中</div>
           </div>
         </div>
 
@@ -1530,23 +1538,30 @@
     paths += `<text x="${B.l - 28}" y="${ly}" font-size="10" fill="#9aa3b2" text-anchor="middle" transform="rotate(-90 ${B.l - 28} ${ly})">由 6／6′／6″ 觸發</text>`;
     svg.innerHTML = paths;
   }
-  // 6′：6.10-1 繼續下一桿 → 連回 6.3（偵測子球數量−1）
+  // 6′：6.10-1 繼續下一桿 → 6.3-1 確定剩餘球體 → 6.5
   function drawBallLoop() {
     const svg = document.getElementById('ballLoop');
     const cont = document.getElementById('six6pContinue');
-    if (!svg || !cont || !sub615_6p) return;
+    const rd = document.getElementById('ballRedetect');
+    const step5 = sixOnceNode.querySelector('.substep[data-sub="6.5"]');
+    if (!svg || !cont || !rd || !step5) return;
+    // 先把 6.3-1 對齊 6.5 的高度
+    const col = sixOnceNode.closest('.six-col');
+    rd.style.top = (step5.getBoundingClientRect().top - col.getBoundingClientRect().top) + 'px';
+
     const subs = sixOnceNode.querySelector('.substeps');
     const fr = subs.getBoundingClientRect();
     if (!fr.width) return;
     svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
-    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, cy: (r.top + r.bottom) / 2 - fr.top }; };
-    const C = rel(cont), T = rel(sub615_6p);
-    const rx = -3, my = (C.cy + T.cy) / 2;
-    const d = `M ${C.l} ${C.cy} L ${rx} ${C.cy} L ${rx} ${T.cy} L ${T.l} ${T.cy}`;
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, r: r.right - fr.left, t: r.top - fr.top, b: r.bottom - fr.top, cy: (r.top + r.bottom) / 2 - fr.top }; };
+    const C = rel(cont), R = rel(rd), F = rel(step5);
+    const rcx = (R.l + R.r) / 2;
+    // 6.3-1 → 6.5（從框右緣水平進入 6.5 左緣）
+    const d2 = `M ${R.r} ${R.cy} L ${F.l} ${F.cy}`;
     svg.innerHTML =
       `<defs><marker id="blArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#3b82f6"/></marker></defs>` +
-      `<path d="${d}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
-      `<text x="${rx - 5}" y="${my}" font-size="10" fill="#2563eb" text-anchor="middle" transform="rotate(-90 ${rx - 5} ${my})">子球數量−1</text>`;
+      `<path d="M ${C.l} ${C.cy} L ${rcx} ${C.cy} L ${rcx} ${R.b}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      `<path d="${d2}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>`;
   }
 
   function redrawConnectors() { drawSideConnectors(); drawBallLoop(); }
