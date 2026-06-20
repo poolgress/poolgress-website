@@ -229,6 +229,8 @@
   .fork-step.terminal-no { border-color: #ef4444; background: #fdecec; color: #b91c1c; font-weight: 700; }
   .fork-step.terminal-ok.active { box-shadow: 0 0 0 2px var(--green); }
   .fork-step.terminal-no.active { box-shadow: 0 0 0 2px #ef4444; }
+  .fork-step.terminal-end { border-color: #6366f1; background: #eef2ff; color: #4338ca; font-weight: 700; }
+  .fork-step.terminal-end.active { box-shadow: 0 0 0 2px #6366f1; }
   .fork-step.active { box-shadow: 0 0 0 2px var(--blue); }
   /* 6′ 重複迴圈：右側回流通道（規則需求 → 6.3-1 / 6.3-2 → 回到 6.3），連線以 SVG 畫 */
   #sixOnceNode .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
@@ -298,6 +300,12 @@
   .table-portrait { width: 100%; height: 100%; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center; }
   .table-portrait svg { width: 100%; height: 100%; display: block; }
   .chances-wrap { flex: 0 0 auto; position: relative; }
+  /* 無限挑戰：紀錄顯示與輸入（取代下方虛線圈圈） */
+  .rec-display { text-align: center; font-size: 15px; font-weight: 700; color: #333; padding: 8px 4px; }
+  .rec-display b { color: var(--blue); font-weight: 800; }
+  .rec-input { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .rec-input label { font-size: 14px; font-weight: 600; color: #333; }
+  .rec-input input { width: 90px; font-size: 15px; padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; text-align: center; }
   .table-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; background: rgba(0,0,0,0.5); color: #fff; padding: 10px 22px; border-radius: 26px; font-size: 28px; font-weight: 700; white-space: nowrap; pointer-events: none; display: none; animation: hintPulse 2.4s ease-in-out infinite; }
   .table-hint.show { display: block; }
   @keyframes hintPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.05; } }
@@ -536,8 +544,8 @@
           <div class="node six-once" id="sixInf">
             <div class="num">6″</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
-              <div class="substep" data-sub="6.0">6.0 模板載入
-                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              <div class="substep" data-sub="6.0">6.0 紀錄載入
+                <div class="info-chips">標示：<span class="chip">最高紀錄</span><span class="chip">目前挑戰</span></div>
               </div>
               <div class="substep" data-sub="6.1">6.1 球桌資訊標記
                 <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
@@ -553,20 +561,21 @@
               <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
               <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
               <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
-              <div class="result-fork">
+              <div class="result-fork ball-fork">
                 <div class="rf-stem"></div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
                   <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
+                  <div class="fork-step" data-result="ok" id="infScore6pp">目前挑戰加一分</div>
+                  <div class="fork-step" data-result="ok">6.10 關卡重複（無上限）</div>
                 </div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
                   <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                  <div class="fork-step terminal-end" id="infEnd6pp">6.11 關卡結算</div>
                 </div>
               </div>
-              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
-              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
-              <div class="loop-back"><div class="loop-count" id="loopCount6pp">第 1 次</div></div>
+              <div class="loop-back"><div class="loop-count" id="loopCount6pp">↻ 無上限</div></div>
             </div>
           </div>
         </div>
@@ -674,12 +683,17 @@
             </div>
             <div class="chances-wrap">
               <div class="chances" id="chances"></div>
+              <div class="rec-display" id="recDisplay" style="display:none;">最高紀錄：<b id="recBest">＿＿＿</b>　目前挑戰：<b id="recCur">0</b></div>
               <div class="table-hint" id="tableHint">請把球放在圈圈中</div>
               <div class="table-hint" id="shootHint">開始擊球</div>
             </div>
             <div class="sim-bar">
               <div class="sim-status" id="simStatus">點「球體就位」開始偵測</div>
               <button class="sim-btn" id="btnTemplate" style="display:none;">模板載入完成</button>
+              <div class="rec-input" id="recInput" style="display:none;">
+                <label>最高紀錄：<input id="recBestInput" type="text" inputmode="numeric" placeholder="＿＿＿"></label>
+                <button class="sim-btn" id="btnRecLoad">紀錄載入完成</button>
+              </div>
               <button class="sim-btn" id="btnLoaded" style="display:none;">位置標記完成</button>
               <div class="sim-ready" id="simReady"></div>
               <div class="sim-ready" id="simConfirm" style="display:none;"></div>
@@ -867,6 +881,15 @@
   // 6′ 球型關卡專用狀態
   let ballsTotal = 0, ballsPotted = 0, ballRepeat = false, currentObjIds = [];
   function isBallMode() { return levelVariant === 'ball'; }
+  // 6″ 無限挑戰專用狀態
+  function isInfinite() { return levelVariant === 'infinite'; }
+  let infScore = 0, infBest = '';
+  const recDisplay = document.getElementById('recDisplay');
+  const recBest = document.getElementById('recBest');
+  const recCur = document.getElementById('recCur');
+  const recInput = document.getElementById('recInput');
+  const recBestInput = document.getElementById('recBestInput');
+  const btnRecLoad = document.getElementById('btnRecLoad');
   // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
   function currentBalls() {
     if (!isBallMode()) return playBalls;
@@ -1374,6 +1397,20 @@
     document.querySelectorAll('.ball-redetect, .ball-confirm, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
     const ov = document.getElementById('tableOverlay');
     if (ov) ov.innerHTML = '';   // 球桌上沒有任何資訊
+    // 無限挑戰：6.0 紀錄載入 — 移除虛線圈圈，顯示「最高紀錄／目前挑戰」與紀錄輸入
+    if (isInfinite()) {
+      btnTemplate.style.display = 'none';
+      recInput.style.display = 'flex';
+      if (recBestInput) recBestInput.value = infBest;
+      chances.style.display = 'none';
+      recDisplay.style.display = 'block';
+      recBest.textContent = infBest || '＿＿＿';
+      recCur.textContent = infScore;
+    } else {
+      recInput.style.display = 'none';
+      recDisplay.style.display = 'none';
+      chances.style.display = '';
+    }
     setSub('6.0');
   }
 
@@ -1383,6 +1420,7 @@
     simReady.querySelectorAll('.sim-btn').forEach(btn => { btn.classList.remove('done'); btn.textContent = btn.dataset.label; });
     curSubFlow.querySelectorAll('.subnode').forEach(sn => sn.classList.remove('on'));
     btnTemplate.style.display = 'none';
+    if (recInput) recInput.style.display = 'none';
     shootHint.classList.remove('show'); btnShoot.style.display = 'none';
     btnRolling.style.display = 'none';
     shotMsg.className = 'shot-msg';
@@ -1414,6 +1452,7 @@
   // 進入步驟 6 時初始化模擬
   function setupPlay() {
     simIdx = 0; simResults = [];
+    infScore = 0; infBest = '';
     // 解析本關所有球；球型關卡：總次數＝子球數量
     playBalls = getPlayBalls(curText);
     ballsTotal = playBalls.filter(b => b.id !== 'cue').length;
@@ -1434,7 +1473,7 @@
     activeSix = v.node;
     curSubFlow = v.subFlow; curSub615 = v.sub615; curLoopCount = v.loopCount;
     buildReadyUI();
-    curLoopCount.textContent = '第 1 / ' + chancesTotal + ' 次';
+    curLoopCount.textContent = isInfinite() ? '↻ 無上限' : ('第 1 / ' + chancesTotal + ' 次');
     enterTemplate();
     adjustChances();
   }
@@ -1453,7 +1492,7 @@
 
   // 記錄一桿成績
   function recordShot(ok) {
-    if (simIdx >= chancesTotal) return;
+    if (!isInfinite() && simIdx >= chancesTotal) return;
     simResults.push(ok);
     const c = chances.children[simIdx];
     if (c) { c.classList.add(ok ? 'hit' : 'miss'); c.textContent = ok ? '😀' : '😢'; }
@@ -1464,7 +1503,7 @@
     // 結束判定：球型關卡 → 失敗即結束、打完最後一顆即通過；其他 → 用完次數才結束
     const ballPass = isBallMode() && ok && ballsPotted >= ballsTotal;
     const ballFail = isBallMode() && !ok;
-    const finished = ballPass || ballFail || (!isBallMode() && simIdx >= chancesTotal);
+    const finished = ballPass || ballFail || (!isBallMode() && !isInfinite() && simIdx >= chancesTotal);
 
     // 線性 6.0-6.7 完成；分支逐一進行（音效 → 結果宣告）
     markLinearDone();
@@ -1501,6 +1540,22 @@
               currentObjIds.shift();   // 要照順序打 → 6.3-1 移除最小號 → 6.3
               enterRedetect(true);
             }
+          }
+        } else if (isInfinite()) {
+          if (ok) {                  // 6.9-1 → 目前挑戰加一分 → 6.10 關卡重複（無上限）→ 回到 6.1
+            activate(2);             // 目前挑戰加一分
+            infScore++; recCur.textContent = infScore;
+            curLoopCount.textContent = '挑戰 ' + infScore;
+            setTimeout(() => {
+              if (current !== 6) return;
+              finish(2); activate(3); // 6.10 關卡重複
+              setTimeout(() => { if (current === 6) enterInfo(); }, 700);
+            }, 700);
+          } else {                   // 6.9-2 → 6.11 關卡結算
+            const endEl = scope.querySelector('#infEnd6pp');
+            if (endEl) endEl.classList.add('active');
+            simResult.style.display = '';
+            simStatus.textContent = '挑戰結束：' + infScore + ' 分';
           }
         } else if (finished) {       // 6.11 關卡重複結束 → 結算
           simResult.style.display = '';
@@ -1576,6 +1631,8 @@
     else { rImage.removeAttribute('src'); rImageWrap.classList.add('empty'); }
     rScore.textContent = isBallMode()
       ? (ballsPotted + '/' + ballsTotal + (ballsPotted >= ballsTotal ? '（通過）' : '（失敗）'))
+      : isInfinite()
+      ? ('挑戰 ' + infScore + ' 分（最高紀錄 ' + (infBest || '—') + '）')
       : (made + '/' + chancesTotal);
     const d = new Date();
     rDate.textContent = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
@@ -1626,6 +1683,13 @@
   // 6.3：擊球 → 出現成功／失敗判定
   // 6.0：模板載入完成 → 進入 6.1 球桌資訊標記
   btnTemplate.addEventListener('click', () => { if (current === 6) enterInfo(); });
+  // 6″ 無限挑戰：輸入最高紀錄 → 紀錄載入完成 → 進入 6.1
+  if (btnRecLoad) btnRecLoad.addEventListener('click', () => {
+    if (current !== 6) return;
+    infBest = (recBestInput.value || '').trim();
+    recBest.textContent = infBest || '＿＿＿';
+    enterInfo();
+  });
   // 6.1：位置標記完成 → 進入 6.3 偵測
   btnLoaded.addEventListener('click', enterDetect);
 
