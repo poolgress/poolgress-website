@@ -37,7 +37,7 @@
 
   .layout {
     display: grid; grid-template-columns: 1fr 360px; gap: 40px;
-    max-width: 1360px; margin: 0 auto; align-items: start;
+    max-width: 1480px; margin: 0 auto; align-items: start;
   }
   @media (max-width: 980px) { .layout { grid-template-columns: 1fr; justify-items: center; } }
 
@@ -184,10 +184,10 @@
   /* --- 步驟 6 子步驟 --- */
   .substeps { margin-top: 12px; display: flex; flex-direction: column; gap: 17px; text-align: left; position: relative; }
   /* 步驟 6 / 6′ 加寬，並在右側預留迴圈線空間 */
-  .node[data-step="6"], .node.six-once { width: 360px; }
-  .node[data-step="6"] .substeps, .node.six-once .substeps { padding-right: 70px; }
+  .node[data-step="6"], .node.six-once { width: 300px; }
+  .node[data-step="6"] .substeps, .node.six-once .substeps { padding-right: 54px; }
   /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
-  .loop-back { position: absolute; right: 6px; top: 80px; bottom: 52px; width: 50px; border: 2px solid var(--blue); border-left: none; border-radius: 0 10px 10px 0; }
+  .loop-back { position: absolute; right: 4px; top: 80px; bottom: 52px; width: 44px; border: 2px solid var(--blue); border-left: none; border-radius: 0 10px 10px 0; }
   .loop-back::after { content: ""; position: absolute; left: -7px; top: -6px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 7px solid var(--blue); }
   .loop-count { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); white-space: nowrap; background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
   /* 6.15 把 6.1 包起來 */
@@ -239,8 +239,8 @@
   .giveup-branch.active .mb-label, .detail-branch.active .mb-label { color: var(--blue-dark); }
 
   /* 步驟 6 與 6′ 的並排分岔（都從 5 連入、都接到結算） */
-  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 56px; padding: 24px 0; }
-  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 23%; right: 23%; height: 2px; background: var(--line); }
+  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 36px; padding: 24px 0; }
+  .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 16%; right: 16%; height: 2px; background: var(--line); }
   .six-fork::before { top: 0; }
   .six-fork::after { bottom: 0; }
   .six-col { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -406,7 +406,7 @@
       <div class="six-fork">
         <!-- 一般流程：步驟 6 -->
         <div class="six-col">
-          <div class="branch-tag">一般流程</div>
+          <div class="branch-tag">重複關卡</div>
           <div class="node" data-step="6">
             <div class="num">6</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
@@ -445,10 +445,9 @@
           </div>
         </div>
 
-        <!-- 返回／說明分支（位於 6 與 6′ 中間，兩者共用） -->
-        <!-- 變體流程：步驟 6′（過關需求：只需完成一次） -->
+        <!-- 變體流程：步驟 6′（球型關卡） -->
         <div class="six-col">
-          <div class="branch-tag">過關需求：只需完成一次</div>
+          <div class="branch-tag">球型關卡</div>
           <div class="node six-once" id="sixOnceNode">
             <div class="num">6′</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
@@ -483,6 +482,47 @@
               <div class="substep" data-sub="6.10">6.10 關卡重複</div>
               <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
               <div class="loop-back"><div class="loop-count" id="loopCount6p">第 1 次</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 變體流程：步驟 6″（無限挑戰） -->
+        <div class="six-col">
+          <div class="branch-tag">無限挑戰</div>
+          <div class="node six-once" id="sixInf">
+            <div class="num">6″</div><div class="title">進入遊戲關卡</div>
+            <div class="substeps">
+              <div class="substep" data-sub="6.0">6.0 模板載入
+                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              </div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
+                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
+              <div class="sub615" id="sub615_6pp">
+                <div class="sub615-label">6.3 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.3">假設放好球了
+                  <div class="subflow" id="subFlow6pp"></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球</div>
+              <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
+              <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
+              <div class="result-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
+                  <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
+                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
+              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
+              <div class="loop-back"><div class="loop-count" id="loopCount6pp">第 1 次</div></div>
             </div>
           </div>
         </div>
@@ -544,7 +584,7 @@
             <input type="file" accept="image/*" id="imgInput" hidden>
 
             <div class="field-label" style="margin-top:10px;">上傳文字資訊</div>
-            <textarea id="infoInput" class="info-area" style="min-height:150px;" placeholder="可依下列格式輸入：&#10;關卡名稱：基本控球-Ⅰ型五顆&#10;關卡說明：將一到五號球平均排列…&#10;規則需求：不可敲擊目標球以外的子球&#10;過關條件：5/5"></textarea>
+            <textarea id="infoInput" class="info-area" style="min-height:150px;" placeholder="可依下列格式輸入：&#10;關卡名稱：基本控球-Ⅰ型五顆&#10;關卡種類：重複關卡（或 球型關卡／無限挑戰）&#10;關卡說明：將一到五號球平均排列…&#10;規則需求：不可敲擊目標球以外的子球&#10;過關條件：5/5"></textarea>
 
             <button class="pill-btn" id="confirmBtn" disabled style="margin-top:14px;">確認載入</button>
           </div>
@@ -719,17 +759,36 @@
   const shotMsg = document.getElementById('shotMsg');
   // 每顆球的就定位狀態
   let placedSet = new Set(), playBalls = [];
-  // 是否為「只需完成一次」變體
-  let onceMode = false, activeSix = null;
+  // 三種關卡種類變體：重複關卡(6)、球型關卡(6′)、無限挑戰(6″)
+  let activeSix = null;
   const sixOnceNode = document.getElementById('sixOnceNode');
+  const sixInf = document.getElementById('sixInf');
   const loopCount = document.getElementById('loopCount');
   const sub615 = document.getElementById('sub615');
   const btnTemplate = document.getElementById('btnTemplate');
   const subFlow6p = document.getElementById('subFlow6p');
   const sub615_6p = document.getElementById('sub615_6p');
   const loopCount6p = document.getElementById('loopCount6p');
-  // 目前使用中的分支（6 或 6′）對應的流程圖元素
+  const subFlow6pp = document.getElementById('subFlow6pp');
+  const sub615_6pp = document.getElementById('sub615_6pp');
+  const loopCount6pp = document.getElementById('loopCount6pp');
+  // 目前使用中的分支對應的流程圖元素
   let curSubFlow = subFlow, curSub615 = sub615, curLoopCount = loopCount;
+  const node6El = nodeEl(6);
+  const sixVariants = {
+    repeat:   { node: node6El,       subFlow: subFlow,    sub615: sub615,    loopCount: loopCount },
+    ball:     { node: sixOnceNode,   subFlow: subFlow6p,  sub615: sub615_6p,  loopCount: loopCount6p },
+    infinite: { node: sixInf,        subFlow: subFlow6pp, sub615: sub615_6pp, loopCount: loopCount6pp },
+  };
+  const variantNodes = [node6El, sixOnceNode, sixInf];
+  let levelVariant = 'repeat';
+  function variantOf(text) {
+    const m = text.match(/關卡種類\s*[:：]\s*([^\n（(]*)/);
+    const v = m ? m[1] : '';
+    if (v.indexOf('球型') >= 0) return 'ball';
+    if (v.indexOf('無限') >= 0) return 'infinite';
+    return 'repeat';
+  }
   const btnLoaded = document.getElementById('btnLoaded');
   // 結算畫面
   const rName = document.getElementById('rName');
@@ -776,11 +835,12 @@
       if (s < n) el.classList.add('done');
     });
     nodeEl(n).classList.add('active');
-    // 變體節點 6′ 的狀態（進入步驟 6 時由 setupPlay 決定走哪條）
-    if (sixOnceNode) {
-      sixOnceNode.classList.remove('active');
-      sixOnceNode.classList.toggle('done', n > 6);
-    }
+    // 變體節點 6′／6″ 的狀態（進入步驟 6 時由 setupPlay 決定走哪條）
+    variantNodes.forEach(node => {
+      if (!node || node === node6El) return;
+      node.classList.remove('active');
+      node.classList.toggle('done', n > 6);
+    });
     connectors.forEach(c => c.classList.toggle('lit', +c.dataset.conn < n));
     current = n;
     showScreen(n);
@@ -824,12 +884,13 @@
     const ov = document.getElementById('tableOverlay');
     if (ov) ov.innerHTML = '';
     simIdx = 0; simResults = []; chosenLocation = '';
-    tableHint.classList.remove('show'); sub615.classList.remove('on'); sub615_6p.classList.remove('on');
+    tableHint.classList.remove('show');
+    [sub615, sub615_6p, sub615_6pp].forEach(el => el && el.classList.remove('on'));
     shootHint.classList.remove('show'); btnShoot.style.display = 'none';
     btnRolling.style.display = 'none';
     btnLoaded.style.display = 'none'; btnTemplate.style.display = 'none';
     shotMsg.className = 'shot-msg';
-    sixOnceNode.classList.remove('active');
+    variantNodes.forEach(n => n && n.classList.remove('active', 'done'));
     setSub('');
     goToStep(0);
   }
@@ -909,8 +970,8 @@
     const cm2 = info.過關條件.match(/(\d+)\s*\/\s*(\d+)/);
     chancesTotal = cm2 ? parseInt(cm2[2], 10) : 0;
 
-    // 「過關需求：只需完成一次」變體
-    onceMode = /過關需求[^\n]*只需完成一次/.test(infoInput.value) || infoInput.value.includes('只需完成一次');
+    // 依「關卡種類」決定走哪一條變體流程
+    levelVariant = variantOf(infoInput.value);
 
     // 星星門檻（解析「一顆星 7 分、兩顆星 9 分、三顆星 10 分」）
     levelStarThresh = parseStars(infoInput.value);
@@ -1287,15 +1348,12 @@
       c.className = 'chance';
       chances.appendChild(c);
     }
-    // 依過關需求決定走 6 或 6′，並指向該分支的流程圖元素
-    const node6 = nodeEl(6);
-    if (onceMode) {
-      node6.classList.remove('active'); sixOnceNode.classList.add('active'); activeSix = sixOnceNode;
-      curSubFlow = subFlow6p; curSub615 = sub615_6p; curLoopCount = loopCount6p;
-    } else {
-      sixOnceNode.classList.remove('active'); node6.classList.add('active'); activeSix = node6;
-      curSubFlow = subFlow; curSub615 = sub615; curLoopCount = loopCount;
-    }
+    // 依「關卡種類」決定走 6 / 6′ / 6″，並指向該分支的流程圖元素
+    const v = sixVariants[levelVariant] || sixVariants.repeat;
+    variantNodes.forEach(n => { if (n) n.classList.remove('active'); });
+    v.node.classList.add('active');
+    activeSix = v.node;
+    curSubFlow = v.subFlow; curSub615 = v.sub615; curLoopCount = v.loopCount;
     buildReadyUI();
     curLoopCount.textContent = '第 1 / ' + chancesTotal + ' 次';
     enterTemplate();
@@ -1324,7 +1382,7 @@
     simStatus.classList.remove('blink');
     simHit.style.display = 'none';
     // 只需完成一次：成功一桿即過關；否則用完次數才結束
-    const finished = (onceMode && ok) || simIdx >= chancesTotal;
+    const finished = simIdx >= chancesTotal;
 
     // 線性 6.0-6.7 完成；分支兩步逐一進行（音效 → 結果宣告）
     markLinearDone();
@@ -1444,21 +1502,22 @@
     const flow = document.getElementById('flow');
     const svg = document.getElementById('sideConn');
     const sb = document.querySelector('.side-branches');
-    const n6 = nodeEl(6), n6p = sixOnceNode;
-    if (!flow || !svg || !sb || !n6 || !n6p) return;
+    if (!flow || !svg || !sb) return;
+    const nodes = variantNodes.filter(Boolean);
+    if (!nodes.length) return;
     const fr = flow.getBoundingClientRect();
     if (!fr.width) return;
     svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
     const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, cy: (r.top + r.bottom) / 2 - fr.top, b: r.bottom - fr.top }; };
-    const B = rel(sb), A6 = rel(n6), A6p = rel(n6p);
+    const B = rel(sb);
     const jx = B.l + sb.offsetWidth / 2;     // 分支底部中心（匯入點）
     const jy = B.b + 4;
-    const railX = B.l - 8;                    // 左側豎線
     const elbow = (a, rx) => `M ${a.l} ${a.cy} L ${rx} ${a.cy} L ${rx} ${jy} L ${jx} ${jy}`;
-    svg.innerHTML =
-      `<path d="${elbow(A6, railX)}" fill="none" stroke="#cbd5e1" stroke-width="2"/>` +
-      `<path d="${elbow(A6p, railX - 9)}" fill="none" stroke="#cbd5e1" stroke-width="2"/>` +
-      `<text x="${railX - 4}" y="${(A6.cy + jy) / 2}" font-size="10" fill="#9aa3b2" text-anchor="end" transform="rotate(-90 ${railX - 4} ${(A6.cy + jy) / 2})">由 6／6′ 觸發</text>`;
+    let paths = '';
+    nodes.forEach((n, i) => { paths += `<path d="${elbow(rel(n), B.l - 8 - i * 8)}" fill="none" stroke="#cbd5e1" stroke-width="2"/>`; });
+    const ly = (rel(nodes[0]).cy + jy) / 2;
+    paths += `<text x="${B.l - 28}" y="${ly}" font-size="10" fill="#9aa3b2" text-anchor="middle" transform="rotate(-90 ${B.l - 28} ${ly})">由 6／6′／6″ 觸發</text>`;
+    svg.innerHTML = paths;
   }
   drawSideConnectors();
   window.addEventListener('resize', drawSideConnectors);
