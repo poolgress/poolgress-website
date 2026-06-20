@@ -187,7 +187,9 @@
   .node[data-step="6"], .node.six-once { width: 300px; }
   .node[data-step="6"] .substeps, .node.six-once .substeps { padding-right: 54px; }
   .node.six-once#sixOnceNode { width: 450px; }
-  .node.six-once#sixOnceNode .substeps { padding-right: 170px; }
+  .node.six-once#sixOnceNode .substeps { padding-left: 152px; padding-right: 14px; }
+  /* 6.4 縮窄置中，左側讓出空間給實心「略過 6.4」旁路線通過 */
+  #sixOnceNode .substep[data-sub="6.4"] { width: 58%; margin-left: auto; margin-right: auto; }
   /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
   .loop-back { position: absolute; right: 4px; top: 80px; bottom: 52px; width: 44px; border: 2px solid var(--blue); border-left: none; border-radius: 0 10px 10px 0; }
   .loop-back::after { content: ""; position: absolute; left: -7px; top: -6px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 7px solid var(--blue); }
@@ -230,13 +232,15 @@
   .fork-step.active { box-shadow: 0 0 0 2px var(--blue); }
   /* 6′ 重複迴圈：右側回流通道（規則需求 → 6.3-1 / 6.3-2 → 回到 6.3），連線以 SVG 畫 */
   #sixOnceNode .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
-  #sixOnceNode .ball-loop { position: absolute; right: 16px; bottom: 0; width: 138px; display: flex; flex-direction: column; gap: 10px; z-index: 2; pointer-events: none; }
+  #sixOnceNode .ball-loop { position: absolute; left: 6px; bottom: 6px; width: 140px; display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 2; pointer-events: none; }
   #sixOnceNode .ball-loop .loop-decision, #sixOnceNode .ball-loop .fork-step { pointer-events: auto; }
-  .loop-decision { align-self: center; font-size: 11px; font-weight: 700; text-align: center; color: var(--blue-dark); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; background: #fff; }
+  .loop-decision { align-self: center; font-size: 11px; font-weight: 700; text-align: center; color: var(--blue-dark); border: 2px solid var(--line); border-radius: 10px; padding: 5px 12px; background: #fff; }
+  #sixOnceNode .loop-branches { display: flex; flex-direction: row; gap: 6px; width: 100%; align-items: flex-start; }
+  #sixOnceNode .loop-branches .loop-branch { flex: 1 1 0; min-width: 0; }
   .loop-branch { display: flex; flex-direction: column; gap: 4px; }
   .loop-branch .fork-label { font-size: 10px; font-weight: 700; text-align: center; color: var(--blue-dark); }
-  #sixOnceNode .ball-loop .fork-step { font-size: 10px; line-height: 1.45; }
-  .loop-pill { align-self: center; font-size: 11px; font-weight: 700; white-space: nowrap; background: var(--blue); color: #fff; padding: 2px 8px; border-radius: 999px; }
+  #sixOnceNode .ball-loop .fork-step { font-size: 10px; line-height: 1.4; padding: 5px 4px; }
+  .loop-pill { align-self: center; font-size: 10px; font-weight: 700; text-align: center; line-height: 1.3; background: var(--blue); color: #fff; padding: 2px 8px; border-radius: 10px; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
   .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
   .substep.done { border-left-color: var(--green); }
@@ -275,7 +279,8 @@
     .side-branches { position: static; width: 100%; margin-top: 12px; }
     .side-conn { display: none; }
     .node.six-once#sixOnceNode { width: 100%; max-width: 360px; }
-    .node.six-once#sixOnceNode .substeps { padding-right: 54px; }
+    .node.six-once#sixOnceNode .substeps { padding-left: 0; padding-right: 54px; }
+    #sixOnceNode .substep[data-sub="6.4"] { width: auto; }
     #sixOnceNode .ball-loop { position: static; width: auto; margin-top: 12px; pointer-events: auto; }
     #sixOnceNode .loop-conn { display: none; }
   }
@@ -509,14 +514,15 @@
                 </div>
               </div>
               <div class="ball-loop" id="ballLoop6p">
-                <div class="loop-pill" id="loopPill6p">↻ 回到 6.3（子球−1）</div>
-                <div class="loop-branch">
-                  <div class="fork-label">要照順序打</div>
-                  <div class="fork-step ball-redetect" id="ballRedetect">6.3-1 確定剩下的球體在圈圈中（自動移除最小號子球）</div>
-                </div>
-                <div class="loop-branch">
-                  <div class="fork-label">任意順序</div>
-                  <div class="fork-step ball-confirm" id="ballConfirm">6.3-2 確認打進的子球（移除已打進的那顆）</div>
+                <div class="loop-branches">
+                  <div class="loop-branch">
+                    <div class="fork-label">要照順序打</div>
+                    <div class="fork-step ball-redetect" id="ballRedetect">6.3-1 確定剩下的球體在圈圈中（移除最小號子球）</div>
+                  </div>
+                  <div class="loop-branch">
+                    <div class="fork-label">任意順序</div>
+                    <div class="fork-step ball-confirm" id="ballConfirm">6.3-2 確認打進的子球（移除已打進的）</div>
+                  </div>
                 </div>
                 <div class="loop-decision">規則需求？</div>
               </div>
@@ -1689,28 +1695,36 @@
     svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
     const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - sr.left, r: r.right - sr.left, t: r.top - sr.top, b: r.bottom - sr.top, cx: (r.left + r.right) / 2 - sr.left, cy: (r.top + r.bottom) / 2 - sr.top }; };
     const C = rel(cont), B = rel(box63), D = rel(dec), R = rel(rd), F = rel(cf), G = rel(b64), H = rel(b65);
-    const GREY = '#cbd5e1', BLUE = '#3b82f6';
-    const arrow = (x, y, dir, col) => { const d = dir === 'left' ? 1 : -1; return '<path d="M ' + x + ' ' + y + ' l ' + (7 * d) + ' -5 v 10 z" fill="' + col + '"/>'; };
+    const BLUE = '#3b82f6', SOLID = '#64748b';
+    const arrow = (x, y, dir, col) => {
+      if (dir === 'left')  return '<path d="M ' + x + ' ' + y + ' l 7 -5 v 10 z" fill="' + col + '"/>';
+      if (dir === 'right') return '<path d="M ' + x + ' ' + y + ' l -7 -5 v 10 z" fill="' + col + '"/>';
+      if (dir === 'up')    return '<path d="M ' + x + ' ' + y + ' l -5 7 h 10 z" fill="' + col + '"/>';
+      return '<path d="M ' + x + ' ' + y + ' l -5 -7 h 10 z" fill="' + col + '"/>';   // down
+    };
     const ln = (d, col, dash) => '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2"' + (dash ? ' stroke-dasharray="5 4"' : '') + '/>';
-    const GX = Math.max(C.r, B.r) + 14;            // 6.10-1→規則需求 在主流程右側間隙的縱向幹線
-    const SX = B.r + 6;                            // 規則需求→分流 的間隙脊線（在右側通道方框左方，不穿過方框）
-    const MX = Math.max(R.r, F.r) + 12;            // 遠右迴流軌（通道方框右側）
+    const L = rel(lane);                           // 通道整體範圍（標籤在方框上方）
+    const GAPX = C.l - 4;                          // 左側通道與主流程間的細縫（縱向幹線）
+    const FLX = 2;                                 // 最左側迴流軌
+    const YB = Math.max(R.b, F.b) + 4;             // 規則需求→兩框 的分叉橫桿（兩框下方、決策上方）
+    const YT = L.t - 5;                            // 兩框→6.3 的匯流橫桿（標籤上方）
     let p = '';
-    // (A) 6.10-1 →（間隙）→ 規則需求（自方框右下角出線，避開 6.11 終端與失敗欄）
-    p += ln('M ' + C.r + ' ' + C.b + ' V ' + (C.b + 4) + ' H ' + GX + ' V ' + D.cy + ' H ' + D.l, BLUE) + arrow(D.l, D.cy, 'left', BLUE);
-    // 規則需求 →（左側脊線上行）→ 6.3-1 ／ 6.3-2
-    p += ln('M ' + D.cx + ' ' + D.t + ' V ' + (D.t - 8) + ' H ' + SX + ' V ' + R.cy, BLUE);
-    p += ln('M ' + SX + ' ' + F.cy + ' H ' + F.l, BLUE) + arrow(F.l, F.cy, 'left', BLUE);
-    p += ln('M ' + SX + ' ' + R.cy + ' H ' + R.l, BLUE) + arrow(R.l, R.cy, 'left', BLUE);
-    // (B) 6.3-1／6.3-2 → 遠右軌 → 上行 → 回到 6.3 右緣
-    p += ln('M ' + R.r + ' ' + R.cy + ' H ' + MX, BLUE);
-    p += ln('M ' + F.r + ' ' + F.cy + ' H ' + MX, BLUE);
-    p += ln('M ' + MX + ' ' + F.cy + ' V ' + B.cy + ' H ' + B.r, BLUE) + arrow(B.r, B.cy, 'left', BLUE);
-    // (C) 重複時略過 6.4：6.3 → 6.5（左側虛線旁路，含標註）
-    const BX = B.l - 14;
-    p += ln('M ' + B.l + ' ' + B.cy + ' H ' + BX + ' V ' + H.cy + ' H ' + H.l, GREY, true) + arrow(H.l, H.cy, 'left', GREY);
+    // (A) 6.10-1 →（細縫下行）→ 規則需求（自右緣進入）
+    p += ln('M ' + C.l + ' ' + C.cy + ' H ' + GAPX + ' V ' + D.cy + ' H ' + D.r, BLUE) + arrow(D.r, D.cy, 'left', BLUE);
+    // (B) 規則需求 →（上行分叉，自方框底部進入）→ 6.3-1 ／ 6.3-2（左右並排）
+    p += ln('M ' + D.cx + ' ' + D.t + ' V ' + YB + ' H ' + R.cx + ' V ' + R.b, BLUE) + arrow(R.cx, R.b, 'up', BLUE);
+    p += ln('M ' + D.cx + ' ' + D.t + ' V ' + YB + ' H ' + F.cx + ' V ' + F.b, BLUE) + arrow(F.cx, F.b, 'up', BLUE);
+    // (C) 6.3-1／6.3-2 →（自方框左上角、繞過標籤）→ 最左迴流軌 → 回到 6.3 左緣
+    p += ln('M ' + R.l + ' ' + R.t + ' V ' + YT + ' H ' + FLX, BLUE);
+    p += ln('M ' + F.l + ' ' + F.t + ' V ' + YT + ' H ' + FLX, BLUE);
+    p += ln('M ' + FLX + ' ' + YT + ' V ' + B.cy + ' H ' + B.l, BLUE) + arrow(B.l, B.cy, 'right', BLUE);
+    const ry = (YT + B.cy) / 2;
+    p += '<text x="' + (FLX + 9) + '" y="' + ry + '" font-size="9" font-weight="700" fill="#3b82f6" text-anchor="middle" transform="rotate(-90 ' + (FLX + 9) + ' ' + ry + ')">子球 −1</text>';
+    // (D) 重複時略過 6.4：6.3 → 6.5（6.4 左側、實心連接線，含標註）
+    const BPX = G.l - 10;
+    p += ln('M ' + BPX + ' ' + B.b + ' V ' + H.t, SOLID) + arrow(BPX, H.t, 'down', SOLID);
     const ly = (G.t + G.b) / 2;
-    p += '<text x="' + (BX - 4) + '" y="' + ly + '" font-size="10" fill="#8a93a6" text-anchor="middle" transform="rotate(-90 ' + (BX - 4) + ' ' + ly + ')">重複：略過 6.4</text>';
+    p += '<text x="' + (BPX - 7) + '" y="' + ly + '" font-size="10" font-weight="700" fill="#64748b" text-anchor="middle" transform="rotate(-90 ' + (BPX - 7) + ' ' + ly + ')">重複：略過 6.4</text>';
     svg.innerHTML = p;
   }
 
