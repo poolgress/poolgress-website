@@ -218,6 +218,14 @@
   .rf-col .fork-step:not(:first-child)::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 2px; height: 10px; background: var(--line); }
   .fork-step.active { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); font-weight: 700; }
   .fork-step.done { border-color: rgba(34,197,94,0.55); }
+  /* 6′ 球型關卡：兩條分支各自結束（無底部匯合），通過／失敗終端 */
+  .ball-fork::after { display: none; }
+  .ball-fork .rf-col::after { display: none; }
+  .fork-step.terminal-ok { border-color: var(--green); background: #e9f9ef; color: #166534; font-weight: 700; }
+  .fork-step.terminal-no { border-color: #ef4444; background: #fdecec; color: #b91c1c; font-weight: 700; }
+  .ball-continue { position: relative; }
+  /* 6.10-1 → 6.3 的迴圈線（6′ 內，JS 繪製） */
+  .ball-loop { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
   .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
   .substep.done { border-left-color: var(--green); }
@@ -466,22 +474,25 @@
               </div>
               <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球</div>
               <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
-              <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間
+                <div class="info-chips">下方出現「球正在滾」按鈕</div>
+              </div>
               <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
-              <div class="result-fork">
+              <svg class="ball-loop" id="ballLoop"></svg>
+              <div class="result-fork ball-fork">
                 <div class="rf-stem"></div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
                   <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
+                  <div class="fork-step ball-continue" data-result="ok" id="six6pContinue">6.10-1 繼續下一桿<span style="display:none" id="loopCount6p">第 1 次</span></div>
+                  <div class="fork-step terminal-ok">6.11-1 關卡通過</div>
                 </div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
                   <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                  <div class="fork-step terminal-no">6.11-2 關卡失敗</div>
                 </div>
               </div>
-              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
-              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
-              <div class="loop-back"><div class="loop-count" id="loopCount6p">第 1 次</div></div>
             </div>
           </div>
         </div>
@@ -1519,10 +1530,30 @@
     paths += `<text x="${B.l - 28}" y="${ly}" font-size="10" fill="#9aa3b2" text-anchor="middle" transform="rotate(-90 ${B.l - 28} ${ly})">由 6／6′／6″ 觸發</text>`;
     svg.innerHTML = paths;
   }
-  drawSideConnectors();
-  window.addEventListener('resize', drawSideConnectors);
-  window.addEventListener('load', drawSideConnectors);
-  setTimeout(drawSideConnectors, 300);
+  // 6′：6.10-1 繼續下一桿 → 連回 6.3（偵測子球數量−1）
+  function drawBallLoop() {
+    const svg = document.getElementById('ballLoop');
+    const cont = document.getElementById('six6pContinue');
+    if (!svg || !cont || !sub615_6p) return;
+    const subs = sixOnceNode.querySelector('.substeps');
+    const fr = subs.getBoundingClientRect();
+    if (!fr.width) return;
+    svg.setAttribute('viewBox', '0 0 ' + fr.width + ' ' + fr.height);
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - fr.left, cy: (r.top + r.bottom) / 2 - fr.top }; };
+    const C = rel(cont), T = rel(sub615_6p);
+    const rx = -3, my = (C.cy + T.cy) / 2;
+    const d = `M ${C.l} ${C.cy} L ${rx} ${C.cy} L ${rx} ${T.cy} L ${T.l} ${T.cy}`;
+    svg.innerHTML =
+      `<defs><marker id="blArrow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#3b82f6"/></marker></defs>` +
+      `<path d="${d}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#blArrow)"/>` +
+      `<text x="${rx - 5}" y="${my}" font-size="10" fill="#2563eb" text-anchor="middle" transform="rotate(-90 ${rx - 5} ${my})">子球數量−1</text>`;
+  }
+
+  function redrawConnectors() { drawSideConnectors(); drawBallLoop(); }
+  redrawConnectors();
+  window.addEventListener('resize', redrawConnectors);
+  window.addEventListener('load', redrawConnectors);
+  setTimeout(redrawConnectors, 300);
 </script>
 </body>
 </html>
