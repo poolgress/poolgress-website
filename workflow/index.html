@@ -183,9 +183,11 @@
 
   /* --- 步驟 6 子步驟 --- */
   .substeps { margin-top: 12px; display: flex; flex-direction: column; gap: 17px; text-align: left; position: relative; }
-  /* 步驟 6 / 6′ 加寬，並在右側預留迴圈線空間 */
+  /* 步驟 6 / 6″ 加寬，右側預留迴圈線空間；6′ 再加寬 1.5×（300→450）容納重複迴圈通道 */
   .node[data-step="6"], .node.six-once { width: 300px; }
   .node[data-step="6"] .substeps, .node.six-once .substeps { padding-right: 54px; }
+  .node.six-once#sixOnceNode { width: 450px; }
+  .node.six-once#sixOnceNode .substeps { padding-right: 170px; }
   /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
   .loop-back { position: absolute; right: 4px; top: 80px; bottom: 52px; width: 44px; border: 2px solid var(--blue); border-left: none; border-radius: 0 10px 10px 0; }
   .loop-back::after { content: ""; position: absolute; left: -7px; top: -6px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 7px solid var(--blue); }
@@ -226,12 +228,15 @@
   .fork-step.terminal-ok.active { box-shadow: 0 0 0 2px var(--green); }
   .fork-step.terminal-no.active { box-shadow: 0 0 0 2px #ef4444; }
   .fork-step.active { box-shadow: 0 0 0 2px var(--blue); }
-  /* 6′ 重複分流（要照順序打 / 任意順序）→ 6.3 的迴圈，採一般流程格式 */
-  .order-cap { font-size: 12px; color: var(--text-soft); text-align: center; position: relative; }
-  .substeps > .order-cap::before { content: ""; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 2px; height: 15px; background: var(--line); }
-  .order-fork .fork-label { font-size: 11px; font-weight: 700; text-align: center; color: var(--blue-dark); margin-bottom: 6px; }
-  .order-fork::after, .order-fork .rf-col::after { display: none; }
-  .order-fork .fork-step.active { box-shadow: 0 0 0 2px var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+  /* 6′ 重複迴圈：右側回流通道（規則需求 → 6.3-1 / 6.3-2 → 回到 6.3），連線以 SVG 畫 */
+  #sixOnceNode .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+  #sixOnceNode .ball-loop { position: absolute; right: 16px; bottom: 0; width: 138px; display: flex; flex-direction: column; gap: 10px; z-index: 2; pointer-events: none; }
+  #sixOnceNode .ball-loop .loop-decision, #sixOnceNode .ball-loop .fork-step { pointer-events: auto; }
+  .loop-decision { align-self: center; font-size: 11px; font-weight: 700; text-align: center; color: var(--blue-dark); border: 2px solid var(--line); border-radius: 10px; padding: 6px 12px; background: #fff; }
+  .loop-branch { display: flex; flex-direction: column; gap: 4px; }
+  .loop-branch .fork-label { font-size: 10px; font-weight: 700; text-align: center; color: var(--blue-dark); }
+  #sixOnceNode .ball-loop .fork-step { font-size: 10px; line-height: 1.45; }
+  .loop-pill { align-self: center; font-size: 11px; font-weight: 700; white-space: nowrap; background: var(--blue); color: #fff; padding: 2px 8px; border-radius: 999px; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
   .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
   .substep.done { border-left-color: var(--green); }
@@ -253,7 +258,7 @@
   .giveup-branch.active .mb-label, .detail-branch.active .mb-label { color: var(--blue-dark); }
 
   /* 步驟 6 與 6′ 的並排分岔（都從 5 連入、都接到結算） */
-  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 150px; padding: 24px 0; }
+  .six-fork { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 60px; padding: 24px 0; }
   .six-fork::before, .six-fork::after { content: ""; position: absolute; left: 12.5%; right: 12.5%; height: 2px; background: var(--line); }
   .six-fork::before { top: 0; }
   .six-fork::after { bottom: 0; }
@@ -269,6 +274,10 @@
     .six-fork::before, .six-fork::after, .six-col::before, .six-col::after { display: none; }
     .side-branches { position: static; width: 100%; margin-top: 12px; }
     .side-conn { display: none; }
+    .node.six-once#sixOnceNode { width: 100%; max-width: 360px; }
+    .node.six-once#sixOnceNode .substeps { padding-right: 54px; }
+    #sixOnceNode .ball-loop { position: static; width: auto; margin-top: 12px; pointer-events: auto; }
+    #sixOnceNode .loop-conn { display: none; }
   }
 
   /* --- 進入遊戲關卡 --- */
@@ -465,6 +474,7 @@
           <div class="node six-once" id="sixOnceNode">
             <div class="num">6′</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
+              <svg class="loop-conn" id="loopConn6p" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
               <div class="substep" data-sub="6.0">6.0 模板載入
                 <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
               </div>
@@ -498,19 +508,18 @@
                   <div class="fork-step terminal-no">6.11-2 關卡失敗</div>
                 </div>
               </div>
-              <div class="order-cap">6.10-1 繼續下一桿 → 依「規則需求」分流：</div>
-              <div class="result-fork order-fork">
-                <div class="rf-stem"></div>
-                <div class="rf-col">
+              <div class="ball-loop" id="ballLoop6p">
+                <div class="loop-pill" id="loopPill6p">↻ 回到 6.3（子球−1）</div>
+                <div class="loop-branch">
                   <div class="fork-label">要照順序打</div>
-                  <div class="fork-step" id="ballRedetect">6.3-1 確定剩下的球體在圈圈中（自動移除最小號子球）</div>
+                  <div class="fork-step ball-redetect" id="ballRedetect">6.3-1 確定剩下的球體在圈圈中（自動移除最小號子球）</div>
                 </div>
-                <div class="rf-col">
+                <div class="loop-branch">
                   <div class="fork-label">任意順序</div>
-                  <div class="fork-step" id="ballConfirm">6.3-2 確認打進的子球（移除已打進的那顆）</div>
+                  <div class="fork-step ball-confirm" id="ballConfirm">6.3-2 確認打進的子球（移除已打進的那顆）</div>
                 </div>
+                <div class="loop-decision">規則需求？</div>
               </div>
-              <div class="loop-back loop-ball"><div class="loop-count">↻ → 6.3（子球−1）</div></div>
             </div>
           </div>
         </div>
@@ -1661,19 +1670,48 @@
     paths += `<text x="${B.l - 28}" y="${ly}" font-size="10" fill="#9aa3b2" text-anchor="middle" transform="rotate(-90 ${B.l - 28} ${ly})">由 6／6′／6″ 觸發</text>`;
     svg.innerHTML = paths;
   }
-  // 6′：把重複迴圈括弧（loop-ball）對齊在 6.3 ←→ 重複分流之間
+  // 6′：右側回流通道 — 6.10-1 →(規則需求)→ 6.3-1／6.3-2 →遠右軌→ 回到 6.3；另畫「重複略過 6.4」旁路
   function drawBallLoop() {
-    const lb = sixOnceNode.querySelector('.loop-ball');
+    const subs = sixOnceNode && sixOnceNode.querySelector('.substeps');
+    const svg = document.getElementById('loopConn6p');
+    const lane = document.getElementById('ballLoop6p');
     const box63 = sub615_6p;
-    const ofork = sixOnceNode.querySelector('.order-fork');
-    if (!lb || !box63 || !ofork) return;
-    const subs = sixOnceNode.querySelector('.substeps');
-    const sr = subs.getBoundingClientRect();
-    if (!sr.height) return;
-    const top63 = box63.getBoundingClientRect().top - sr.top;
-    const botOfork = ofork.getBoundingClientRect().bottom - sr.top;
-    lb.style.top = (top63 + 8) + 'px';
-    lb.style.bottom = (sr.height - botOfork + 8) + 'px';
+    const cont = document.getElementById('six6pContinue');
+    const rd = document.getElementById('ballRedetect');
+    const cf = document.getElementById('ballConfirm');
+    if (!subs || !svg || !lane || !box63 || !cont || !rd || !cf) return;
+    const dec = lane.querySelector('.loop-decision');
+    const b64 = sixOnceNode.querySelector('.substep[data-sub="6.4"]');
+    const b65 = sixOnceNode.querySelector('.substep[data-sub="6.5"]');
+    if (!dec || !b64 || !b65) return;
+    const sr = subs.getBoundingClientRect();   // 回流通道由 CSS 固定在右下角，這裡只負責畫線
+    if (!sr.height || !sr.width) return;
+    svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - sr.left, r: r.right - sr.left, t: r.top - sr.top, b: r.bottom - sr.top, cx: (r.left + r.right) / 2 - sr.left, cy: (r.top + r.bottom) / 2 - sr.top }; };
+    const C = rel(cont), B = rel(box63), D = rel(dec), R = rel(rd), F = rel(cf), G = rel(b64), H = rel(b65);
+    const GREY = '#cbd5e1', BLUE = '#3b82f6';
+    const arrow = (x, y, dir, col) => { const d = dir === 'left' ? 1 : -1; return '<path d="M ' + x + ' ' + y + ' l ' + (7 * d) + ' -5 v 10 z" fill="' + col + '"/>'; };
+    const ln = (d, col, dash) => '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2"' + (dash ? ' stroke-dasharray="5 4"' : '') + '/>';
+    const GX = Math.max(C.r, B.r) + 14;            // 6.10-1→規則需求 在主流程右側間隙的縱向幹線
+    const SX = B.r + 6;                            // 規則需求→分流 的間隙脊線（在右側通道方框左方，不穿過方框）
+    const MX = Math.max(R.r, F.r) + 12;            // 遠右迴流軌（通道方框右側）
+    let p = '';
+    // (A) 6.10-1 →（間隙）→ 規則需求（自方框右下角出線，避開 6.11 終端與失敗欄）
+    p += ln('M ' + C.r + ' ' + C.b + ' V ' + (C.b + 4) + ' H ' + GX + ' V ' + D.cy + ' H ' + D.l, BLUE) + arrow(D.l, D.cy, 'left', BLUE);
+    // 規則需求 →（左側脊線上行）→ 6.3-1 ／ 6.3-2
+    p += ln('M ' + D.cx + ' ' + D.t + ' V ' + (D.t - 8) + ' H ' + SX + ' V ' + R.cy, BLUE);
+    p += ln('M ' + SX + ' ' + F.cy + ' H ' + F.l, BLUE) + arrow(F.l, F.cy, 'left', BLUE);
+    p += ln('M ' + SX + ' ' + R.cy + ' H ' + R.l, BLUE) + arrow(R.l, R.cy, 'left', BLUE);
+    // (B) 6.3-1／6.3-2 → 遠右軌 → 上行 → 回到 6.3 右緣
+    p += ln('M ' + R.r + ' ' + R.cy + ' H ' + MX, BLUE);
+    p += ln('M ' + F.r + ' ' + F.cy + ' H ' + MX, BLUE);
+    p += ln('M ' + MX + ' ' + F.cy + ' V ' + B.cy + ' H ' + B.r, BLUE) + arrow(B.r, B.cy, 'left', BLUE);
+    // (C) 重複時略過 6.4：6.3 → 6.5（左側虛線旁路，含標註）
+    const BX = B.l - 14;
+    p += ln('M ' + B.l + ' ' + B.cy + ' H ' + BX + ' V ' + H.cy + ' H ' + H.l, GREY, true) + arrow(H.l, H.cy, 'left', GREY);
+    const ly = (G.t + G.b) / 2;
+    p += '<text x="' + (BX - 4) + '" y="' + ly + '" font-size="10" fill="#8a93a6" text-anchor="middle" transform="rotate(-90 ' + (BX - 4) + ' ' + ly + ')">重複：略過 6.4</text>';
+    svg.innerHTML = p;
   }
 
   function redrawConnectors() { drawSideConnectors(); drawBallLoop(); }
@@ -1681,6 +1719,11 @@
   window.addEventListener('resize', redrawConnectors);
   window.addEventListener('load', redrawConnectors);
   setTimeout(redrawConnectors, 300);
+  // 模擬過程中 6′ 子流程高度會變動（子球 chips、按鈕增減）→ 自動重畫迴圈連線
+  if (window.ResizeObserver && sixOnceNode) {
+    const subs6p = sixOnceNode.querySelector('.substeps');
+    if (subs6p) new ResizeObserver(() => requestAnimationFrame(drawBallLoop)).observe(subs6p);
+  }
 </script>
 </body>
 </html>
