@@ -188,6 +188,9 @@
   .node[data-step="6"] .substeps, .node.six-once .substeps { padding-right: 54px; }
   .node.six-once#sixOnceNode { width: 450px; }
   .node.six-once#sixOnceNode .substeps { padding-left: 166px; padding-right: 14px; }
+  /* 6″ 無限挑戰：左側預留迴圈線空間（6.10 → 6.1） */
+  #sixInf .substeps { padding-left: 46px; padding-right: 14px; }
+  #sixInf .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
   /* 6.4 縮窄置中，左側讓出空間給實心「略過 6.4」旁路線通過 */
   #sixOnceNode .substep[data-sub="6.4"] { width: 58%; margin-left: auto; margin-right: auto; }
   /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
@@ -303,9 +306,9 @@
   /* 無限挑戰：紀錄顯示與輸入（取代下方虛線圈圈） */
   .rec-display { text-align: center; font-size: 15px; font-weight: 700; color: #333; padding: 8px 4px; }
   .rec-display b { color: var(--blue); font-weight: 800; }
+  .rec-inline { width: 70px; font-size: 15px; font-weight: 800; color: var(--blue); padding: 1px 4px; border: none; border-bottom: 2px solid var(--blue); background: transparent; text-align: center; }
+  .rec-inline:read-only { border-bottom-color: #d0d5dd; color: #333; }
   .rec-input { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-  .rec-input label { font-size: 14px; font-weight: 600; color: #333; }
-  .rec-input input { width: 90px; font-size: 15px; padding: 5px 8px; border: 1px solid #ccc; border-radius: 6px; text-align: center; }
   .table-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; background: rgba(0,0,0,0.5); color: #fff; padding: 10px 22px; border-radius: 26px; font-size: 28px; font-weight: 700; white-space: nowrap; pointer-events: none; display: none; animation: hintPulse 2.4s ease-in-out infinite; }
   .table-hint.show { display: block; }
   @keyframes hintPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.05; } }
@@ -544,6 +547,7 @@
           <div class="node six-once" id="sixInf">
             <div class="num">6″</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
+              <svg class="loop-conn" id="loopConn6pp" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
               <div class="substep" data-sub="6.0">6.0 紀錄載入
                 <div class="info-chips">標示：<span class="chip">最高紀錄</span><span class="chip">目前挑戰</span></div>
               </div>
@@ -567,7 +571,7 @@
                   <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
                   <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
                   <div class="fork-step" data-result="ok" id="infScore6pp">目前挑戰加一分</div>
-                  <div class="fork-step" data-result="ok">6.10 關卡重複（無上限）</div>
+                  <div class="fork-step" data-result="ok" id="infRepeat6pp">6.10 關卡重複（無上限）</div>
                 </div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
@@ -575,7 +579,7 @@
                   <div class="fork-step terminal-end" id="infEnd6pp">6.11 關卡結算</div>
                 </div>
               </div>
-              <div class="loop-back"><div class="loop-count" id="loopCount6pp">↻ 無上限</div></div>
+              <span id="loopCount6pp" style="display:none;"></span>
             </div>
           </div>
         </div>
@@ -683,7 +687,7 @@
             </div>
             <div class="chances-wrap">
               <div class="chances" id="chances"></div>
-              <div class="rec-display" id="recDisplay" style="display:none;">最高紀錄：<b id="recBest">＿＿＿</b>　目前挑戰：<b id="recCur">0</b></div>
+              <div class="rec-display" id="recDisplay" style="display:none;">最高紀錄：<input id="recBestInput" type="text" inputmode="numeric" class="rec-inline" placeholder="＿＿＿">　目前挑戰：<b id="recCur">0</b></div>
               <div class="table-hint" id="tableHint">請把球放在圈圈中</div>
               <div class="table-hint" id="shootHint">開始擊球</div>
             </div>
@@ -691,7 +695,6 @@
               <div class="sim-status" id="simStatus">點「球體就位」開始偵測</div>
               <button class="sim-btn" id="btnTemplate" style="display:none;">模板載入完成</button>
               <div class="rec-input" id="recInput" style="display:none;">
-                <label>最高紀錄：<input id="recBestInput" type="text" inputmode="numeric" placeholder="＿＿＿"></label>
                 <button class="sim-btn" id="btnRecLoad">紀錄載入完成</button>
               </div>
               <button class="sim-btn" id="btnLoaded" style="display:none;">位置標記完成</button>
@@ -885,7 +888,6 @@
   function isInfinite() { return levelVariant === 'infinite'; }
   let infScore = 0, infBest = '';
   const recDisplay = document.getElementById('recDisplay');
-  const recBest = document.getElementById('recBest');
   const recCur = document.getElementById('recCur');
   const recInput = document.getElementById('recInput');
   const recBestInput = document.getElementById('recBestInput');
@@ -1401,10 +1403,9 @@
     if (isInfinite()) {
       btnTemplate.style.display = 'none';
       recInput.style.display = 'flex';
-      if (recBestInput) recBestInput.value = infBest;
+      if (recBestInput) { recBestInput.value = infBest; recBestInput.readOnly = false; }
       chances.style.display = 'none';
       recDisplay.style.display = 'block';
-      recBest.textContent = infBest || '＿＿＿';
       recCur.textContent = infScore;
     } else {
       recInput.style.display = 'none';
@@ -1687,7 +1688,7 @@
   if (btnRecLoad) btnRecLoad.addEventListener('click', () => {
     if (current !== 6) return;
     infBest = (recBestInput.value || '').trim();
-    recBest.textContent = infBest || '＿＿＿';
+    recBestInput.readOnly = true;   // 載入後鎖定，遊玩中僅顯示
     enterInfo();
   });
   // 6.1：位置標記完成 → 進入 6.3 偵測
@@ -1796,15 +1797,35 @@
     svg.innerHTML = p;
   }
 
-  function redrawConnectors() { drawSideConnectors(); drawBallLoop(); }
+  // 6″ 無限挑戰：6.10 關卡重複 → 左側迴圈線 → 回到 6.1
+  function drawInfLoop() {
+    const subs = sixInf && sixInf.querySelector('.substeps');
+    const svg = document.getElementById('loopConn6pp');
+    const rep = document.getElementById('infRepeat6pp');
+    const b61 = sixInf && sixInf.querySelector('.substep[data-sub="6.1"]');
+    if (!subs || !svg || !rep || !b61) return;
+    const sr = subs.getBoundingClientRect();
+    if (!sr.height || !sr.width) return;
+    svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - sr.left, cy: (r.top + r.bottom) / 2 - sr.top }; };
+    const R = rel(rep), B = rel(b61);
+    const LX = 12, BLUE = '#3b82f6';
+    let p = '<path d="M ' + R.l + ' ' + R.cy + ' H ' + LX + ' V ' + B.cy + ' H ' + B.l + '" fill="none" stroke="' + BLUE + '" stroke-width="2"/>';
+    p += '<path d="M ' + B.l + ' ' + B.cy + ' l -7 -5 v 10 z" fill="' + BLUE + '"/>';   // 箭頭進入 6.1 左緣
+    const my = (R.cy + B.cy) / 2;
+    p += '<text x="' + (LX - 3) + '" y="' + my + '" font-size="10" font-weight="700" fill="#1d4ed8" text-anchor="middle" transform="rotate(-90 ' + (LX - 3) + ' ' + my + ')">↻ 無上限</text>';
+    svg.innerHTML = p;
+  }
+
+  function redrawConnectors() { drawSideConnectors(); drawBallLoop(); drawInfLoop(); }
   redrawConnectors();
   window.addEventListener('resize', redrawConnectors);
   window.addEventListener('load', redrawConnectors);
   setTimeout(redrawConnectors, 300);
-  // 模擬過程中 6′ 子流程高度會變動（子球 chips、按鈕增減）→ 自動重畫迴圈連線
-  if (window.ResizeObserver && sixOnceNode) {
-    const subs6p = sixOnceNode.querySelector('.substeps');
-    if (subs6p) new ResizeObserver(() => requestAnimationFrame(drawBallLoop)).observe(subs6p);
+  // 模擬過程中 6′／6″ 子流程高度會變動（子球 chips、按鈕增減）→ 自動重畫迴圈連線
+  if (window.ResizeObserver) {
+    if (sixOnceNode) { const s = sixOnceNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawBallLoop)).observe(s); }
+    if (sixInf) { const s = sixInf.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawInfLoop)).observe(s); }
   }
 </script>
 </body>
