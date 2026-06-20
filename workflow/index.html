@@ -230,6 +230,9 @@
   .ball-redetect { position: absolute; left: -140px; top: 360px; width: 124px; border: 2px solid var(--blue); border-radius: 10px; background: var(--blue-soft); padding: 8px 8px; z-index: 2; }
   .ball-redetect .br-title { font-size: 12px; font-weight: 700; color: var(--blue-dark); line-height: 1.4; }
   .ball-redetect .br-note { font-size: 11px; color: var(--text); margin-top: 4px; line-height: 1.4; }
+  .ball-redetect.active { box-shadow: 0 0 0 2px var(--blue); background: #dbeafe; }
+  .fork-step.terminal-ok.active { box-shadow: 0 0 0 2px var(--green); }
+  .fork-step.terminal-no.active { box-shadow: 0 0 0 2px #ef4444; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
   .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
   .substep.done { border-left-color: var(--green); }
@@ -828,6 +831,15 @@
   // 遊玩 / 結算狀態
   let chancesTotal = 0, simIdx = 0, simResults = [];
   let curText = '', levelNameStr = '', levelImageSrc = '', levelStarThresh = {}, chosenLocation = '';
+  // 6′ 球型關卡專用狀態
+  let ballsTotal = 0, ballsPotted = 0, ballRepeat = false, currentObjIds = [];
+  function isBallMode() { return levelVariant === 'ball'; }
+  // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
+  function currentBalls() {
+    if (!isBallMode()) return playBalls;
+    return playBalls.filter(b => b.id === 'cue' || currentObjIds.indexOf(b.id) >= 0);
+  }
+  function currentObjNums() { return new Set(currentObjIds.map(id => parseInt(id.split('-')[1], 10))); }
 
   function nodeEl(step) { return document.querySelector('.node[data-step="' + step + '"]'); }
 
@@ -910,6 +922,8 @@
     btnLoaded.style.display = 'none'; btnTemplate.style.display = 'none';
     shotMsg.className = 'shot-msg';
     variantNodes.forEach(n => n && n.classList.remove('active', 'done'));
+    document.querySelectorAll('.ball-redetect, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
+    ballsPotted = 0; ballRepeat = false;
     setSub('');
     goToStep(0);
   }
@@ -1114,7 +1128,7 @@
   buildTable();
 
   // 把「位置需求」的資料畫到桌面上
-  function renderPositions(text, placed, justPlaced, targetsOnly) {
+  function renderPositions(text, placed, justPlaced, targetsOnly, objShow) {
     const T = window.TABLE;
     const ov = document.getElementById('tableOverlay');
     if (!T || !ov) return;
@@ -1170,7 +1184,7 @@
     const ballCenters = {};
     let objSegs = ballSegs(valOf('子球位置'));
     if (!objSegs.length) objSegs = coords(valOf('子球位置')).map((c, i) => ({ num: i + 1, pts: [c] }));
-    objSegs.forEach(seg => { if (seg.pts.length) { const p = P(seg.pts[0][0], seg.pts[0][1]); ballCenters[seg.num] = p; const on = has('obj-' + seg.num); out += on ? greenBox(p, R(0.15)) : dashCircle(p, R(0.15), ballColor(seg.num)); if (on && justPlaced === 'obj-' + seg.num) out += check(p); } });
+    objSegs.forEach(seg => { if (seg.pts.length) { const p = P(seg.pts[0][0], seg.pts[0][1]); ballCenters[seg.num] = p; if (objShow instanceof Set && !objShow.has(seg.num)) return; const on = has('obj-' + seg.num); out += on ? greenBox(p, R(0.15)) : dashCircle(p, R(0.15), ballColor(seg.num)); if (on && justPlaced === 'obj-' + seg.num) out += check(p); } });
 
     // 母球路線（白色虛線，轉彎點白色半透明球 r0.15，結尾箭頭）
     const cueRoute = coords(valOf('母球路線'));
@@ -1285,10 +1299,9 @@
 
   // 依本關球數動態建立「就定位」按鈕與流程圖子節點
   function buildReadyUI() {
-    playBalls = getPlayBalls(curText);
     simReady.innerHTML = '';
     curSubFlow.innerHTML = '';
-    playBalls.forEach(b => {
+    currentBalls().forEach(b => {
       const btn = document.createElement('button');
       btn.className = 'sim-btn';
       btn.dataset.id = b.id;
@@ -1320,6 +1333,7 @@
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = 'none';
     btnTemplate.style.display = '';
+    document.querySelectorAll('.ball-redetect, .fork-step.terminal-ok, .fork-step.terminal-no').forEach(el => el.classList.remove('active'));
     const ov = document.getElementById('tableOverlay');
     if (ov) ov.innerHTML = '';   // 球桌上沒有任何資訊
     setSub('6.0');
@@ -1361,6 +1375,12 @@
   // 進入步驟 6 時初始化模擬
   function setupPlay() {
     simIdx = 0; simResults = [];
+    // 解析本關所有球；球型關卡：總次數＝子球數量
+    playBalls = getPlayBalls(curText);
+    ballsTotal = playBalls.filter(b => b.id !== 'cue').length;
+    ballsPotted = 0; ballRepeat = false;
+    currentObjIds = playBalls.filter(b => b.id !== 'cue').map(b => b.id);
+    if (isBallMode()) chancesTotal = ballsTotal;
     chances.innerHTML = '';
     for (let i = 0; i < chancesTotal; i++) {
       const c = document.createElement('div');
@@ -1400,10 +1420,13 @@
     simIdx++;
     simStatus.classList.remove('blink');
     simHit.style.display = 'none';
-    // 只需完成一次：成功一桿即過關；否則用完次數才結束
-    const finished = simIdx >= chancesTotal;
+    if (ok) ballsPotted++;
+    // 結束判定：球型關卡 → 失敗即結束、打完最後一顆即通過；其他 → 用完次數才結束
+    const ballPass = isBallMode() && ok && ballsPotted >= ballsTotal;
+    const ballFail = isBallMode() && !ok;
+    const finished = ballPass || ballFail || (!isBallMode() && simIdx >= chancesTotal);
 
-    // 線性 6.0-6.7 完成；分支兩步逐一進行（音效 → 結果宣告）
+    // 線性 6.0-6.7 完成；分支逐一進行（音效 → 結果宣告）
     markLinearDone();
     const scope = activeSix || document;
     const steps = Array.from(scope.querySelectorAll('.fork-step[data-result="' + (ok ? 'ok' : 'no') + '"]'));
@@ -1423,17 +1446,51 @@
         if (current !== 6) return;
         shotMsg.className = 'shot-msg';
         finish(1);
-        if (finished) {
+        if (isBallMode()) {
+          if (ballPass) {            // 6.10-1 → 6.11-1 關卡通過
+            finish(2); markTerminal('ok');
+            simResult.style.display = ''; simStatus.textContent = '關卡通過！';
+          } else if (ballFail) {     // 6.9-2 → 6.11-2 關卡失敗
+            markTerminal('no');
+            simResult.style.display = ''; simStatus.textContent = '關卡失敗';
+          } else {                   // 6.10-1 繼續下一桿 → 6.3-1 重新偵測
+            activate(2);
+            enterRedetect();
+          }
+        } else if (finished) {       // 6.11 關卡重複結束 → 結算
           simResult.style.display = '';
           simStatus.textContent = '已完成 ' + chancesTotal + ' 桿';
           setSub('6.11');
-        } else {
-          // 6.10 關卡重複 → 迴圈回 6.1
+        } else {                     // 6.10 關卡重複 → 迴圈回 6.1
           curLoopCount.textContent = '第 ' + (simIdx + 1) + ' / ' + chancesTotal + ' 次';
           enterInfo();
         }
       }, 1300);
     }, 800);
+  }
+
+  // 球型關卡終端高亮（6.11-1 通過 / 6.11-2 失敗）
+  function markTerminal(which) {
+    const scope = activeSix || document;
+    const el = scope.querySelector('.fork-step.' + (which === 'ok' ? 'terminal-ok' : 'terminal-no'));
+    if (el) el.classList.add('active');
+  }
+
+  // 6.3-1：打進一顆後，重新偵測剩餘球體（子球數量−1），完成後 → 6.5
+  function enterRedetect() {
+    if (currentObjIds.length) currentObjIds.pop();   // 移除一顆已打進的子球
+    ballRepeat = true;
+    placedSet.clear();
+    buildReadyUI();                                   // 重建按鈕（少一顆）
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none';
+    btnRolling.style.display = 'none';
+    simHit.style.display = 'none';
+    shotMsg.className = 'shot-msg';
+    simReady.style.display = 'flex';
+    tableHint.classList.add('show'); curSub615.classList.add('on');
+    const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.add('active');
+    renderPositions(curText, placedSet, null, false, currentObjNums());  // 只畫剩餘球
+    setSub('6.3');
   }
 
   // 結算畫面內容
@@ -1445,7 +1502,9 @@
     rStars.innerHTML = [1, 2, 3].map(k => `<span class="${k <= earned ? 'on' : 'off'}">★</span>`).join('');
     if (levelImageSrc) { rImage.src = levelImageSrc; rImageWrap.classList.remove('empty'); }
     else { rImage.removeAttribute('src'); rImageWrap.classList.add('empty'); }
-    rScore.textContent = made + '/' + chancesTotal;
+    rScore.textContent = isBallMode()
+      ? (ballsPotted + '/' + ballsTotal + (ballsPotted >= ballsTotal ? '（通過）' : '（失敗）'))
+      : (made + '/' + chancesTotal);
     const d = new Date();
     rDate.textContent = d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
     rLoc.textContent = chosenLocation || '—';
@@ -1463,24 +1522,31 @@
     if (btn) { btn.classList.toggle('done', on); btn.textContent = btn.dataset.label + (on ? ' ✓' : ''); }
     const sn = curSubFlow.querySelector('.subnode[data-id="' + id + '"]');
     if (sn) sn.classList.toggle('on', on);
-    renderPositions(curText, placedSet, justPlaced);
+    renderPositions(curText, placedSet, justPlaced, false, isBallMode() ? currentObjNums() : null);
     setSub('6.3');
-    // 6.2：所有球都就位後 → 顯示開始擊球
-    if (playBalls.length && placedSet.size === playBalls.length) {
+    if (isBallMode() && ballRepeat) { const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.add('active'); }
+    // 所有（本回合）球都就位後 → 顯示開始擊球
+    const need = currentBalls().length;
+    if (need && placedSet.size === need) {
       tableHint.classList.remove('show'); curSub615.classList.remove('on');
+      const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.remove('active');
       simReady.style.display = 'none';
+      const goShoot = () => {
+        if (current !== 6 || placedSet.size !== need) return;
+        shootHint.classList.add('show'); btnShoot.style.display = '';
+        setSub('6.5');
+      };
       setTimeout(() => {
-        if (current !== 6 || placedSet.size !== playBalls.length) return;
-        // 6.4 播放音效：開始擊球（先單獨進行）
-        playSound('請開始.mp3');
-        setSub('6.4');
-        setTimeout(() => {
-          if (current !== 6 || placedSet.size !== playBalls.length) return;
-          // 6.5 等待玩家擊球，顯示「開始擊球」
-          shootHint.classList.add('show');
-          btnShoot.style.display = '';
-          setSub('6.5');
-        }, 800);
+        if (current !== 6 || placedSet.size !== need) return;
+        if (isBallMode() && ballRepeat) {
+          // 6.3-1 → 6.5（重複時略過 6.4 音效）
+          goShoot();
+        } else {
+          // 6.4 播放音效：開始擊球
+          playSound('請開始.mp3');
+          setSub('6.4');
+          setTimeout(goShoot, 800);
+        }
       }, 1000);
     }
   }
