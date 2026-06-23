@@ -976,14 +976,15 @@
   const REQ_BALL6 = ["要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊", "經過目標線段後停留在目標區塊（待討論）"];
   const REQ_EXTRA3 = ["沒有", "邊緣子球緊貼顆星邊", "邊緣子球不貼顆星邊"];
   const REQ_EXTRA2 = ["沒有", "母球不能接觸到顆星邊"];
+  // extra: "both"=三選一+二選一；"3only"=只有三選一；"none"=不顯示額外提醒
   const REQ_TEMPLATES = {
-    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", ball: REQ_BALL6, cue: { opts: REQ_BALL6 } },
-    B: { general: "直接擊打子球、不可以碰觸到其他球", ball: REQ_BALL6, cue: null },
-    C: { general: "母球自由球、不可以碰觸到其他球", ball: ["進目標袋口", "進六個袋口"], cue: { fixed: "要在桌上" } },
+    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", ball: REQ_BALL6, cue: { opts: REQ_BALL6 }, extra: "both" },
+    C: { general: "母球自由球、不可以碰觸到其他球", ball: ["進目標袋口", "進六個袋口"], cue: { fixed: "要在桌上" }, extra: "both" },
+    D: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", ball: REQ_BALL6, cue: null, extra: "3only" }, // 純子球：通則+子球六選一+額外提醒(只三選一)
   };
   function reqTemplateKey(type, optIdx) {
-    if (type === "repeat") return "A";
-    if (type === "pattern") return optIdx === 0 ? "B" : "C";   // 純子球→B；照順序/順序隨意→C
+    if (type === "repeat") return optIdx === 1 ? "D" : "A";    // 純子球＿位置固定→D；其餘→A
+    if (type === "pattern") return optIdx === 0 ? "D" : "C";   // 純子球，要照順序→D；照順序/順序隨意→C
     if (type === "infinite") return optIdx === 0 ? "A" : "C";  // 一顆球→A；兩顆球→C
     return null;
   }
@@ -1027,6 +1028,12 @@
     const e3 = document.getElementById("reqExtra3"), e2 = document.getElementById("reqExtra2");
     if (e3 && !e3.dataset.built) { buildReqOpts(e3, "req_extra3", REQ_EXTRA3); e3.dataset.built = "1"; }
     if (e2 && !e2.dataset.built) { buildReqOpts(e2, "req_extra2", REQ_EXTRA2); e2.dataset.built = "1"; }
+    // 依模板顯示額外提醒：both=三選一+二選一、3only=只三選一、none=不顯示
+    const mode = tmpl.extra || "both";
+    const extraBox = document.getElementById("noteReqsExtra");
+    const e2row = document.getElementById("reqExtra2Row");
+    if (extraBox) extraBox.toggleAttribute("hidden", mode === "none");
+    if (e2row) e2row.toggleAttribute("hidden", mode !== "both");
   }
   function getNoteReqs() {
     return { req_ball: getReq("req_ball"), req_cue: getReq("req_cue"), req_extra3: getReq("req_extra3"), req_extra2: getReq("req_extra2") };
@@ -1518,9 +1525,13 @@
       out.push("通則：" + tmpl.general);
       out.push("子球要求：" + tmpl.ball[getReq("req_ball")]);
       if (tmpl.cue) out.push("母球要求：" + (tmpl.cue.fixed ? tmpl.cue.fixed : tmpl.cue.opts[getReq("req_cue")]));
-      const e3 = REQ_EXTRA3[getReq("req_extra3")], e2 = REQ_EXTRA2[getReq("req_extra2")];
-      const extras = [e3, e2].filter((x) => x && x !== "沒有");
-      if (extras.length) out.push("額外提醒：" + extras.join("、"));
+      const mode = tmpl.extra || "both";
+      if (mode !== "none") {
+        const arr = [];
+        const e3 = REQ_EXTRA3[getReq("req_extra3")]; if (e3 && e3 !== "沒有") arr.push(e3);
+        if (mode === "both") { const e2 = REQ_EXTRA2[getReq("req_extra2")]; if (e2 && e2 !== "沒有") arr.push(e2); }
+        if (arr.length) out.push("額外提醒：" + arr.join("、"));
+      }
     }
 
     out.push("");
