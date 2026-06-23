@@ -935,9 +935,6 @@
     const infinite = sel.value === "infinite";
     inf.style.display = infinite ? "" : "none";
     stg.style.display = infinite ? "none" : "";
-    // 關卡要求：僅「重複關卡」顯示
-    const reqs = document.getElementById("noteReqs");
-    if (reqs) reqs.toggleAttribute("hidden", sel.value !== "repeat");
   }
   const LEVEL_LABELS = { repeat: "重複關卡", pattern: "球型關卡", infinite: "無限關卡" };
   function levelLabel(v) { return LEVEL_LABELS[v] || "無限關卡"; }
@@ -972,40 +969,70 @@
     const lbl = document.getElementById("noteOptLabel");
     if (hid) hid.value = String(idx);
     if (lbl) lbl.textContent = subs[idx] || "";
+    renderReqs(); // 選項變動 → 重建關卡要求
   }
 
-  // 「重複關卡」的關卡要求（各為單選）
-  const REQ_BALLCUE = ["要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊", "經過目標線段後停留在目標區塊（待討論）"];
-  const REPEAT_REQ = {
-    req_ball:   { el: "reqBall",   opts: REQ_BALLCUE },
-    req_cue:    { el: "reqCue",    opts: REQ_BALLCUE },
-    req_extra3: { el: "reqExtra3", opts: ["沒有", "邊緣子球緊貼顆星邊", "邊緣子球不貼顆星邊"] },
-    req_extra2: { el: "reqExtra2", opts: ["沒有", "母球不能接觸到顆星邊"] },
+  // 「關卡要求」：依（關卡種類＋關卡選項）切換模板
+  const REQ_BALL6 = ["要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊", "經過目標線段後停留在目標區塊（待討論）"];
+  const REQ_EXTRA3 = ["沒有", "邊緣子球緊貼顆星邊", "邊緣子球不貼顆星邊"];
+  const REQ_EXTRA2 = ["沒有", "母球不能接觸到顆星邊"];
+  const REQ_TEMPLATES = {
+    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", ball: REQ_BALL6, cue: { opts: REQ_BALL6 } },
+    B: { general: "直接擊打子球、不可以碰觸到其他球", ball: REQ_BALL6, cue: null },
+    C: { general: "母球自由球、不可以碰觸到其他球", ball: ["進目標袋口", "進六個袋口"], cue: { fixed: "要在桌上" } },
   };
-  function buildRepeatReqs() {
-    Object.keys(REPEAT_REQ).forEach((name) => {
-      const cfg = REPEAT_REQ[name];
-      const c = document.getElementById(cfg.el);
-      if (!c || c.dataset.built) return;
-      c.innerHTML = "";
-      cfg.opts.forEach((o, i) => {
-        const lab = document.createElement("label");
-        lab.className = "note-req-opt" + (o.indexOf("待討論") >= 0 ? " pending" : "");
-        lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"' + (i === 0 ? " checked" : "") + ">" + o;
-        c.appendChild(lab);
-      });
-      c.dataset.built = "1";
+  function reqTemplateKey(type, optIdx) {
+    if (type === "repeat") return "A";
+    if (type === "pattern") return optIdx === 0 ? "B" : "C";   // 純子球→B；照順序/順序隨意→C
+    if (type === "infinite") return optIdx === 0 ? "A" : "C";  // 一顆球→A；兩顆球→C
+    return null;
+  }
+  function currentReqTemplate() {
+    const type = (document.getElementById("noteLevelType") || {}).value;
+    const optIdx = parseInt((document.getElementById("noteLevelOpt") || {}).value || "0", 10);
+    return REQ_TEMPLATES[reqTemplateKey(type, optIdx)] || null;
+  }
+  function buildReqOpts(container, name, opts) {
+    if (!container) return;
+    container.innerHTML = "";
+    opts.forEach((o, i) => {
+      const lab = document.createElement("label");
+      lab.className = "note-req-opt" + (o.indexOf("待討論") >= 0 ? " pending" : "");
+      lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"' + (i === 0 ? " checked" : "") + ">" + o;
+      container.appendChild(lab);
     });
   }
   function getReq(name) { const s = document.querySelector('input[name="' + name + '"]:checked'); return s ? Number(s.value) : 0; }
   function setReq(name, i) { const e = document.querySelector('input[name="' + name + '"][value="' + (Number(i) || 0) + '"]'); if (e) e.checked = true; }
+  // 依目前模板重建 關卡要求（通則 + 子球要求 + 母球要求；額外提醒固定，只建一次）
+  function renderReqs() {
+    const box = document.getElementById("noteReqs");
+    if (!box) return;
+    const tmpl = currentReqTemplate();
+    if (!tmpl) { box.setAttribute("hidden", ""); return; }
+    box.removeAttribute("hidden");
+    const gen = document.getElementById("noteReqsGeneral"); if (gen) gen.textContent = "通則：" + tmpl.general;
+    buildReqOpts(document.getElementById("reqBall"), "req_ball", tmpl.ball);
+    const cueRow = document.getElementById("reqCueRow"), cueC = document.getElementById("reqCue");
+    if (!tmpl.cue) {
+      if (cueRow) cueRow.setAttribute("hidden", "");
+    } else if (tmpl.cue.fixed) {
+      if (cueRow) cueRow.removeAttribute("hidden");
+      if (cueC) { cueC.innerHTML = ""; cueC.textContent = tmpl.cue.fixed; }
+    } else {
+      if (cueRow) cueRow.removeAttribute("hidden");
+      buildReqOpts(cueC, "req_cue", tmpl.cue.opts);
+    }
+    // 額外提醒（固定）只建一次，避免換模板時被重置
+    const e3 = document.getElementById("reqExtra3"), e2 = document.getElementById("reqExtra2");
+    if (e3 && !e3.dataset.built) { buildReqOpts(e3, "req_extra3", REQ_EXTRA3); e3.dataset.built = "1"; }
+    if (e2 && !e2.dataset.built) { buildReqOpts(e2, "req_extra2", REQ_EXTRA2); e2.dataset.built = "1"; }
+  }
   function getNoteReqs() {
-    const o = {};
-    Object.keys(REPEAT_REQ).forEach((name) => { o[name] = getReq(name); });
-    return o;
+    return { req_ball: getReq("req_ball"), req_cue: getReq("req_cue"), req_extra3: getReq("req_extra3"), req_extra2: getReq("req_extra2") };
   }
   function setNoteReqs(reqs) {
-    Object.keys(REPEAT_REQ).forEach((name) => { setReq(name, (reqs && reqs[name]) || 0); });
+    ["req_ball", "req_cue", "req_extra3", "req_extra2"].forEach((name) => setReq(name, (reqs && reqs[name]) || 0));
   }
   function setLevelType(v) {
     const hid = document.getElementById("noteLevelType");
@@ -1049,8 +1076,7 @@
       });
       document.addEventListener("click", (e) => { if (!optWrap.contains(e.target)) optList.setAttribute("hidden", ""); });
     }
-    buildRepeatReqs(); // 建立關卡要求單選
-    setLevelType(document.getElementById("noteLevelType").value || "infinite"); // 初始化兩個下拉（含關卡要求顯示）
+    setLevelType(document.getElementById("noteLevelType").value || "infinite"); // 初始化下拉 + 關卡要求
 
     const autoGrow = () => {
       input.style.height = "auto";
@@ -1484,15 +1510,15 @@
     if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
 
-    // 關卡要求（僅重複關卡）
-    if (lvType === "repeat") {
+    // 關卡要求（依模板）
+    const tmpl = currentReqTemplate();
+    if (tmpl) {
       out.push("");
       out.push("關卡要求：");
-      out.push("通則：球都有固定位置、沒有自由球、不可以碰觸到其他球");
-      out.push("子球要求：" + REPEAT_REQ.req_ball.opts[getReq("req_ball")]);
-      out.push("母球要求：" + REPEAT_REQ.req_cue.opts[getReq("req_cue")]);
-      const e3 = REPEAT_REQ.req_extra3.opts[getReq("req_extra3")];
-      const e2 = REPEAT_REQ.req_extra2.opts[getReq("req_extra2")];
+      out.push("通則：" + tmpl.general);
+      out.push("子球要求：" + tmpl.ball[getReq("req_ball")]);
+      if (tmpl.cue) out.push("母球要求：" + (tmpl.cue.fixed ? tmpl.cue.fixed : tmpl.cue.opts[getReq("req_cue")]));
+      const e3 = REQ_EXTRA3[getReq("req_extra3")], e2 = REQ_EXTRA2[getReq("req_extra2")];
       const extras = [e3, e2].filter((x) => x && x !== "沒有");
       if (extras.length) out.push("額外提醒：" + extras.join("、"));
     }
