@@ -996,7 +996,7 @@
       { name: "req_9",    label: "打9號的子球要求", opts: REQ_BALL6, gap: true },
       { name: "req_9cue", label: "打9號的母球要求", opts: REQ_BALL6 },
     ] },
-    F: { general: "要擊中子球、球都有固定位置、不可以碰觸到其他球", extra: "none", selects: [
+    F: { general: "要擊中子球、球都有固定位置、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_cue",  label: "母球要求", opts: ["不要求", "經過目標線段"] },
       { name: "req_ball", label: "子球要求", opts: ["不要求", "要在桌上", "進目標袋口", "進六個袋口"] },
     ] },
