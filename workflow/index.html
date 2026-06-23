@@ -641,7 +641,7 @@
             <input type="file" accept="image/*" id="imgInput" hidden>
 
             <div class="field-label" style="margin-top:10px;">上傳文字資訊</div>
-            <textarea id="infoInput" class="info-area" style="min-height:150px;" placeholder="可依下列格式輸入：&#10;關卡名稱：基本控球-Ⅰ型五顆&#10;關卡種類：重複關卡（或 球型關卡／無限挑戰）&#10;關卡說明：將一到五號球平均排列…&#10;規則需求：不可敲擊目標球以外的子球&#10;過關條件：5/5"></textarea>
+            <textarea id="infoInput" class="info-area" style="min-height:150px;" placeholder="可依下列格式輸入：&#10;關卡名稱：基本控球-Ⅰ型五顆&#10;關卡種類：重複關卡（或 球型關卡／無限挑戰）&#10;關卡說明：將一到五號球平均排列…&#10;關卡要求：不可敲擊目標球以外的子球&#10;過關條件：5/5"></textarea>
 
             <button class="pill-btn" id="confirmBtn" disabled style="margin-top:14px;">確認載入</button>
           </div>
@@ -654,7 +654,7 @@
             </div>
             <div class="info-card">
               <div class="sec"><div class="sec-t">關卡說明</div><p id="outDesc"></p></div>
-              <div class="sec"><div class="sec-t">規則需求</div><p id="outRule"></p></div>
+              <div class="sec"><div class="sec-t">關卡要求</div><p id="outRule"></p></div>
               <div class="sec"><div class="sec-t">過關條件</div><p id="outCond"></p></div>
             </div>
             <button class="pill-btn" id="finishBtn">選擇遊戲地點</button>
@@ -753,7 +753,7 @@
             <div class="modal-title" style="margin-bottom:14px;">關卡說明</div>
             <div class="detail-content">
               <div class="sec"><div class="sec-t">關卡說明</div><p id="dDesc"></p></div>
-              <div class="sec"><div class="sec-t">規則需求</div><p id="dRule"></p></div>
+              <div class="sec"><div class="sec-t">關卡要求</div><p id="dRule"></p></div>
               <div class="sec"><div class="sec-t">過關條件</div><p id="dCond"></p></div>
             </div>
           </div>
@@ -855,7 +855,7 @@
   // 球型關卡的擊球順序規則：sequential（要照順序打）/ any（任意順序）
   let levelOrder = 'sequential';
   function orderOf(text) {
-    const m = text.match(/規則需求\s*[:：]\s*([^\n]*)/);
+    const m = text.match(/(?:關卡要求|規則需求)\s*[:：]\s*([^\n]*)/);
     const v = (m ? m[1] : '') + text;
     if (v.indexOf('任意順序') >= 0) return 'any';
     if (v.indexOf('照順序') >= 0) return 'sequential';
@@ -951,14 +951,14 @@
     const result = {
       關卡名稱: getLineField(text, '關卡名稱'),
       關卡說明: getLineField(text, '關卡說明'),
-      規則需求: getLineField(text, '規則需求'),
+      關卡要求: getLineField(text, '關卡要求') || getLineField(text, '規則需求'),
       過關條件: ''
     };
     // 過關條件可能包在括號內，例如「（過關條件：7 / 10 次）」
     const cm = text.match(/過關條件\s*[:：]\s*([^）)\n]+)/);
     result.過關條件 = cm ? cm[1].trim() : getLineField(text, '過關條件');
     // 完全沒有標籤時，整段文字當成關卡說明
-    if (!result.關卡名稱 && !result.關卡說明 && !result.規則需求 && !result.過關條件) {
+    if (!result.關卡名稱 && !result.關卡說明 && !result.關卡要求 && !result.過關條件) {
       result.關卡說明 = text.trim();
     }
     return result;
@@ -1045,14 +1045,14 @@
       outImageWrap.classList.add('empty');
     }
 
-    // 中間文字 = 關卡說明 / 規則需求 / 過關條件
+    // 中間文字 = 關卡說明 / 關卡要求 / 過關條件
     outDesc.textContent = info.關卡說明;
-    outRule.textContent = info.規則需求;
+    outRule.textContent = info.關卡要求;
     outCond.textContent = info.過關條件;
 
     // 關卡說明視窗（進入遊戲關卡時的「說明」彈窗）
     dDesc.textContent = info.關卡說明;
-    dRule.textContent = info.規則需求;
+    dRule.textContent = info.關卡要求;
     dCond.textContent = info.過關條件;
 
     // 進入遊戲關卡畫面：標題 = 關卡名稱
@@ -1213,7 +1213,7 @@
     };
 
     const valOf = (label) => { const m = text.match(new RegExp(label + '\\s*[:：]?\\s*([^\\n]*)')); return m ? m[1].trim() : ''; };
-    const coords = (s) => { const o = []; const re = /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g; let m; while ((m = re.exec(s))) o.push([parseFloat(m[1]), parseFloat(m[2])]); return o; };
+    const coords = (s) => { s = String(s).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ','); const o = []; const re = /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g; let m; while ((m = re.exec(s))) o.push([parseFloat(m[1]), parseFloat(m[2])]); return o; };
     const ballSegs = (s) => { const res = []; const re = /(\d+)\s*號[：:]?\s*([\s\S]*?)(?=\d+\s*號|$)/g; let m; while ((m = re.exec(s))) res.push({ num: parseInt(m[1], 10), pts: coords(m[2]) }); return res; };
     const pockets = { '左上':[0,0], '右上':[8,0], '左下':[0,4], '右下':[8,4], '上中':[4,0], '下中':[4,4] };
 
@@ -1346,6 +1346,7 @@
   // 還原「就定位」按鈕與球圈（虛線）狀態
   // 解析本關有哪些球（母球＋各號子球），一顆球一個按鈕
   function getPlayBalls(text) {
+    text = String(text).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',');   // 容許全形括號／逗號
     const list = [];
     if (/母球位置\s*[:：]?\s*\([^)]*\)/.test(text)) list.push({ id: 'cue', label: '母球' });
     const m = text.match(/子球位置\s*[:：]?\s*([^\n]*)/);
