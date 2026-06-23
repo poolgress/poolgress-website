@@ -977,13 +977,28 @@
   const REQ_EXTRA3 = ["沒有", "邊緣子球緊貼顆星邊", "邊緣子球不貼顆星邊"];
   const REQ_EXTRA2 = ["沒有", "母球不能接觸到顆星邊"];
   // extra: "both"=三選一+二選一；"3only"=只有三選一；"none"=不顯示額外提醒
+  // selects: 一組帶標籤的要求選單，每項 { name, label, opts | fixed, gap? }
   const REQ_TEMPLATES = {
-    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", ball: REQ_BALL6, cue: { opts: REQ_BALL6 }, extra: "both" },
-    C: { general: "母球自由球、不可以碰觸到其他球", ball: ["進目標袋口", "進六個袋口"], cue: { fixed: "要在桌上" }, extra: "both" },
-    D: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", ball: REQ_BALL6, cue: null, extra: "3only" }, // 純子球：通則+子球六選一+額外提醒(只三選一)
+    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "both", selects: [
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
+      { name: "req_cue", label: "母球要求", opts: REQ_BALL6 },
+    ] },
+    C: { general: "母球自由球、不可以碰觸到其他球", extra: "both", selects: [
+      { name: "req_ball", label: "子球要求", opts: ["進目標袋口", "進六個袋口"] },
+      { name: "req_cue", label: "母球要求", fixed: "要在桌上" },
+    ] },
+    D: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "3only", selects: [
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
+    ] },
+    E: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "both", selects: [
+      { name: "req_8",    label: "打8號要求", opts: REQ_BALL6 },
+      { name: "req_8cue", label: "母球要求", opts: REQ_BALL6 },
+      { name: "req_9",    label: "打九號要求", opts: REQ_BALL6, gap: true },
+      { name: "req_9cue", label: "母球要求", opts: REQ_BALL6 },
+    ] },
   };
   function reqTemplateKey(type, optIdx) {
-    if (type === "repeat") return optIdx === 1 ? "D" : "A";    // 純子球＿位置固定→D；其餘→A
+    if (type === "repeat") { if (optIdx === 1) return "D"; if (optIdx === 4) return "E"; return "A"; } // 純子球→D；8做9→E；其餘→A
     if (type === "pattern") return optIdx === 0 ? "D" : "C";   // 純子球，要照順序→D；照順序/任意順序→C
     if (type === "infinite") return optIdx === 0 ? "A" : "C";  // 一顆球→A；兩顆球→C
     return null;
@@ -1013,16 +1028,20 @@
     if (!tmpl) { box.setAttribute("hidden", ""); return; }
     box.removeAttribute("hidden");
     const gen = document.getElementById("noteReqsGeneral"); if (gen) gen.textContent = "通則：" + tmpl.general;
-    buildReqOpts(document.getElementById("reqBall"), "req_ball", tmpl.ball);
-    const cueRow = document.getElementById("reqCueRow"), cueC = document.getElementById("reqCue");
-    if (!tmpl.cue) {
-      if (cueRow) cueRow.setAttribute("hidden", "");
-    } else if (tmpl.cue.fixed) {
-      if (cueRow) cueRow.removeAttribute("hidden");
-      if (cueC) { cueC.innerHTML = '<span class="note-req-opt">' + tmpl.cue.fixed + "</span>"; }
-    } else {
-      if (cueRow) cueRow.removeAttribute("hidden");
-      buildReqOpts(cueC, "req_cue", tmpl.cue.opts);
+    // 動態建立要求選單
+    const sc = document.getElementById("noteReqsSelects");
+    if (sc) {
+      sc.innerHTML = "";
+      tmpl.selects.forEach((s) => {
+        const row = document.createElement("div");
+        row.className = "note-req";
+        if (s.gap) row.style.marginTop = "8px";
+        const lab = document.createElement("span"); lab.className = "note-req-label"; lab.textContent = s.label + "：";
+        const opts = document.createElement("span"); opts.className = "note-req-opts";
+        row.appendChild(lab); row.appendChild(opts); sc.appendChild(row);
+        if (s.fixed) opts.innerHTML = '<span class="note-req-opt">' + s.fixed + "</span>";
+        else buildReqOpts(opts, s.name, s.opts);
+      });
     }
     // 額外提醒（固定）只建一次，避免換模板時被重置
     const e3 = document.getElementById("reqExtra3"), e2 = document.getElementById("reqExtra2");
@@ -1036,10 +1055,14 @@
     if (e2row) e2row.toggleAttribute("hidden", mode !== "both");
   }
   function getNoteReqs() {
-    return { req_ball: getReq("req_ball"), req_cue: getReq("req_cue"), req_extra3: getReq("req_extra3"), req_extra2: getReq("req_extra2") };
+    const o = { req_extra3: getReq("req_extra3"), req_extra2: getReq("req_extra2") };
+    const tmpl = currentReqTemplate();
+    if (tmpl) tmpl.selects.forEach((s) => { if (!s.fixed) o[s.name] = getReq(s.name); });
+    return o;
   }
   function setNoteReqs(reqs) {
-    ["req_ball", "req_cue", "req_extra3", "req_extra2"].forEach((name) => setReq(name, (reqs && reqs[name]) || 0));
+    if (!reqs) return;
+    Object.keys(reqs).forEach((name) => setReq(name, reqs[name]));
   }
   function setLevelType(v) {
     const hid = document.getElementById("noteLevelType");
@@ -1523,8 +1546,9 @@
       out.push("");
       out.push("關卡要求：");
       out.push("通則：" + tmpl.general);
-      out.push("子球要求：" + tmpl.ball[getReq("req_ball")]);
-      if (tmpl.cue) out.push("母球要求：" + (tmpl.cue.fixed ? tmpl.cue.fixed : tmpl.cue.opts[getReq("req_cue")]));
+      tmpl.selects.forEach((s) => {
+        out.push(s.label + "：" + (s.fixed ? s.fixed : s.opts[getReq(s.name)]));
+      });
       const mode = tmpl.extra || "both";
       if (mode !== "none") {
         const arr = [];
