@@ -925,57 +925,6 @@
   }
 
   // 說明：白色圓角文字方塊，寬固定 400pt、高度隨文字自動增減，可拖標題列移動
-  // 說明視窗的「遊戲規則」單選窗格設定
-  const NOTE_RULES = [
-    { group: "子球規則", items: [
-      { key: "ballOrder",  label: "順序規則", opts: ["不顯示", "任意順序", "要照順序打"] },
-      { key: "ballFrozen", label: "擺球規則", opts: ["不顯示", "邊緣子球不貼顆星邊", "邊緣子球緊貼顆星邊"] },
-      { key: "ballPath",   label: "路線要求", opts: ["不顯示", "子球需要依序經過目標線段"] },
-      { key: "ballPocket", label: "落點要求", opts: ["不顯示", "六個袋都能打", "打進目標袋口", "子球停在目標區塊"] },
-      { key: "ballHit",    label: "擊球規則", opts: ["不顯示", "直接擊打子球"] },
-    ] },
-    { group: "母球規則", items: [
-      { key: "cueStart",  label: "起手規則", opts: ["不顯示", "母球自由球"] },
-      { key: "cueBank",   label: "接觸顆星", opts: ["不顯示", "母球不能到碰顆星邊"] },
-      { key: "cuePath",   label: "路線要求", opts: ["不顯示", "母球依序經過目標線段"] },
-      { key: "cuePocket", label: "落點要求", opts: ["不顯示", "母球停在目標區塊", "母球進入目標袋口"] },
-    ] },
-  ];
-
-  function buildNoteRules() {
-    const root = document.getElementById("noteRules");
-    if (!root || root.dataset.built) return;
-    let html = "";
-    NOTE_RULES.forEach((g) => {
-      html += '<div class="note-rules-group">' + g.group + "：</div>";
-      g.items.forEach((it) => {
-        html += '<div class="note-rule"><span class="note-rule-label">' + it.label + "：</span>";
-        html += '<span class="note-rule-opts">';
-        it.opts.forEach((o, i) => {
-          html += '<label class="note-rule-opt"><input type="radio" name="nr_' + it.key + '" value="' + i + '"' +
-            (i === 0 ? " checked" : "") + ">" + o + "</label>";
-        });
-        html += "</span></div>";
-      });
-    });
-    root.innerHTML = html;
-    root.dataset.built = "1";
-  }
-  function getNoteRules() {
-    const out = {};
-    NOTE_RULES.forEach((g) => g.items.forEach((it) => {
-      const sel = document.querySelector('input[name="nr_' + it.key + '"]:checked');
-      out[it.key] = sel ? Number(sel.value) : 0;
-    }));
-    return out;
-  }
-  function setNoteRules(rules) {
-    NOTE_RULES.forEach((g) => g.items.forEach((it) => {
-      const v = rules && rules[it.key] != null ? rules[it.key] : 0;
-      const el = document.querySelector('input[name="nr_' + it.key + '"][value="' + v + '"]');
-      if (el) el.checked = true;
-    }));
-  }
 
   // 依關卡種類切換「過關條件」顯示：無限挑戰=文字、遊戲闖關=次數欄位
   function applyLevelType() {
@@ -1039,7 +988,6 @@
     const header = document.getElementById("noteHeader");
     const input = document.getElementById("noteInput");
     if (!btn || !box || !header || !input) return;
-    buildNoteRules();
     // 關卡種類自訂下拉
     const typeBtn = document.getElementById("noteTypeBtn");
     const typeList = document.getElementById("noteTypeList");
@@ -1083,7 +1031,7 @@
     // 拖曳：以「關卡名稱」列與「關卡說明：」標題列當把手
     // （點在輸入欄／選單／選項等互動元件上時不觸發拖曳）
     const startNoteDrag = (e) => {
-      if (e.target.closest("input, textarea, select, button, label, .note-type-list, .note-type-btn, .note-rule-opt")) return;
+      if (e.target.closest("input, textarea, select, button, label, .note-type-list, .note-type-btn")) return;
       e.preventDefault();
       const r = box.getBoundingClientRect();
       const offset = { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -1416,7 +1364,6 @@
         star1: (document.getElementById("noteStar1") || {}).value || "",
         star2: (document.getElementById("noteStar2") || {}).value || "",
         star3: (document.getElementById("noteStar3") || {}).value || "",
-        rules: getNoteRules(),
       },
     };
   }
@@ -1451,7 +1398,6 @@
     const np = document.getElementById("noteCondPass"); if (np) np.value = "";
     const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
     ["noteStar1", "noteStar2", "noteStar3"].forEach((id) => { const e = document.getElementById(id); if (e) e.value = ""; });
-    setNoteRules({}); // 規則回到預設（各列第一個選項）
     setLevelType("infinite");
     // 檔名欄
     const sn = document.getElementById("saveName"); if (sn) sn.value = "";
@@ -1497,14 +1443,6 @@
     if (subList[optIdx]) out.push("關卡選項：" + subList[optIdx]);
     if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
-    // 規則需求：列出不是「不顯示」(index 0) 的選項
-    const rules = getNoteRules();
-    const ruleTexts = [];
-    NOTE_RULES.forEach((g) => g.items.forEach((it) => {
-      const v = rules[it.key] || 0;
-      if (v !== 0) ruleTexts.push(it.opts[v]);
-    }));
-    out.push("規則需求：" + (ruleTexts.length ? ruleTexts.join("、") : none));
 
     out.push("");
     out.push("位置需求：（座標：左上角庫鼻交點為原點，單位＝顆星，x:0~8、y:0~4，往右往下為正）");
@@ -1655,7 +1593,6 @@
       const s1 = document.getElementById("noteStar1"); if (s1) s1.value = st.note.star1 || "";
       const s2 = document.getElementById("noteStar2"); if (s2) s2.value = st.note.star2 || "";
       const s3 = document.getElementById("noteStar3"); if (s3) s3.value = st.note.star3 || "";
-      setNoteRules(st.note.rules);
       setLevelType(st.note.type || "infinite"); // 內含 renderLevelOptList + 重置選項
       setLevelOpt(st.note.opt || 0);            // 還原關卡選項
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
