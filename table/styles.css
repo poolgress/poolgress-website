@@ -339,6 +339,7 @@ html, body {
 .note-cond-gap { margin-left: 16px; } /* 過關條件左邊加空格 */
 .note-opt-gap { margin-left: 10px; }  /* 關卡選項左邊加空格 */
 .note-opt-group { display: inline-flex; align-items: center; gap: 6px; } /* 標籤+下拉成一組，換行時一起 */
+.note-cond-row2 { margin-top: 6px; } /* 過關條件獨立一行，與上一行間距小一點 */
 .note-cond-infinite { font-size: 15px; font-weight: 400; color: #1a1a1a; }
 .note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
 /* 星星獎勵 */
