@@ -1019,7 +1019,7 @@
       if (cueRow) cueRow.setAttribute("hidden", "");
     } else if (tmpl.cue.fixed) {
       if (cueRow) cueRow.removeAttribute("hidden");
-      if (cueC) { cueC.innerHTML = ""; cueC.textContent = tmpl.cue.fixed; }
+      if (cueC) { cueC.innerHTML = '<span class="note-req-opt">' + tmpl.cue.fixed + "</span>"; }
     } else {
       if (cueRow) cueRow.removeAttribute("hidden");
       buildReqOpts(cueC, "req_cue", tmpl.cue.opts);
@@ -1514,7 +1514,7 @@
     const subList = LEVEL_SUBOPTS[lvType] || [];
     const optIdx = parseInt(val("noteLevelOpt") || "0", 10);
     if (subList[optIdx]) out.push("關卡選項：" + subList[optIdx]);
-    if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
+    if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 分");
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
 
     // 關卡要求（依模板）

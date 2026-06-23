@@ -376,7 +376,7 @@ html, body {
 .note-reqs-title { font-weight: 700; font-size: 15px; color: #1a1a1a; }
 .note-reqs-general { font-size: 14px; color: #1a1a1a; }
 .note-reqs-subtitle { font-weight: 700; font-size: 15px; color: #1a1a1a; margin-top: 4px; }
-.note-req { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding-left: 8px; }
+.note-req { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
 .note-req[hidden], #noteReqsExtra[hidden] { display: none; } /* 蓋過 .note-req 的 display:flex */
 .note-req-label { font-weight: 700; font-size: 15px; color: #1a1a1a; }
 .note-req-opts { display: flex; flex-wrap: wrap; gap: 2px 10px; }
