@@ -991,10 +991,10 @@
       { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
     ] },
     E: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "both", selects: [
-      { name: "req_8",    label: "打8號要求", opts: REQ_BALL6 },
-      { name: "req_8cue", label: "母球要求", opts: REQ_BALL6 },
-      { name: "req_9",    label: "打九號要求", opts: REQ_BALL6, gap: true },
-      { name: "req_9cue", label: "母球要求", opts: REQ_BALL6 },
+      { name: "req_8",    label: "打8號的子球要求", opts: REQ_BALL6 },
+      { name: "req_8cue", label: "打8號的母球要求", opts: REQ_BALL6 },
+      { name: "req_9",    label: "打9號的子球要求", opts: REQ_BALL6, gap: true },
+      { name: "req_9cue", label: "打9號的母球要求", opts: REQ_BALL6 },
     ] },
   };
   function reqTemplateKey(type, optIdx) {
