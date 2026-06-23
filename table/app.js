@@ -975,7 +975,7 @@
   }
 
   // 「重複關卡」的關卡要求（各為單選）
-  const REQ_BALLCUE = ["要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊"];
+  const REQ_BALLCUE = ["要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊", "經過目標線段後停留在目標區塊（待討論）"];
   const REPEAT_REQ = {
     req_ball:   { el: "reqBall",   opts: REQ_BALLCUE },
     req_cue:    { el: "reqCue",    opts: REQ_BALLCUE },
@@ -990,7 +990,7 @@
       c.innerHTML = "";
       cfg.opts.forEach((o, i) => {
         const lab = document.createElement("label");
-        lab.className = "note-req-opt";
+        lab.className = "note-req-opt" + (o.indexOf("待討論") >= 0 ? " pending" : "");
         lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"' + (i === 0 ? " checked" : "") + ">" + o;
         c.appendChild(lab);
       });

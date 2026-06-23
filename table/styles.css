@@ -381,6 +381,7 @@ html, body {
 .note-req-opts { display: flex; flex-wrap: wrap; gap: 2px 10px; }
 .note-req-opt { display: inline-flex; align-items: center; gap: 3px; font-size: 14px; color: #222; cursor: pointer; }
 .note-req-opt input { margin: 0; cursor: pointer; accent-color: #ffbc00; }
+.note-req-opt.pending { color: #c0392b; font-style: italic; } /* 待討論：紅字斜體標示 */
 /* 過關條件：空一行後一列 → 種類選單 + 標題 + 條件 */
 .note-cond-row {
   display: flex;
