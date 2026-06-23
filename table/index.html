@@ -161,6 +161,16 @@
       <span class="note-star-item">兩顆星：<input type="number" class="note-star-num" id="noteStar2" min="0" />分，</span>
       <span class="note-star-item">三顆星：<input type="number" class="note-star-num" id="noteStar3" min="0" />分</span>
     </div>
+    <!-- 關卡要求（僅「重複關卡」顯示，選項由 app.js 動態產生） -->
+    <div class="note-reqs" id="noteReqs" hidden>
+      <div class="note-reqs-title">關卡要求</div>
+      <div class="note-reqs-general">通則：球都有固定位置、沒有自由球、不可以碰觸到其他球</div>
+      <div class="note-req"><span class="note-req-label">1. 子球要求：</span><span class="note-req-opts" id="reqBall"></span></div>
+      <div class="note-req"><span class="note-req-label">2. 母球要求：</span><span class="note-req-opts" id="reqCue"></span></div>
+      <div class="note-reqs-subtitle">額外提醒：</div>
+      <div class="note-req"><span class="note-req-opts" id="reqExtra3"></span></div>
+      <div class="note-req"><span class="note-req-opts" id="reqExtra2"></span></div>
+    </div>
   </div>
 
   <!-- 母球打點：可拖曳的浮動母球面，上面有可拖曳的打點 -->

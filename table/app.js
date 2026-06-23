@@ -935,6 +935,9 @@
     const infinite = sel.value === "infinite";
     inf.style.display = infinite ? "" : "none";
     stg.style.display = infinite ? "none" : "";
+    // 關卡要求：僅「重複關卡」顯示
+    const reqs = document.getElementById("noteReqs");
+    if (reqs) reqs.toggleAttribute("hidden", sel.value !== "repeat");
   }
   const LEVEL_LABELS = { repeat: "重複關卡", pattern: "球型關卡", infinite: "無限關卡" };
   function levelLabel(v) { return LEVEL_LABELS[v] || "無限關卡"; }
@@ -969,6 +972,40 @@
     const lbl = document.getElementById("noteOptLabel");
     if (hid) hid.value = String(idx);
     if (lbl) lbl.textContent = subs[idx] || "";
+  }
+
+  // 「重複關卡」的關卡要求（各為單選）
+  const REQ_BALLCUE = ["要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊"];
+  const REPEAT_REQ = {
+    req_ball:   { el: "reqBall",   opts: REQ_BALLCUE },
+    req_cue:    { el: "reqCue",    opts: REQ_BALLCUE },
+    req_extra3: { el: "reqExtra3", opts: ["沒有", "邊緣子球緊貼顆星邊", "邊緣子球不貼顆星邊"] },
+    req_extra2: { el: "reqExtra2", opts: ["沒有", "母球不能接觸到顆星邊"] },
+  };
+  function buildRepeatReqs() {
+    Object.keys(REPEAT_REQ).forEach((name) => {
+      const cfg = REPEAT_REQ[name];
+      const c = document.getElementById(cfg.el);
+      if (!c || c.dataset.built) return;
+      c.innerHTML = "";
+      cfg.opts.forEach((o, i) => {
+        const lab = document.createElement("label");
+        lab.className = "note-req-opt";
+        lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"' + (i === 0 ? " checked" : "") + ">" + o;
+        c.appendChild(lab);
+      });
+      c.dataset.built = "1";
+    });
+  }
+  function getReq(name) { const s = document.querySelector('input[name="' + name + '"]:checked'); return s ? Number(s.value) : 0; }
+  function setReq(name, i) { const e = document.querySelector('input[name="' + name + '"][value="' + (Number(i) || 0) + '"]'); if (e) e.checked = true; }
+  function getNoteReqs() {
+    const o = {};
+    Object.keys(REPEAT_REQ).forEach((name) => { o[name] = getReq(name); });
+    return o;
+  }
+  function setNoteReqs(reqs) {
+    Object.keys(REPEAT_REQ).forEach((name) => { setReq(name, (reqs && reqs[name]) || 0); });
   }
   function setLevelType(v) {
     const hid = document.getElementById("noteLevelType");
@@ -1012,7 +1049,8 @@
       });
       document.addEventListener("click", (e) => { if (!optWrap.contains(e.target)) optList.setAttribute("hidden", ""); });
     }
-    setLevelType(document.getElementById("noteLevelType").value || "infinite"); // 初始化兩個下拉
+    buildRepeatReqs(); // 建立關卡要求單選
+    setLevelType(document.getElementById("noteLevelType").value || "infinite"); // 初始化兩個下拉（含關卡要求顯示）
 
     const autoGrow = () => {
       input.style.height = "auto";
@@ -1364,6 +1402,7 @@
         star1: (document.getElementById("noteStar1") || {}).value || "",
         star2: (document.getElementById("noteStar2") || {}).value || "",
         star3: (document.getElementById("noteStar3") || {}).value || "",
+        reqs: getNoteReqs(),
       },
     };
   }
@@ -1398,6 +1437,7 @@
     const np = document.getElementById("noteCondPass"); if (np) np.value = "";
     const nt = document.getElementById("noteCondTotal"); if (nt) nt.value = "";
     ["noteStar1", "noteStar2", "noteStar3"].forEach((id) => { const e = document.getElementById(id); if (e) e.value = ""; });
+    setNoteReqs({});
     setLevelType("infinite");
     // 檔名欄
     const sn = document.getElementById("saveName"); if (sn) sn.value = "";
@@ -1443,6 +1483,19 @@
     if (subList[optIdx]) out.push("關卡選項：" + subList[optIdx]);
     if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
+
+    // 關卡要求（僅重複關卡）
+    if (lvType === "repeat") {
+      out.push("");
+      out.push("關卡要求：");
+      out.push("通則：球都有固定位置、沒有自由球、不可以碰觸到其他球");
+      out.push("子球要求：" + REPEAT_REQ.req_ball.opts[getReq("req_ball")]);
+      out.push("母球要求：" + REPEAT_REQ.req_cue.opts[getReq("req_cue")]);
+      const e3 = REPEAT_REQ.req_extra3.opts[getReq("req_extra3")];
+      const e2 = REPEAT_REQ.req_extra2.opts[getReq("req_extra2")];
+      const extras = [e3, e2].filter((x) => x && x !== "沒有");
+      if (extras.length) out.push("額外提醒：" + extras.join("、"));
+    }
 
     out.push("");
     out.push("位置需求：（座標：左上角庫鼻交點為原點，單位＝顆星，x:0~8、y:0~4，往右往下為正）");
@@ -1595,6 +1648,7 @@
       const s3 = document.getElementById("noteStar3"); if (s3) s3.value = st.note.star3 || "";
       setLevelType(st.note.type || "infinite"); // 內含 renderLevelOptList + 重置選項
       setLevelOpt(st.note.opt || 0);            // 還原關卡選項
+      setNoteReqs(st.note.reqs);                // 還原關卡要求
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
       if (nbtn) { nbtn.classList.toggle("active", !!st.note.shown); nbtn.setAttribute("aria-pressed", String(!!st.note.shown)); }
       if (st.note.shown) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
