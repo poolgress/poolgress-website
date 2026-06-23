@@ -987,7 +987,7 @@
       { name: "req_ball", label: "子球要求", opts: ["進目標袋口", "進六個袋口"] },
       { name: "req_cue", label: "母球要求", fixed: "要在桌上" },
     ] },
-    D: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "3only", selects: [
+    D: { general: "直接擊打子球、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
     ] },
     E: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "both", selects: [
