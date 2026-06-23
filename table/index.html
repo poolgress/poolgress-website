@@ -124,14 +124,24 @@
       <span class="note-cond-label">關卡種類：</span>
       <span class="note-type" id="noteType">
         <button type="button" class="note-type-btn" id="noteTypeBtn">
-          <span class="note-type-label">無限挑戰</span><span class="note-type-arrow">▾</span>
+          <span class="note-type-label">無限關卡</span><span class="note-type-arrow">▾</span>
         </button>
         <input type="hidden" id="noteLevelType" value="infinite" />
         <div class="note-type-list" id="noteTypeList" hidden>
           <div class="note-type-opt" data-value="repeat">重複關卡</div>
           <div class="note-type-opt" data-value="pattern">球型關卡</div>
-          <div class="note-type-opt" data-value="infinite">無限挑戰</div>
+          <div class="note-type-opt" data-value="infinite">無限關卡</div>
         </div>
+      </span>
+      <span class="note-opt-group">
+        <span class="note-cond-label note-opt-gap">關卡選項：</span>
+        <span class="note-type" id="noteOptType">
+          <button type="button" class="note-type-btn" id="noteOptBtn">
+            <span class="note-type-label" id="noteOptLabel"></span><span class="note-type-arrow">▾</span>
+          </button>
+          <input type="hidden" id="noteLevelOpt" value="0" />
+          <div class="note-type-list" id="noteOptList" hidden></div>
+        </span>
       </span>
       <span class="note-cond-label note-cond-gap">過關條件：</span>
       <span class="note-cond-infinite" id="noteCondInfinite">無限</span>

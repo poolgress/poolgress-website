@@ -987,8 +987,41 @@
     inf.style.display = infinite ? "" : "none";
     stg.style.display = infinite ? "none" : "";
   }
-  const LEVEL_LABELS = { repeat: "重複關卡", pattern: "球型關卡", infinite: "無限挑戰" };
-  function levelLabel(v) { return LEVEL_LABELS[v] || "無限挑戰"; }
+  const LEVEL_LABELS = { repeat: "重複關卡", pattern: "球型關卡", infinite: "無限關卡" };
+  function levelLabel(v) { return LEVEL_LABELS[v] || "無限關卡"; }
+  // 各關卡種類的「關卡選項」子選項
+  const LEVEL_SUBOPTS = {
+    repeat: [
+      "經典＿單純重複，子母球位置固定",
+      "子球換位置，母球位置固定",
+      "母球換位置，子球位置固定",
+      "只有子球，位置固定，單顆重複擺",
+      "只有子球，不同位置，一次全擺上",
+      "打一顆做一顆，子1、子2、母球位置固定",
+      "解球＿子母球位置相同",
+    ],
+    pattern: ["照順序", "順序隨意"],
+    infinite: ["一顆球無限", "兩顆球無限"],
+  };
+  function currentSubopts() { return LEVEL_SUBOPTS[(document.getElementById("noteLevelType") || {}).value] || []; }
+  function renderLevelOptList() {
+    const list = document.getElementById("noteOptList");
+    if (!list) return;
+    list.innerHTML = "";
+    currentSubopts().forEach((txt, i) => {
+      const d = document.createElement("div");
+      d.className = "note-type-opt"; d.dataset.value = String(i); d.textContent = txt;
+      list.appendChild(d);
+    });
+  }
+  function setLevelOpt(i) {
+    const subs = currentSubopts();
+    const idx = Math.max(0, Math.min(subs.length - 1, Number(i) || 0));
+    const hid = document.getElementById("noteLevelOpt");
+    const lbl = document.getElementById("noteOptLabel");
+    if (hid) hid.value = String(idx);
+    if (lbl) lbl.textContent = subs[idx] || "";
+  }
   function setLevelType(v) {
     const hid = document.getElementById("noteLevelType");
     const lbl = document.querySelector("#noteTypeBtn .note-type-label");
@@ -996,6 +1029,8 @@
     if (!LEVEL_LABELS[val]) val = "infinite";
     if (hid) hid.value = val;
     if (lbl) lbl.textContent = levelLabel(val);
+    renderLevelOptList();   // 換種類 → 重建關卡選項
+    setLevelOpt(0);         // 並回到第一個子選項
     applyLevelType();
   }
 
@@ -1017,7 +1052,20 @@
       });
       document.addEventListener("click", (e) => { if (!typeWrap.contains(e.target)) typeList.setAttribute("hidden", ""); });
     }
-    applyLevelType();
+    // 關卡選項自訂下拉（選項依關卡種類動態變動，用事件委派）
+    const optBtn = document.getElementById("noteOptBtn");
+    const optList = document.getElementById("noteOptList");
+    const optWrap = document.getElementById("noteOptType");
+    if (optBtn && optList && optWrap) {
+      optBtn.addEventListener("click", (e) => { e.stopPropagation(); optList.toggleAttribute("hidden"); });
+      optList.addEventListener("click", (e) => {
+        const o = e.target.closest(".note-type-opt");
+        if (!o) return;
+        setLevelOpt(o.dataset.value); optList.setAttribute("hidden", "");
+      });
+      document.addEventListener("click", (e) => { if (!optWrap.contains(e.target)) optList.setAttribute("hidden", ""); });
+    }
+    setLevelType(document.getElementById("noteLevelType").value || "infinite"); // 初始化兩個下拉
 
     const autoGrow = () => {
       input.style.height = "auto";
@@ -1362,6 +1410,7 @@
         fx: notePos.fx, fy: notePos.fy,
         name: (document.getElementById("noteLevelName") || {}).value || "",
         type: (document.getElementById("noteLevelType") || {}).value || "infinite",
+        opt: parseInt((document.getElementById("noteLevelOpt") || {}).value || "0", 10),
         desc: document.getElementById("noteInput").value,
         pass: document.getElementById("noteCondPass").value,
         total: document.getElementById("noteCondTotal").value,
@@ -1444,6 +1493,9 @@
     out.push("關卡名稱：" + val("noteLevelName").trim());
     out.push("關卡說明：" + val("noteInput").trim());
     out.push("關卡種類：" + levelLabel(lvType));
+    const subList = LEVEL_SUBOPTS[lvType] || [];
+    const optIdx = parseInt(val("noteLevelOpt") || "0", 10);
+    if (subList[optIdx]) out.push("關卡選項：" + subList[optIdx]);
     if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 次");
     out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
     // 規則需求：列出不是「不顯示」(index 0) 的選項
@@ -1605,7 +1657,8 @@
       const s2 = document.getElementById("noteStar2"); if (s2) s2.value = st.note.star2 || "";
       const s3 = document.getElementById("noteStar3"); if (s3) s3.value = st.note.star3 || "";
       setNoteRules(st.note.rules);
-      setLevelType(st.note.type || "infinite"); // 內含 applyLevelType（會套用 once 停用狀態）
+      setLevelType(st.note.type || "infinite"); // 內含 renderLevelOptList + 重置選項
+      setLevelOpt(st.note.opt || 0);            // 還原關卡選項
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
       if (nbtn) { nbtn.classList.toggle("active", !!st.note.shown); nbtn.setAttribute("aria-pressed", String(!!st.note.shown)); }
       if (st.note.shown) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
