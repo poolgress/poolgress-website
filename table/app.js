@@ -948,7 +948,7 @@
       "8做9＿子1子2母球位置固定",
       "解球＿子母球位置固定",
     ],
-    pattern: ["純子球，要照順序", "照順序", "順序隨意"],
+    pattern: ["純子球，要照順序", "照順序", "任意順序"],
     infinite: ["一顆球無限", "兩顆球無限"],
   };
   function currentSubopts() { return LEVEL_SUBOPTS[(document.getElementById("noteLevelType") || {}).value] || []; }
@@ -984,7 +984,7 @@
   };
   function reqTemplateKey(type, optIdx) {
     if (type === "repeat") return optIdx === 1 ? "D" : "A";    // 純子球＿位置固定→D；其餘→A
-    if (type === "pattern") return optIdx === 0 ? "D" : "C";   // 純子球，要照順序→D；照順序/順序隨意→C
+    if (type === "pattern") return optIdx === 0 ? "D" : "C";   // 純子球，要照順序→D；照順序/任意順序→C
     if (type === "infinite") return optIdx === 0 ? "A" : "C";  // 一顆球→A；兩顆球→C
     return null;
   }
