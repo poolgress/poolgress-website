@@ -996,9 +996,13 @@
       { name: "req_9",    label: "打9號的子球要求", opts: REQ_BALL6, gap: true },
       { name: "req_9cue", label: "打9號的母球要求", opts: REQ_BALL6 },
     ] },
+    F: { general: "要擊中子球、球都有固定位置、不可以碰觸到其他球", extra: "none", selects: [
+      { name: "req_cue",  label: "母球要求", opts: ["不要求", "經過目標線段"] },
+      { name: "req_ball", label: "子球要求", opts: ["不要求", "要在桌上", "進目標袋口", "進六個袋口"] },
+    ] },
   };
   function reqTemplateKey(type, optIdx) {
-    if (type === "repeat") { if (optIdx === 1) return "D"; if (optIdx === 4) return "E"; return "A"; } // 純子球→D；8做9→E；其餘→A
+    if (type === "repeat") { if (optIdx === 1) return "D"; if (optIdx === 4) return "E"; if (optIdx === 5) return "F"; return "A"; } // 純子球→D；8做9→E；解球→F；其餘→A
     if (type === "pattern") return optIdx === 0 ? "D" : "C";   // 純子球，要照順序→D；照順序/任意順序→C
     if (type === "infinite") return optIdx === 0 ? "A" : "C";  // 一顆球→A；兩顆球→C
     return null;
