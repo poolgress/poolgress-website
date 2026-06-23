@@ -272,7 +272,7 @@ html, body {
   background: transparent;
   color: #1a1a1a;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.5;
   min-height: 1.5em;
 }
@@ -294,14 +294,14 @@ html, body {
   background: transparent;
   color: #1a1a1a;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   padding: 2px 2px;
 }
 /* 關卡種類：自訂下拉（彈出選單跟著視窗縮放、與按鈕同寬） */
 .note-type { position: relative; display: inline-block; }
 .note-type-btn {
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: #1a1a1a;
   background: #fff;
   border: 1px solid #cfcfcf;
@@ -329,7 +329,7 @@ html, body {
 }
 .note-type-list[hidden] { display: none; }
 .note-type-opt {
-  font-size: 15px;
+  font-size: 14px;
   color: #1a1a1a;
   padding: 4px 8px;
   cursor: pointer;
@@ -339,8 +339,8 @@ html, body {
 .note-cond-gap { margin-left: 16px; } /* 過關條件左邊加空格 */
 .note-opt-gap { margin-left: 10px; }  /* 關卡選項左邊加空格 */
 .note-opt-group { display: inline-flex; align-items: center; gap: 6px; } /* 標籤+下拉成一組，換行時一起 */
-.note-cond-row2 { margin-top: 6px; } /* 過關條件獨立一行，與上一行間距小一點 */
-.note-cond-infinite { font-size: 15px; font-weight: 400; color: #1a1a1a; }
+.note-cond-row2 { margin-top: 12px; } /* 過關條件獨立一行 */
+.note-cond-infinite { font-size: 14px; font-weight: 400; color: #1a1a1a; }
 .note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
 /* 星星獎勵 */
 .note-star-row {
@@ -374,15 +374,14 @@ html, body {
 .note-reqs { margin-top: 14px; display: flex; flex-direction: column; gap: 5px; }
 .note-reqs[hidden] { display: none; }
 .note-reqs-title { font-weight: 700; font-size: 15px; color: #1a1a1a; }
-.note-reqs-general { font-size: 14px; color: #333; }
-.note-reqs-subtitle { font-weight: 700; font-size: 14px; color: #1a1a1a; margin-top: 4px; }
+.note-reqs-general { font-size: 14px; color: #1a1a1a; }
+.note-reqs-subtitle { font-weight: 700; font-size: 15px; color: #1a1a1a; margin-top: 4px; }
 .note-req { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding-left: 8px; }
 .note-req[hidden], #noteReqsExtra[hidden] { display: none; } /* 蓋過 .note-req 的 display:flex */
-.note-req-label { font-size: 14px; color: #333; }
+.note-req-label { font-weight: 700; font-size: 15px; color: #1a1a1a; }
 .note-req-opts { display: flex; flex-wrap: wrap; gap: 2px 10px; }
-.note-req-opt { display: inline-flex; align-items: center; gap: 3px; font-size: 14px; color: #222; cursor: pointer; }
+.note-req-opt { display: inline-flex; align-items: center; gap: 3px; font-size: 14px; color: #1a1a1a; cursor: pointer; }
 .note-req-opt input { margin: 0; cursor: pointer; accent-color: #ffbc00; }
-.note-req-opt.pending { color: #c0392b; font-style: italic; } /* 待討論：紅字斜體標示 */
 /* 過關條件：空一行後一列 → 種類選單 + 標題 + 條件 */
 .note-cond-row {
   display: flex;
@@ -405,7 +404,7 @@ html, body {
   background: transparent;
   color: #1a1a1a;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   text-align: center;
   padding: 2px;
   -moz-appearance: textfield;
@@ -418,7 +417,7 @@ html, body {
 }
 .note-cond-sep,
 .note-cond-unit {
-  font-size: 15px;
+  font-size: 14px;
   color: #1a1a1a;
   user-select: none;
 }

@@ -120,6 +120,24 @@
     </div>
     <div class="note-header" id="noteHeader">關卡說明：</div>
     <textarea class="note-input" id="noteInput" rows="1" placeholder="在這裡輸入說明文字…"></textarea>
+    <div class="note-cond-row note-cond-row2">
+      <span class="note-cond-label">過關條件：</span>
+      <span class="note-cond-infinite" id="noteCondInfinite">無限</span>
+      <span class="note-cond-stage" id="noteCondStage">
+        <input type="number" class="note-cond-num" id="noteCondPass" min="0" />
+        <span class="note-cond-sep">/</span>
+        <input type="number" class="note-cond-num" id="noteCondTotal" min="0" />
+        <span class="note-cond-unit">次</span>
+      </span>
+    </div>
+    <!-- 星星獎勵 -->
+    <div class="note-star-row">
+      <span class="note-cond-label">星星獎勵：</span>
+      <span class="note-star-item">一顆星：<input type="number" class="note-star-num" id="noteStar1" min="0" />分，</span>
+      <span class="note-star-item">兩顆星：<input type="number" class="note-star-num" id="noteStar2" min="0" />分，</span>
+      <span class="note-star-item">三顆星：<input type="number" class="note-star-num" id="noteStar3" min="0" />分</span>
+    </div>
+    <!-- 關卡種類 + 關卡選項（移到星星獎勵下方）-->
     <div class="note-cond-row">
       <span class="note-cond-label">關卡種類：</span>
       <span class="note-type" id="noteType">
@@ -144,24 +162,7 @@
         </span>
       </span>
     </div>
-    <div class="note-cond-row note-cond-row2">
-      <span class="note-cond-label">過關條件：</span>
-      <span class="note-cond-infinite" id="noteCondInfinite">無限</span>
-      <span class="note-cond-stage" id="noteCondStage">
-        <input type="number" class="note-cond-num" id="noteCondPass" min="0" />
-        <span class="note-cond-sep">/</span>
-        <input type="number" class="note-cond-num" id="noteCondTotal" min="0" />
-        <span class="note-cond-unit">次</span>
-      </span>
-    </div>
-    <!-- 星星獎勵 -->
-    <div class="note-star-row">
-      <span class="note-cond-label">星星獎勵：</span>
-      <span class="note-star-item">一顆星：<input type="number" class="note-star-num" id="noteStar1" min="0" />分，</span>
-      <span class="note-star-item">兩顆星：<input type="number" class="note-star-num" id="noteStar2" min="0" />分，</span>
-      <span class="note-star-item">三顆星：<input type="number" class="note-star-num" id="noteStar3" min="0" />分</span>
-    </div>
-    <!-- 關卡要求（僅「重複關卡」顯示，選項由 app.js 動態產生） -->
+    <!-- 關卡要求（選項由 app.js 動態產生）-->
     <div class="note-reqs" id="noteReqs" hidden>
       <div class="note-reqs-title">關卡要求</div>
       <div class="note-reqs-general" id="noteReqsGeneral"></div>
