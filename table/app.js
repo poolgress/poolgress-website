@@ -979,28 +979,28 @@
   // extra: "both"=三選一+二選一；"3only"=只有三選一；"none"=不顯示額外提醒
   // selects: 一組帶標籤的要求選單，每項 { name, label, opts | fixed, gap? }
   const REQ_TEMPLATES = {
-    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "none", selects: [
+    A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
       { name: "req_cue", label: "母球要求", opts: REQ_BALL6 },
     ] },
-    C: { general: "母球自由球、不可以碰觸到其他球", extra: "none", selects: [
+    C: { general: "母球自由球、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_ball", label: "子球要求", opts: ["進目標袋口", "進六個袋口"] },
       { name: "req_cue", label: "母球要求", fixed: "要在桌上" },
     ] },
-    G: { general: "母球自由球、不可以碰觸到其他球", extra: "3only", selects: [ // 同 C，但有額外提醒（球型 照順序/任意順序）
+    G: { general: "母球自由球、不可以碰觸到其他球", extra: "both", selects: [ // 同 C，但額外提醒含二選一（球型 照順序/任意順序）
       { name: "req_ball", label: "子球要求", opts: ["進目標袋口", "進六個袋口"] },
       { name: "req_cue", label: "母球要求", fixed: "要在桌上" },
     ] },
-    D: { general: "直接擊打子球、不可以碰觸到其他球", extra: "none", selects: [
+    D: { general: "直接擊打子球、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
     ] },
-    E: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "none", selects: [
+    E: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_8",    label: "打8號的子球要求", opts: REQ_BALL6 },
       { name: "req_8cue", label: "打8號的母球要求", opts: REQ_BALL6 },
       { name: "req_9",    label: "打9號的子球要求", opts: REQ_BALL6, gap: true },
       { name: "req_9cue", label: "打9號的母球要求", opts: REQ_BALL6 },
     ] },
-    F: { general: "要擊中子球、球都有固定位置、不可以碰觸到其他球", extra: "none", selects: [
+    F: { general: "要擊中子球、球都有固定位置、不可以碰觸到其他球", extra: "3only", selects: [
       { name: "req_cue",  label: "母球要求", opts: ["不要求", "經過目標線段"] },
       { name: "req_ball", label: "子球要求", opts: ["不要求", "要在桌上", "進目標袋口", "進六個袋口"] },
     ] },
