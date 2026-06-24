@@ -622,8 +622,8 @@
               <div class="substep" data-sub="6.0">6.0 模板載入
                 <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
               </div>
-              <div class="substep" data-sub="6.1">6.1 球桌資訊標記（每回合換一顆子球）
-                <div class="info-chips">標示：<span class="chip sub-chip">子球1</span><span class="chip">母球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記（每回合換一顆母球）
+                <div class="info-chips">標示：<span class="chip">子球</span><span class="chip cue-chip">母球1</span><span class="chip">路線</span><span class="chip">目標物</span></div>
               </div>
               <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
               <div class="sub615" id="sub615R4">
@@ -1108,8 +1108,20 @@
   function isBallMode() { return levelVariant === 'ball'; }
   // 6″ 無限挑戰專用狀態
   function isInfinite() { return levelVariant === 'infinite'; }
-  // 重複關卡 ▸ 子球換位置／母球換位置：每回合只放 母球＋第 N 號子球（依回合輪替）
-  function isSubMove() { const o = optionOf(curText); return levelVariant === 'repeat' && (o.indexOf('子球換位置') >= 0 || o.indexOf('母球換位置') >= 0); }
+  // 重複關卡 ▸ 子球換位置：母球固定，每回合只放 母球＋第 N 號子球（子球依回合輪替）
+  function isSubMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('子球換位置') >= 0; }
+  // 重複關卡 ▸ 母球換位置：子球固定，每回合只放 第 N 顆母球＋（全部）子球（母球依回合輪替）
+  function isCueMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('母球換位置') >= 0; }
+  let cueIdx = 1, cueTotal = 1;   // 母球換位置：目前母球號／母球總數
+  // 母球換位置：計算母球顆數（母球位置：1號(..) 2號(..) ..）
+  function cueCount(text) {
+    const t = String(text).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',');
+    const m = t.match(/母球位置\s*[:：]\s*([^\n]*)/);
+    if (!m) return 1;
+    const numbered = (m[1].match(/\d+\s*號/g) || []).length;
+    if (numbered) return numbered;
+    return (m[1].match(/\(\s*-?\d/g) || []).length || 1;
+  }
   let infScore = 0, infBest = '';
   const recDisplay = document.getElementById('recDisplay');
   const recCur = document.getElementById('recCur');
@@ -1118,6 +1130,7 @@
   const btnRecLoad = document.getElementById('btnRecLoad');
   // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
   function currentBalls() {
+    if (isCueMove()) return playBalls;   // 母球換位置：母球（單一按鈕，標示母球N）＋ 全部固定子球
     if (!isBallMode() && !isSubMove()) return playBalls;
     return playBalls.filter(b => b.id === 'cue' || currentObjIds.indexOf(b.id) >= 0);
   }
@@ -1127,6 +1140,13 @@
     currentObjIds = ['obj-' + n];
     const chip = activeSix && activeSix.querySelector('.sub-chip');
     if (chip) chip.textContent = '子球' + n;
+    buildReadyUI();
+  }
+  // 母球換位置：設定第 N 回合 → 只放 母球N＋（固定）子球，並更新 6.1 標示與按鈕
+  function cueMoveRound(n) {
+    cueIdx = n;
+    const chip = activeSix && activeSix.querySelector('.cue-chip');
+    if (chip) chip.textContent = '母球' + n;
     buildReadyUI();
   }
 
@@ -1422,7 +1442,7 @@
   buildTable();
 
   // 把「位置需求」的資料畫到桌面上
-  function renderPositions(text, placed, justPlaced, targetsOnly, objShow) {
+  function renderPositions(text, placed, justPlaced, targetsOnly, objShow, cueShow) {
     const T = window.TABLE;
     const ov = document.getElementById('tableOverlay');
     if (!T || !ov) return;
@@ -1466,11 +1486,19 @@
     let out = '';
 
     if (!targetsOnly) {
-    // 母球位置（白色虛線圈 r0.25）
-    const cueC = coords(valOf('母球位置'));
-    let cueCenter = null;
-    if (cueC.length) {
-      cueCenter = P(cueC[0][0], cueC[0][1]);
+    // 母球位置（白色虛線圈 r0.25）。母球換位置：母球有編號，依回合只畫第 cueShow 顆＋該號路線
+    let cueCenter = null, cueRoutePts = null;
+    if (cueShow != null) {
+      const cueSeg = ballSegs(valOf('母球位置')).find(s => s.num === cueShow);
+      if (cueSeg && cueSeg.pts.length) cueCenter = P(cueSeg.pts[0][0], cueSeg.pts[0][1]);
+      const rSeg = ballSegs(valOf('母球路線')).find(s => s.num === cueShow);
+      cueRoutePts = rSeg ? rSeg.pts : [];
+    } else {
+      const cueC = coords(valOf('母球位置'));
+      if (cueC.length) cueCenter = P(cueC[0][0], cueC[0][1]);
+      cueRoutePts = coords(valOf('母球路線'));
+    }
+    if (cueCenter) {
       out += has('cue') ? greenBox(cueCenter, R(0.15)) : dashCircle(cueCenter, R(0.15), '#ffffff');
       if (has('cue') && justPlaced === 'cue') out += check(cueCenter);
     }
@@ -1482,9 +1510,8 @@
     objSegs.forEach(seg => { if (seg.pts.length) { const p = P(seg.pts[0][0], seg.pts[0][1]); ballCenters[seg.num] = p; if (objShow instanceof Set && !objShow.has(seg.num)) return; const on = has('obj-' + seg.num); out += on ? greenBox(p, R(0.15)) : dashCircle(p, R(0.15), ballColor(seg.num)); if (on && justPlaced === 'obj-' + seg.num) out += check(p); } });
 
     // 母球路線（白色虛線，轉彎點白色半透明球 r0.15，結尾箭頭）
-    const cueRoute = coords(valOf('母球路線'));
-    if (cueRoute.length && cueCenter) {
-      const pts = [cueCenter, ...cueRoute.map(c => P(c[0], c[1]))];
+    if (cueRoutePts && cueRoutePts.length && cueCenter) {
+      const pts = [cueCenter, ...cueRoutePts.map(c => P(c[0], c[1]))];
       out += poly(pts, '#ffffff');
       for (let i = 1; i < pts.length - 1; i++) out += ghost(pts[i], R(0.15));
     }
@@ -1583,7 +1610,8 @@
     text = String(text).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',');   // 容許全形括號／逗號
     const list = [];
     // 需有冒號＋實際座標才算有球，避免誤抓選項名稱（如「…子球位置固定」）中的字樣；「（無）」視為沒有球
-    if (/母球位置\s*[:：]\s*\(\s*-?\d/.test(text)) list.push({ id: 'cue', label: '母球' });
+    // [^\n]*? 容許母球編號（母球換位置：母球位置：1號(..) 2號(..)）
+    if (/母球位置\s*[:：][^\n]*?\(\s*-?\d/.test(text)) list.push({ id: 'cue', label: '母球' });
     const m = text.match(/子球位置\s*[:：]\s*([^\n]*)/);
     if (m) {
       const seg = m[1];
@@ -1600,18 +1628,19 @@
     simReady.innerHTML = '';
     curSubFlow.innerHTML = '';
     currentBalls().forEach(b => {
+      const label = (isCueMove() && b.id === 'cue') ? ('母球' + cueIdx) : b.label;   // 母球換位置：母球鈕標示母球N
       const btn = document.createElement('button');
       btn.className = 'sim-btn';
       btn.dataset.id = b.id;
-      btn.dataset.label = b.label;
-      btn.textContent = b.label;
+      btn.dataset.label = label;
+      btn.textContent = label;
       btn.addEventListener('click', () => placeBall(b.id));
       simReady.appendChild(btn);
 
       const sn = document.createElement('div');
       sn.className = 'subnode';
       sn.dataset.id = b.id;
-      sn.textContent = b.label;
+      sn.textContent = label;
       curSubFlow.appendChild(sn);
     });
   }
@@ -1666,7 +1695,7 @@
     simConfirm.style.display = 'none';
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = '';
-    renderPositions(curText, placedSet, null, false, (isBallMode() || isSubMove()) ? currentObjNums() : null);
+    renderPositions(curText, placedSet, null, false, (isBallMode() || isSubMove()) ? currentObjNums() : null, isCueMove() ? cueIdx : null);
     setSub('6.1');
   }
 
@@ -1698,6 +1727,7 @@
       .sort((a, b) => parseInt(a.split('-')[1], 10) - parseInt(b.split('-')[1], 10));
     if (isBallMode()) chancesTotal = ballsTotal;
     if (isSubMove()) { chancesTotal = ballsTotal; currentObjIds = ['obj-1']; }   // 每顆子球一回合，從子1開始
+    if (isCueMove()) { cueTotal = cueCount(curText); chancesTotal = cueTotal; cueIdx = 1; }   // 每顆母球一回合，從母球1開始（子球全程固定）
     chances.innerHTML = '';
     for (let i = 0; i < chancesTotal; i++) {
       const c = document.createElement('div');
@@ -1713,6 +1743,7 @@
     activeSix = v.node;
     curSubFlow = v.subFlow; curSub615 = v.sub615; curLoopCount = v.loopCount;
     if (isSubMove()) { const c = activeSix.querySelector('.sub-chip'); if (c) c.textContent = '子球1'; }
+    if (isCueMove()) { const c = activeSix.querySelector('.cue-chip'); if (c) c.textContent = '母球1'; }
     highlightOverview();
     buildReadyUI();
     curLoopCount.textContent = isInfinite() ? '↻ 無上限' : ('第 1 / ' + chancesTotal + ' 次');
@@ -1806,6 +1837,7 @@
         } else {                     // 6.10 關卡重複 → 迴圈回 6.1
           curLoopCount.textContent = '第 ' + (simIdx + 1) + ' / ' + chancesTotal + ' 次';
           if (isSubMove()) subMoveRound(simIdx + 1);   // 下一回合換下一顆子球（子N＋1）
+          if (isCueMove()) cueMoveRound(simIdx + 1);   // 下一回合換下一顆母球（母N＋1）
           enterInfo();
         }
       }, 1300);
@@ -1894,7 +1926,7 @@
     if (btn) { btn.classList.toggle('done', on); btn.textContent = btn.dataset.label + (on ? ' ✓' : ''); }
     const sn = curSubFlow.querySelector('.subnode[data-id="' + id + '"]');
     if (sn) sn.classList.toggle('on', on);
-    renderPositions(curText, placedSet, justPlaced, false, (isBallMode() || isSubMove()) ? currentObjNums() : null);
+    renderPositions(curText, placedSet, justPlaced, false, (isBallMode() || isSubMove()) ? currentObjNums() : null, isCueMove() ? cueIdx : null);
     setSub('6.3');
     if (isBallMode() && ballRepeat) { const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.add('active'); }
     // 所有（本回合）球都就位後 → 顯示開始擊球
