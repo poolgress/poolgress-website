@@ -272,19 +272,17 @@
   .six-col { position: relative; display: flex; flex-direction: column; align-items: center; }
   .six-col::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); width: 2px; height: 24px; background: var(--line); bottom: -24px; }
 
-  /* 步驟5 後：關卡種類 → 關卡選項 總覽 */
-  .opt-overview { position: relative; display: flex; justify-content: center; align-items: flex-start; gap: 60px; padding: 24px 0 0; }
-  .opt-overview::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: 0; height: 2px; background: var(--line); }
-  .opt-col { position: relative; display: flex; flex-direction: column; align-items: center; }
-  .opt-col:nth-child(1), .opt-col:nth-child(3) { width: 300px; }
-  .opt-col:nth-child(2) { width: 450px; }
+  /* 步驟5 後：關卡種類 → 關卡選項 總覽（種類層平行並排，各自的選項橫向排列） */
+  .opt-overview { position: relative; display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding: 24px 0 0; }
+  .opt-overview::before { content: ""; position: absolute; left: 16%; right: 16%; top: 0; height: 2px; background: var(--line); }
+  .opt-col { position: relative; display: flex; flex-direction: column; align-items: center; flex: 1 1 0; min-width: 0; }
   .opt-col::before { content: ""; position: absolute; top: -24px; left: 50%; transform: translateX(-50%); width: 2px; height: 24px; background: var(--line); }
-  .opt-kind { font-size: 13px; font-weight: 800; color: var(--blue-dark); background: var(--blue-soft); border: 1px solid var(--blue); border-radius: 999px; padding: 4px 16px; margin-bottom: 12px; }
+  .opt-kind { font-size: 13px; font-weight: 800; color: var(--blue-dark); background: var(--blue-soft); border: 1px solid var(--blue); border-radius: 999px; padding: 5px 16px; margin-bottom: 12px; }
   .opt-kind.active { box-shadow: 0 0 0 2px var(--blue); }
-  .opt-list { display: flex; flex-direction: column; gap: 8px; width: 230px; }
-  .opt-node { font-size: 12px; text-align: center; border: 1px solid var(--line); border-radius: 8px; padding: 7px 8px; background: #f6f8fb; color: var(--text-soft); }
+  .opt-list { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
+  .opt-node { flex: 1 1 calc(33.333% - 6px); min-width: 94px; max-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 12px; line-height: 1.35; border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px; background: #f6f8fb; color: var(--text-soft); }
   .opt-node.impl { border-color: var(--blue); background: #fff; color: var(--blue-dark); font-weight: 700; }
-  .opt-node.impl::after { content: "（見下方流程）"; display: block; font-size: 10px; font-weight: 600; color: var(--blue); margin-top: 2px; }
+  .opt-node.impl::after { content: "（見下方流程）"; font-size: 10px; font-weight: 600; color: var(--blue); margin-top: 3px; }
   .opt-node.active { box-shadow: 0 0 0 2px var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
   .six-col .branch-tag.path { white-space: nowrap; }
   .branch-tag { font-size: 11px; font-weight: 700; color: var(--blue-dark); background: var(--blue-soft); border: 1px solid var(--blue); border-radius: 999px; padding: 3px 10px; margin-bottom: 8px; }
@@ -295,8 +293,9 @@
     .six-fork::before, .six-fork::after, .six-col::before, .six-col::after { display: none; }
     .opt-overview { flex-direction: column; align-items: center; gap: 16px; }
     .opt-overview::before, .opt-col::before { display: none; }
-    .opt-col, .opt-col:nth-child(1), .opt-col:nth-child(2), .opt-col:nth-child(3) { width: 100%; max-width: 360px; }
+    .opt-col { width: 100%; max-width: 360px; }
     #optConn { display: none; }
+    .opt-list .opt-node { min-width: 0; }
     .side-branches { position: static; width: 100%; margin-top: 12px; }
     .side-conn { display: none; }
     .node.six-once#sixOnceNode { width: 100%; max-width: 360px; }
@@ -1885,6 +1884,7 @@
     p += '<text x="' + (LX - 3) + '" y="' + my + '" font-size="10" font-weight="700" fill="#1d4ed8" text-anchor="middle" transform="rotate(-90 ' + (LX - 3) + ' ' + my + ')">↻ 無上限</text>';
     svg.innerHTML = p;
   }
+
 
   // 已實作選項 → 對應流程的虛線連線（經典→6、照順序→6′、一顆球無限→6″）
   function drawOptConnectors() {
