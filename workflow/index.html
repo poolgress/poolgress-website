@@ -541,7 +541,7 @@
                 <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
               </div>
               <div class="substep" data-sub="6.1">6.1 球桌資訊標記
-                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+                <div class="info-chips">標示：<span class="chip">子球</span><span class="chip">母球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
               </div>
               <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
               <div class="sub615" id="sub615">
@@ -1338,7 +1338,8 @@
       return `<g transform="translate(${cx},${cy})"><g class="check-pop"><circle r="${cr}" fill="#16a34a"/><path d="M${-cr*0.45},0 L${-cr*0.1},${cr*0.4} L${cr*0.5},${-cr*0.45}" stroke="#fff" stroke-width="${cr*0.18}" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
     };
 
-    const valOf = (label) => { const m = text.match(new RegExp(label + '\\s*[:：]?\\s*([^\\n]*)')); return m ? m[1].trim() : ''; };
+    // 需有冒號才算欄位，避免誤抓「關卡選項：經典＿子母球位置固定」等選項名稱中內含的「母球位置／子球位置」字樣
+    const valOf = (label) => { const m = text.match(new RegExp(label + '\\s*[:：]\\s*([^\\n]*)')); return m ? m[1].trim() : ''; };
     const coords = (s) => { s = String(s).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ','); const o = []; const re = /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g; let m; while ((m = re.exec(s))) o.push([parseFloat(m[1]), parseFloat(m[2])]); return o; };
     const ballSegs = (s) => { const res = []; const re = /(\d+)\s*號[：:]?\s*([\s\S]*?)(?=\d+\s*號|$)/g; let m; while ((m = re.exec(s))) res.push({ num: parseInt(m[1], 10), pts: coords(m[2]) }); return res; };
     const pockets = { '左上':[0,0], '右上':[8,0], '左下':[0,4], '右下':[8,4], '上中':[4,0], '下中':[4,4] };
