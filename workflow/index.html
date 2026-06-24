@@ -951,7 +951,7 @@
     const result = {
       關卡名稱: getLineField(text, '關卡名稱'),
       關卡說明: getLineField(text, '關卡說明'),
-      關卡要求: getLineField(text, '關卡要求') || getLineField(text, '規則需求'),
+      關卡要求: getLineField(text, '通則') || getLineField(text, '關卡要求') || getLineField(text, '規則需求'),
       過關條件: ''
     };
     // 過關條件可能包在括號內，例如「（過關條件：7 / 10 次）」
@@ -1348,14 +1348,15 @@
   function getPlayBalls(text) {
     text = String(text).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',');   // 容許全形括號／逗號
     const list = [];
-    if (/母球位置\s*[:：]?\s*\([^)]*\)/.test(text)) list.push({ id: 'cue', label: '母球' });
+    // 需有實際座標（括號內含數字）才算有球；「（無）」視為沒有球
+    if (/母球位置\s*[:：]?\s*\(\s*-?\d/.test(text)) list.push({ id: 'cue', label: '母球' });
     const m = text.match(/子球位置\s*[:：]?\s*([^\n]*)/);
     if (m) {
       const seg = m[1];
-      const nums = []; let mm; const rb = /(\d+)\s*號/g;
+      const nums = []; let mm; const rb = /(\d+)\s*號\s*\(\s*-?\d/g;
       while ((mm = rb.exec(seg)) !== null) nums.push(parseInt(mm[1], 10));
       if (nums.length) nums.forEach(n => list.push({ id: 'obj-' + n, label: '子' + n }));
-      else { const cnt = (seg.match(/\([^)]*\)/g) || []).length; for (let i = 1; i <= cnt; i++) list.push({ id: 'obj-' + i, label: '子' + i }); }
+      else { const cnt = (seg.match(/\(\s*-?\d[^)]*\)/g) || []).length; for (let i = 1; i <= cnt; i++) list.push({ id: 'obj-' + i, label: '子' + i }); }
     }
     return list;
   }
