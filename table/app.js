@@ -330,6 +330,7 @@
 
     overlay.appendChild(el);
     placedBalls.push(b);
+    updateCueNumbers();
     return b;
   }
 
@@ -339,7 +340,24 @@
     b.el.remove();
     const i = placedBalls.indexOf(b);
     if (i >= 0) placedBalls.splice(i, 1);
+    updateCueNumbers();
     renderPaths();
+  }
+
+  // 多顆母球時，在每顆母球旁標上順序數字（單顆則不標）；同時記錄 b.cueIndex 供輸出用
+  function updateCueNumbers() {
+    const cues = placedBalls.filter((x) => x.cfg.id === "cue");
+    cues.forEach((b, i) => {
+      let badge = b.el.querySelector(".cue-num");
+      if (cues.length < 2) {
+        if (badge) badge.remove();
+        b.cueIndex = null;
+        return;
+      }
+      b.cueIndex = i + 1;
+      if (!badge) { badge = document.createElement("div"); badge.className = "cue-num"; b.el.appendChild(badge); }
+      badge.textContent = String(i + 1);
+    });
   }
 
   // ---------- 選取：框選環(pick.png) + 對準十字線(4 段) ----------
@@ -1571,13 +1589,15 @@
     // 球
     const cueBalls = placedBalls.filter((b) => b.cfg.id === "cue");
     const objBalls = placedBalls.filter((b) => b.cfg.id !== "cue");
-    out.push("1. 母球位置：" + (cueBalls.length ? cueBalls.map((b) => fmtPt(b.fx, b.fy)).join("、") : none));
+    const multiCue = cueBalls.length > 1; // 多顆母球 → 標母球幾
+    const cueTag = (b) => (multiCue ? "母球" + (cueBalls.indexOf(b) + 1) + " " : "");
+    out.push("1. 母球位置：" + (cueBalls.length ? cueBalls.map((b) => cueTag(b) + fmtPt(b.fx, b.fy)).join("、") : none));
     out.push("2. 子球位置：" + (objBalls.length ? objBalls.map((b) => b.cfg.id + "號 " + fmtPt(b.fx, b.fy)).join("、") : none));
     // 路線
     const pathStr = (p) => p.vertices.map((v) => fmtPt(v.fx, v.fy)).join("→");
     const cuePaths = paths.filter((p) => p.ball && p.ball.cfg.id === "cue");
     const objPaths = paths.filter((p) => p.ball && p.ball.cfg.id !== "cue");
-    out.push("3. 母球路線：" + (cuePaths.length ? cuePaths.map(pathStr).join("；  ") : none));
+    out.push("3. 母球路線：" + (cuePaths.length ? cuePaths.map((p) => (multiCue ? "母球" + (cueBalls.indexOf(p.ball) + 1) + "：" : "") + pathStr(p)).join("；  ") : none));
     out.push("4. 子球路線：" + (objPaths.length ? objPaths.map((p) => p.ball.cfg.id + "號：" + pathStr(p)).join("；  ") : none));
     // 袋口
     const pocketsBy = (side) => (CFG.POCKETS || []).map((p, i) => (pocketSelected[i] === side ? POCKET_NAMES[i] : null)).filter(Boolean);

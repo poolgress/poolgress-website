@@ -655,6 +655,27 @@ html, body {
   pointer-events: none;
   -webkit-user-drag: none;
 }
+/* 多顆母球時的順序數字徽章（標在母球右上角旁邊） */
+.cue-num {
+  position: absolute;
+  top: -0.3em;
+  right: -0.3em;
+  min-width: 1em;
+  height: 1em;
+  padding: 0 0.15em;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 0.08em solid #fff;
+  font-size: 0.9em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
 
 /* 暫代球（僅在圖檔載入失敗時用）：純色塊 + 號碼，無特效 */
 .ball-fallback {
