@@ -581,8 +581,8 @@
               <div class="substep" data-sub="6.0">6.0 模板載入
                 <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
               </div>
-              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
-                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記（每回合換一顆子球）
+                <div class="info-chips">標示：<span class="chip" id="r3SubChip">子球1</span><span class="chip">母球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
               </div>
               <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
               <div class="sub615" id="sub615R3">
@@ -1060,6 +1060,8 @@
   function isBallMode() { return levelVariant === 'ball'; }
   // 6″ 無限挑戰專用狀態
   function isInfinite() { return levelVariant === 'infinite'; }
+  // 重複關卡 ▸ 子球換位置：每回合只放 母球＋第 N 號子球（依回合輪替）
+  function isSubMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('子球換位置') >= 0; }
   let infScore = 0, infBest = '';
   const recDisplay = document.getElementById('recDisplay');
   const recCur = document.getElementById('recCur');
@@ -1068,10 +1070,17 @@
   const btnRecLoad = document.getElementById('btnRecLoad');
   // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
   function currentBalls() {
-    if (!isBallMode()) return playBalls;
+    if (!isBallMode() && !isSubMove()) return playBalls;
     return playBalls.filter(b => b.id === 'cue' || currentObjIds.indexOf(b.id) >= 0);
   }
   function currentObjNums() { return new Set(currentObjIds.map(id => parseInt(id.split('-')[1], 10))); }
+  // 子球換位置：設定第 N 回合 → 只放 母球＋子N，並更新 6.1 標示與按鈕
+  function subMoveRound(n) {
+    currentObjIds = ['obj-' + n];
+    const chip = document.getElementById('r3SubChip');
+    if (chip) chip.textContent = '子球' + n;
+    buildReadyUI();
+  }
 
   function nodeEl(step) { return document.querySelector('.node[data-step="' + step + '"]'); }
 
@@ -1609,7 +1618,7 @@
     simConfirm.style.display = 'none';
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = '';
-    renderPositions(curText, placedSet, null);
+    renderPositions(curText, placedSet, null, false, (isBallMode() || isSubMove()) ? currentObjNums() : null);
     setSub('6.1');
   }
 
@@ -1640,6 +1649,7 @@
     currentObjIds = playBalls.filter(b => b.id !== 'cue').map(b => b.id)
       .sort((a, b) => parseInt(a.split('-')[1], 10) - parseInt(b.split('-')[1], 10));
     if (isBallMode()) chancesTotal = ballsTotal;
+    if (isSubMove()) { chancesTotal = ballsTotal; currentObjIds = ['obj-1']; const c = document.getElementById('r3SubChip'); if (c) c.textContent = '子球1'; }   // 每顆子球一回合，從子1開始
     chances.innerHTML = '';
     for (let i = 0; i < chancesTotal; i++) {
       const c = document.createElement('div');
@@ -1746,6 +1756,7 @@
           setSub('6.11');
         } else {                     // 6.10 關卡重複 → 迴圈回 6.1
           curLoopCount.textContent = '第 ' + (simIdx + 1) + ' / ' + chancesTotal + ' 次';
+          if (isSubMove()) subMoveRound(simIdx + 1);   // 下一回合換下一顆子球（子N＋1）
           enterInfo();
         }
       }, 1300);
@@ -1834,7 +1845,7 @@
     if (btn) { btn.classList.toggle('done', on); btn.textContent = btn.dataset.label + (on ? ' ✓' : ''); }
     const sn = curSubFlow.querySelector('.subnode[data-id="' + id + '"]');
     if (sn) sn.classList.toggle('on', on);
-    renderPositions(curText, placedSet, justPlaced, false, isBallMode() ? currentObjNums() : null);
+    renderPositions(curText, placedSet, justPlaced, false, (isBallMode() || isSubMove()) ? currentObjNums() : null);
     setSub('6.3');
     if (isBallMode() && ballRepeat) { const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.add('active'); }
     // 所有（本回合）球都就位後 → 顯示開始擊球
