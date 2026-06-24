@@ -1113,32 +1113,82 @@
   // 重複關卡 ▸ 母球換位置：子球固定，每回合只放 第 N 顆母球＋（全部）子球（母球依回合輪替）
   function isCueMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('母球換位置') >= 0; }
   let cueIdx = 1, cueTotal = 1;   // 母球換位置：目前母球號／母球總數
-  // 母球換位置：母球位置／路線解析（容許多種寫法 + 全形標點）
-  //   A）母球位置：1號(..) 2號(..)        B）母球1位置：(..)  母球2位置：(..)        C）母球位置：(..)（單顆，每回合相同）
-  function cueNorm(s) { return String(s).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ','); }
-  function cueLine(text, label) { const m = cueNorm(text).match(new RegExp(label + '\\s*[:：]\\s*([^\\n]*)')); return m ? m[1] : ''; }
+  // 母球換位置：母球位置／路線解析。容許多種使用者實際寫法：
+  //   A）母球位置：1號(..) 2號(..)          B）母球1位置：(..)（個別欄位）        C）母球位置：(..)（單顆）
+  //   D）第1顆母球位置／1號母球位置／母球 1 位置／母球(1)位置／母球一位置（中文數字）
+  //   E）主球／白球／cue 同義詞            F）標頭獨立一列、座標寫在下面幾列      G）路線：母球1的路線／母球路線1 等
+  //   全形（），／－０-９ 一律正規化為半形。
+  const CUE_CN = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+  function cueNorm(s) {
+    return String(s)
+      .replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',').replace(/／/g, '/').replace(/－/g, '-')
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));   // 全形數字→半形
+  }
   function cueCoords(s) { const o = []; const re = /\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/g; let m; while ((m = re.exec(cueNorm(s)))) o.push([parseFloat(m[1]), parseFloat(m[2])]); return o; }
   function cueSegN(line, n) { const re = /(\d+)\s*號[：:]?\s*([\s\S]*?)(?=\d+\s*號|$)/g; let m; while ((m = re.exec(line))) { if (parseInt(m[1], 10) === n) return cueCoords(m[2]); } return null; }
-  function cuePos(text, n) {            // 第 n 顆母球位置（資料座標），找不到回 null
-    let c = cueCoords(cueLine(text, '母球' + n + '位置')); if (c.length) return c[0];
-    const seg = cueSegN(cueLine(text, '母球位置'), n); if (seg && seg.length) return seg[0];
-    c = cueCoords(cueLine(text, '母球位置')); if (c.length) return c[0];
+  function headIndex(head) { const dm = head.match(/\d+/); if (dm) return parseInt(dm[0], 10); for (const ch of head) if (CUE_CN[ch] != null) return CUE_CN[ch]; return null; }
+  // 逐列解析：標頭（冒號左側）同時含「母球字樣 + 欄位字（位置／路線）+ 明確索引」者，取該索引對應列的座標
+  function cueLineIndexed(text, field, n) {
+    const lines = cueNorm(text).split('\n');
+    for (const ln of lines) {
+      let ci = ln.indexOf('：'); if (ci < 0) ci = ln.indexOf(':'); if (ci < 0) continue;
+      const head = ln.slice(0, ci);
+      if (!/[母主白]球|cue/i.test(head)) continue;     // 必須是母球（容許主球／白球／cue）
+      if (head.indexOf(field) < 0) continue;           // 該欄位（位置／路線）
+      const idx = headIndex(head);
+      if (idx == null) continue;                        // 標頭無明確索引 → 交給行內／跨列 fallback
+      if (idx === n) return cueCoords(ln.slice(ci + 1));
+    }
     return null;
   }
+  // 標頭跨列：若「（母／主／白）球＋欄位：」當列無座標（獨立標頭列），併入後續座標／編號列，遇到別的欄位即停
+  //   field = '位置' 或 '路線'。僅用於無明確索引的寫法（A／C／單顆／標頭跨列）；有索引者走 cueLineIndexed。
+  function cueGather(text, field) {
+    const lines = cueNorm(text).split('\n');
+    const re = new RegExp('^\\s*(?:[母主白]球|cue)\\s*' + field + '\\s*[:：]\\s*(.*)$', 'i');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(re); if (!m) continue;
+      if (/\(\s*-?\d/.test(m[1])) return m[1];          // 行內已含座標 → 用該列
+      const acc = [];
+      for (let j = i + 1; j < lines.length; j++) {
+        const ln = lines[j];
+        if (/([母主白]球|子球|過關|關卡|規則|通則|目標)[^\n]*[:：]/.test(ln)) break;   // 下一個欄位
+        if (/\(\s*-?\d/.test(ln) || /\d+\s*號/.test(ln)) acc.push(ln);
+        else if (ln.trim() === '') continue;
+        else break;
+      }
+      return acc.join(' ');
+    }
+    return '';
+  }
+  function cuePos(text, n) {            // 第 n 顆母球位置（資料座標），該回合無母球回 null
+    const byLine = cueLineIndexed(text, '位置', n);
+    if (byLine) return byLine.length ? byLine[0] : null;
+    const block = cueGather(text, '位置');
+    if (/\d+\s*號/.test(block)) { const seg = cueSegN(block, n); return seg && seg.length ? seg[0] : null; }
+    const c = cueCoords(block); return c.length ? (c[n - 1] || c[0]) : null;
+  }
   function cueRoutePtsFor(text, n) {    // 第 n 顆母球路線（資料座標陣列）
-    let c = cueCoords(cueLine(text, '母球' + n + '路線')); if (c.length) return c;
-    const seg = cueSegN(cueLine(text, '母球路線'), n); if (seg && seg.length) return seg;
-    c = cueCoords(cueLine(text, '母球路線')); if (c.length) return c;
-    return [];
+    const byLine = cueLineIndexed(text, '路線', n);
+    if (byLine) return byLine;
+    const block = cueGather(text, '路線');
+    if (/\d+\s*號/.test(block)) { const seg = cueSegN(block, n); return seg && seg.length ? seg : []; }
+    return cueCoords(block);
   }
   function cueCount(text) {             // 母球顆數
     text = cueNorm(text);
-    const labeled = (text.match(/母球(\d+)\s*位置\s*[:：]/g) || []).map(s => parseInt(s.match(/\d+/)[0], 10));
-    if (labeled.length) return Math.max.apply(null, labeled);
-    const line = cueLine(text, '母球位置');
-    const numbered = (line.match(/\d+\s*號/g) || []).length;
+    const idxs = [];                    // 任何「母球字樣 + 位置 + 明確索引」的標頭索引
+    for (const ln of text.split('\n')) {
+      let ci = ln.indexOf('：'); if (ci < 0) ci = ln.indexOf(':'); if (ci < 0) continue;
+      const head = ln.slice(0, ci);
+      if (!/[母主白]球|cue/i.test(head) || head.indexOf('位置') < 0) continue;
+      const idx = headIndex(head); if (idx != null) idxs.push(idx);
+    }
+    if (idxs.length) return Math.max.apply(null, idxs);
+    const block = cueGather(text, '位置');
+    const numbered = (block.match(/\d+\s*號/g) || []).length;
     if (numbered) return numbered;
-    return (line.match(/\(\s*-?\d/g) || []).length || 1;
+    return (block.match(/\(\s*-?\d/g) || []).length || 1;
   }
   let infScore = 0, infBest = '';
   const recDisplay = document.getElementById('recDisplay');
@@ -1626,9 +1676,9 @@
   function getPlayBalls(text) {
     text = String(text).replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',');   // 容許全形括號／逗號
     const list = [];
-    // 需有冒號＋實際座標才算有球，避免誤抓選項名稱（如「…子球位置固定」）中的字樣；「（無）」視為沒有球
-    // 母球\d* 容許「母球位置：1號(..)」與「母球1位置：(..)」等母球換位置寫法
-    if (/母球\d*\s*位置\s*[:：][^\n]*?\(\s*-?\d/.test(text)) list.push({ id: 'cue', label: '母球' });
+    // 母球是否存在 → 直接用 cuePos 判定（與實際渲染一致；涵蓋編號／個別欄位／中文數字／主球同義詞／標頭跨列等寫法）
+    // 「（無）」或無座標 → cuePos 回 null → 視為沒有母球
+    if (cuePos(text, 1)) list.push({ id: 'cue', label: '母球' });
     const m = text.match(/子球位置\s*[:：]\s*([^\n]*)/);
     if (m) {
       const seg = m[1];
