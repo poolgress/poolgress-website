@@ -1784,8 +1784,9 @@
     currentObjIds = playBalls.filter(b => b.id !== 'cue').map(b => b.id)
       .sort((a, b) => parseInt(a.split('-')[1], 10) - parseInt(b.split('-')[1], 10));
     if (isBallMode()) chancesTotal = ballsTotal;
-    if (isSubMove()) { chancesTotal = ballsTotal; currentObjIds = ['obj-1']; }   // 每顆子球一回合，從子1開始
-    if (isCueMove()) { cueTotal = cueCount(curText); chancesTotal = cueTotal; cueIdx = 1; }   // 每顆母球一回合，從母球1開始（子球全程固定）
+    // 子球換位置／母球換位置：虛線圈圈數量＝過關條件分母（與經典一致）；過關條件未填時退回球數
+    if (isSubMove()) { if (!chancesTotal) chancesTotal = ballsTotal; currentObjIds = ['obj-1']; }   // 每回合換一顆子球，從子1開始
+    if (isCueMove()) { cueTotal = cueCount(curText); if (!chancesTotal) chancesTotal = cueTotal; cueIdx = 1; }   // 每回合換一顆母球，從母球1開始（子球全程固定）
     chances.innerHTML = '';
     for (let i = 0; i < chancesTotal; i++) {
       const c = document.createElement('div');
