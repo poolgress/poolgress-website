@@ -9,8 +9,7 @@
   h1 { font-size:18px; margin:4px 0 12px; }
   .hint { font-size:12px; color:#6b7280; margin-bottom:12px; }
   .wrap { background:#fff; border:1px solid #e5e9f0; border-radius:12px; padding:12px; overflow:auto; }
-  .mermaid { min-width:1000px; }
-  .err { color:#b91c1c; white-space:pre-wrap; font-family:monospace; }
+  .err { color:#b91c1c; white-space:pre-wrap; font-family:monospace; background:#fff; padding:10px; border:1px solid #fca5a5; border-radius:8px; }
 </style>
 </head>
 <body>
@@ -23,10 +22,10 @@ flowchart TD
   P5 --> KIND{"依「關卡種類」＋「關卡選項」分流"}
 
   %% ----- 步驟6 進行中的側邊分支 -----
-  KIND -. 返回鍵 .-> GIVEUP{要放棄遊戲嗎？}
+  KIND -.->|返回鍵| GIVEUP{要放棄遊戲嗎？}
   GIVEUP -->|放棄| P4
   GIVEUP -->|繼續玩| KIND
-  KIND -. 說明鍵 .-> HELP[關卡說明視窗]
+  KIND -.->|說明鍵| HELP[關卡說明視窗]
   HELP -->|關閉| KIND
 
   %% ========== 關卡種類 → 關卡選項 ==========
@@ -120,7 +119,7 @@ flowchart TD
     bsRule -->|任意順序| bsC2["6.3-2 確認打進的子球（移除已打進的）"]
     bsC1 --> bs3
     bsC2 --> bs3
-    bs3 -. 重複時略過 6.4 .-> bs5
+    bs3 -.->|重複時略過 6.4| bs5
   end
 
   subgraph SGB["球型關卡 ▸ 照順序"]
@@ -133,7 +132,7 @@ flowchart TD
     blRule -->|任意順序| blC2["6.3-2 確認打進的子球（移除已打進的）"]
     blC1 --> bl3
     blC2 --> bl3
-    bl3 -. 重複時略過 6.4 .-> bl5
+    bl3 -.->|重複時略過 6.4| bl5
   end
 
   subgraph SGBy["球型關卡 ▸ 任意順序"]
@@ -146,7 +145,7 @@ flowchart TD
     byRule -->|任意順序| byC2["6.3-2 確認打進的子球（移除已打進的）"]
     byC1 --> by3
     byC2 --> by3
-    by3 -. 重複時略過 6.4 .-> by5
+    by3 -.->|重複時略過 6.4| by5
   end
 
   %% ========== 無限關卡 一顆球無限（inf） ==========
@@ -199,10 +198,16 @@ flowchart TD
 </pre></div>
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', flowchart: { useMaxWidth: false } });
+  const code = document.querySelector('pre.mermaid').textContent;
   try {
-    mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', flowchart: { useMaxWidth: false } });
+    await mermaid.parse(code);
+    const { svg } = await mermaid.render('g0', code);
+    document.querySelector('.wrap').innerHTML = svg;
   } catch (e) {
-    document.querySelector('.wrap').innerHTML = '<div class="err">Mermaid 載入失敗：' + e + '</div>';
+    const d = document.createElement('pre'); d.className = 'err';
+    d.textContent = 'Mermaid 錯誤：\n' + String((e && e.message) || e);
+    document.querySelector('.wrap').replaceWith(d);
   }
 </script>
 </body>
