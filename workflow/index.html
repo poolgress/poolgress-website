@@ -188,6 +188,11 @@
   .node[data-step="6"] .substeps, .node.six-once .substeps, .node#nodePure .substeps, .node#nodeR3 .substeps, .node#nodeR4 .substeps, .node#node89 .substeps { padding-right: 54px; }
   .node.six-once.ball-flow { width: 450px; }
   .node.six-once.ball-flow .substeps { padding-left: 166px; padding-right: 14px; }
+  /* 8做9：兩顆球流程較長，加寬並於左側預留 6.9-2 失敗→6.16 的跳接線空間 */
+  .node#node89 { width: 360px; }
+  .node#node89 .substeps { padding-left: 44px; padding-right: 54px; }
+  .node#node89 .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+  .win-face { text-align: center; font-size: 22px; line-height: 1; margin-top: 4px; }
   /* 6″ 無限挑戰：左側預留迴圈線空間（6.10 → 6.1） */
   #sixInf .substeps { padding-left: 46px; padding-right: 14px; }
   #sixInf .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
@@ -657,9 +662,10 @@
         <!-- 重複關卡 ▸ 8做9＿子1子2母球位置固定（複製自經典，完全相同） -->
         <div class="six-col" data-flowkey="repeat:8做9">
           <div class="branch-tag path">重複關卡 ▸ 8做9＿子1子2母球位置固定</div>
-          <div class="node" id="node89">
+          <div class="node node89-flow" id="node89">
             <div class="num">6</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
+              <svg class="loop-conn" id="loopConn89" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
               <div class="substep" data-sub="6.0">6.0 模板載入
                 <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
               </div>
@@ -685,11 +691,34 @@
                 </div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
-                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                  <div class="fork-step" data-result="no" id="s89fail">6.9-2 結果宣告：本桿失敗😢</div>
                 </div>
               </div>
-              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
-              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
+              <div class="substep" data-sub="6.10">6.10 打第二顆球
+                <div class="info-chips">標示：<span class="chip">子球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="sub615" id="sub615_89b">
+                <div class="sub615-label">6.11 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.11">假設放好球了
+                  <div class="info-chips"><span class="chip">子9</span></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.12">6.12 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.13">6.13 擊球瞬間，畫面清空剩下目標物</div>
+              <div class="substep" data-sub="6.14">6.14 擊球判定：成功或失敗</div>
+              <div class="result-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.15-1 播放音效：成功</div>
+                  <div class="fork-step" data-result="ok">6.16-1 結果宣告：本桿成功😀</div>
+                  <div class="win-face">😀</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.15-2 播放音效：失敗</div>
+                  <div class="fork-step" data-result="no">6.16-2 結果宣告：本桿失敗😢</div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.16" id="s89repeat">6.16 關卡重複</div>
               <div class="loop-back"><div class="loop-count" id="loopCount89">第 1 次</div></div>
             </div>
           </div>
@@ -2303,6 +2332,28 @@
     svg.innerHTML = p;
   }
 
+  // 8做9：6.9-2 失敗 → 左側跳接線 → 6.16 關卡重複（跳過第二顆球）
+  function drawNode89(node) {
+    node = node || node89;
+    const subs = node && node.querySelector('.substeps');
+    const svg = node && node.querySelector('.loop-conn');
+    const fail = node && node.querySelector('#s89fail');
+    const rep = node && node.querySelector('#s89repeat');
+    if (!subs || !svg || !fail || !rep) return;
+    const sr = subs.getBoundingClientRect();
+    if (!sr.height || !sr.width) return;
+    svg.setAttribute('viewBox', '0 0 ' + sr.width + ' ' + sr.height);
+    const rel = el => { const r = el.getBoundingClientRect(); return { l: r.left - sr.left, cy: (r.top + r.bottom) / 2 - sr.top }; };
+    const F = rel(fail), R = rel(rep);
+    const LX = 10, BLUE = '#3b82f6';
+    let p = '';
+    p += '<path d="M ' + F.l + ' ' + F.cy + ' H ' + LX + ' V ' + R.cy + ' H ' + R.l + '" fill="none" stroke="' + BLUE + '" stroke-width="2" stroke-dasharray="5 4"/>';
+    p += '<path d="M ' + R.l + ' ' + R.cy + ' l -7 -5 v 10 z" fill="' + BLUE + '"/>';   // 箭頭進入 6.16 左緣
+    const my = (F.cy + R.cy) / 2;
+    p += '<text x="' + (LX - 3) + '" y="' + my + '" font-size="10" font-weight="700" fill="#1d4ed8" text-anchor="middle" transform="rotate(-90 ' + (LX - 3) + ' ' + my + ')">失敗 → 6.16</text>';
+    svg.innerHTML = p;
+  }
+
 
   // 目前顯示中的那份流程 → 連到總覽中對應的選項（以 data-flowkey 配對）
   function drawOptConnectors() {
@@ -2328,7 +2379,7 @@
     svg.innerHTML = p;
   }
 
-  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawBallLoop(sixPureNode); drawInfLoop(); drawOptConnectors(); }
+  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawBallLoop(sixPureNode); drawInfLoop(); drawNode89(node89); drawOptConnectors(); }
   showActiveFlow('repeat:經典');   // 預設只顯示「經典」那份流程
   redrawConnectors();
   window.addEventListener('resize', redrawConnectors);
@@ -2340,6 +2391,7 @@
     if (sixAnyNode) { const s = sixAnyNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixAnyNode))).observe(s); }
     if (sixPureNode) { const s = sixPureNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixPureNode))).observe(s); }
     if (sixInf) { const s = sixInf.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawInfLoop)).observe(s); }
+    if (node89) { const s = node89.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawNode89(node89))).observe(s); }
   }
 </script>
 </body>
