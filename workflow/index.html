@@ -197,8 +197,8 @@
   .static-subflow { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
   .static-subflow .subnode { flex: 0 0 auto; padding: 6px 14px; }
   /* 6″ 無限挑戰：左側預留迴圈線空間（6.10 → 6.1） */
-  #sixInf .substeps { padding-left: 46px; padding-right: 14px; }
-  #sixInf .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+  #sixInf .substeps, #sixTwoNode .substeps { padding-left: 46px; padding-right: 14px; }
+  #sixInf .loop-conn, #sixTwoNode .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
   /* 6.4 縮窄置中，左側讓出空間給實心「略過 6.4」旁路線通過 */
   .ball-flow .substep[data-sub="6.4"] { width: 58%; margin-left: auto; margin-right: auto; }
   /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
@@ -938,13 +938,13 @@
                 <div class="rf-col">
                   <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
                   <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
-                  <div class="fork-step" data-result="ok" id="infScore6pp">目前挑戰加一分</div>
-                  <div class="fork-step" data-result="ok" id="infRepeat6pp">6.10 關卡重複（無上限）</div>
+                  <div class="fork-step inf-score" data-result="ok" id="infScore6pp">目前挑戰加一分</div>
+                  <div class="fork-step inf-repeat" data-result="ok" id="infRepeat6pp">6.10 關卡重複（無上限）</div>
                 </div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
                   <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
-                  <div class="fork-step terminal-end" id="infEnd6pp">6.11 關卡結算</div>
+                  <div class="fork-step terminal-end inf-end" id="infEnd6pp">6.11 關卡結算</div>
                 </div>
               </div>
               <span id="loopCount6pp" style="display:none;"></span>
@@ -952,18 +952,18 @@
           </div>
         </div>
 
-        <!-- 無限關卡 ▸ 兩顆球無限（複製自任意順序，完全相同） -->
+        <!-- 無限關卡 ▸ 兩顆球無限（複製自一顆球無限，無限挑戰：計分、無上限） -->
         <div class="six-col" data-flowkey="infinite:兩顆球無限">
           <div class="branch-tag path">無限關卡 ▸ 兩顆球無限</div>
-          <div class="node six-once ball-flow" id="sixTwoNode">
-            <div class="num">6′</div><div class="title">進入遊戲關卡</div>
+          <div class="node six-once inf-flow" id="sixTwoNode">
+            <div class="num">6″</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
               <svg class="loop-conn" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
-              <div class="substep" data-sub="6.0">6.0 模板載入
-                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              <div class="substep" data-sub="6.0">6.0 紀錄載入
+                <div class="info-chips">標示：<span class="chip">最高紀錄</span><span class="chip">目前挑戰</span></div>
               </div>
               <div class="substep" data-sub="6.1">6.1 球桌資訊標記
-                <div class="info-chips">標示：<span class="chip">子球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
               </div>
               <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
               <div class="sub615" id="sub615_6pTwo">
@@ -974,27 +974,23 @@
               </div>
               <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球</div>
               <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
-              <div class="substep" data-sub="6.6">6.6 擊球瞬間
-                <div class="info-chips">下方出現「球正在滾」按鈕</div>
-              </div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
               <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
               <div class="result-fork ball-fork">
                 <div class="rf-stem"></div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
                   <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
-                  <div class="fork-step ball-continue" data-result="ok">6.10-1 繼續下一桿<span style="display:none" id="loopCount6pTwo">第 1 次</span></div>
-                  <div class="fork-step terminal-ok">6.11-1 關卡通過</div>
+                  <div class="fork-step inf-score" data-result="ok">目前挑戰加一分</div>
+                  <div class="fork-step inf-repeat" data-result="ok">6.10 關卡重複（無上限）</div>
                 </div>
                 <div class="rf-col">
                   <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
                   <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
-                  <div class="fork-step terminal-no">6.11-2 關卡失敗</div>
+                  <div class="fork-step terminal-end inf-end">6.11 關卡結算</div>
                 </div>
               </div>
-              <div class="ball-loop">
-                <div class="fork-step ball-confirm">6.3-2 確認打進的子球（移除已打進的）</div>
-              </div>
+              <span id="loopCount6pTwo" style="display:none;"></span>
             </div>
           </div>
         </div>
@@ -2216,7 +2212,7 @@
               setTimeout(() => { if (current === 6) enterInfo(); }, 700);
             }, 700);
           } else {                   // 6.9-2 → 6.11 關卡結算
-            const endEl = scope.querySelector('#infEnd6pp');
+            const endEl = scope.querySelector('.inf-end');
             if (endEl) endEl.classList.add('active');
             simResult.style.display = '';
             simStatus.textContent = '挑戰結束：' + infScore + ' 分';
@@ -2514,11 +2510,12 @@
   }
 
   // 6″ 無限挑戰：6.10 關卡重複 → 左側迴圈線 → 回到 6.1
-  function drawInfLoop() {
-    const subs = sixInf && sixInf.querySelector('.substeps');
-    const svg = document.getElementById('loopConn6pp');
-    const rep = document.getElementById('infRepeat6pp');
-    const b61 = sixInf && sixInf.querySelector('.substep[data-sub="6.1"]');
+  function drawInfLoop(node) {
+    node = node || sixInf;
+    const subs = node && node.querySelector('.substeps');
+    const svg = node && node.querySelector('.loop-conn');
+    const rep = node && node.querySelector('.inf-repeat');
+    const b61 = node && node.querySelector('.substep[data-sub="6.1"]');
     if (!subs || !svg || !rep || !b61) return;
     const sr = subs.getBoundingClientRect();
     if (!sr.height || !sr.width) return;
@@ -2580,7 +2577,7 @@
     svg.innerHTML = p;
   }
 
-  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawBallLoop(sixPureNode); drawBallLoop(sixTwoNode); drawInfLoop(); drawNode89(node89); drawOptConnectors(); }
+  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawBallLoop(sixPureNode); drawInfLoop(sixInf); drawInfLoop(sixTwoNode); drawNode89(node89); drawOptConnectors(); }
   showActiveFlow('repeat:經典');   // 預設只顯示「經典」那份流程
   redrawConnectors();
   window.addEventListener('resize', redrawConnectors);
@@ -2591,8 +2588,8 @@
     if (sixOnceNode) { const s = sixOnceNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixOnceNode))).observe(s); }
     if (sixAnyNode) { const s = sixAnyNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixAnyNode))).observe(s); }
     if (sixPureNode) { const s = sixPureNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixPureNode))).observe(s); }
-    if (sixTwoNode) { const s = sixTwoNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixTwoNode))).observe(s); }
-    if (sixInf) { const s = sixInf.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawInfLoop)).observe(s); }
+    if (sixTwoNode) { const s = sixTwoNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawInfLoop(sixTwoNode))).observe(s); }
+    if (sixInf) { const s = sixInf.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawInfLoop(sixInf))).observe(s); }
     if (node89) { const s = node89.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawNode89(node89))).observe(s); }
   }
 </script>
