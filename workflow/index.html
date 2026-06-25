@@ -1394,6 +1394,8 @@
   function isBallMode() { return levelVariant === 'ball'; }
   // 6″ 無限挑戰專用狀態
   function isInfinite() { return levelVariant === 'infinite'; }
+  // 兩顆球無限：成功後需點選打進哪顆子球，再提示打另一顆
+  function is2ball() { return levelVariant === 'infinite' && optionOf(curText).indexOf('兩顆球') >= 0; }
   // 重複關卡 ▸ 子球換位置：母球固定，每回合只放 母球＋第 N 號子球（子球依回合輪替）
   function isSubMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('子球換位置') >= 0; }
   // 重複關卡 ▸ 母球換位置：子球固定，每回合只放 第 N 顆母球＋（全部）子球（母球依回合輪替）
@@ -2206,19 +2208,20 @@
             }
           }
         } else if (isInfinite()) {
-          if (ok) {                  // 6.9-1 → 加分 →（確認子球 → 請打另一顆）→ 6.10 關卡重複（無上限）→ 回到 6.1
+          if (ok) {                  // 6.9-1 → 目前挑戰加一分
             infScore++; recCur.textContent = infScore;
             curLoopCount.textContent = '挑戰 ' + infScore;
-            // 依序高亮存在的步驟（兩顆球無限多了「確認子球／請打另一顆」；一顆球無限則只有加分→重複）
-            const chain = ['.inf-score', '.inf-confirm', '.inf-next', '.inf-repeat'].map(c => scope.querySelector(c)).filter(Boolean);
-            let k = 0;
-            const stepChain = () => {
+            const scoreEl = scope.querySelector('.inf-score'); if (scoreEl) scoreEl.classList.add('active');
+            setTimeout(() => {
               if (current !== 6) return;
-              if (k > 0 && chain[k - 1]) { chain[k - 1].classList.remove('active'); chain[k - 1].classList.add('done'); }
-              if (k < chain.length) { chain[k].classList.add('active'); k++; setTimeout(stepChain, 650); }
-              else setTimeout(() => { if (current === 6) enterInfo(); }, 500);
-            };
-            stepChain();
+              if (scoreEl) { scoreEl.classList.remove('active'); scoreEl.classList.add('done'); }
+              if (is2ball()) {
+                enterConfirm2ball();   // 兩顆球無限：暫停等玩家點選「打進哪顆子球」
+              } else {                 // 一顆球無限：加分 → 6.10 關卡重複 → 回 6.1
+                const rep = scope.querySelector('.inf-repeat'); if (rep) rep.classList.add('active');
+                setTimeout(() => { if (current === 6) enterInfo(); }, 700);
+              }
+            }, 700);
           } else {                   // 6.9-2 → 6.11 關卡結算
             const endEl = scope.querySelector('.inf-end');
             if (endEl) endEl.classList.add('active');
@@ -2301,6 +2304,44 @@
     const scope = activeSix || document;
     const el = scope.querySelector('.fork-step.' + (which === 'ok' ? 'terminal-ok' : 'terminal-no'));
     if (el) el.classList.add('active');
+  }
+
+  // 兩顆球無限：成功後 → 確認打進哪一顆子球（出現子1／子2 按鈕）
+  function enterConfirm2ball() {
+    const scope = activeSix || document;
+    const cf = scope.querySelector('.inf-confirm'); if (cf) cf.classList.add('active');
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none';
+    btnRolling.style.display = 'none'; simHit.style.display = 'none';
+    shotMsg.className = 'shot-msg'; simReady.style.display = 'none';
+    simStatus.classList.remove('blink'); simStatus.textContent = '確認打進的子球';
+    simConfirm.innerHTML = '';
+    playBalls.filter(b => b.id !== 'cue').forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = 'sim-btn';
+      btn.textContent = b.label;
+      btn.addEventListener('click', () => { if (current === 6) confirm2ball(b.id); });
+      simConfirm.appendChild(btn);
+    });
+    simConfirm.style.display = 'flex';
+  }
+  // 點選打進的子球 → 提示「接下來請打剛剛沒選的球」→ 6.10 關卡重複 → 回 6.1
+  function confirm2ball(pottedId) {
+    if (current !== 6) return;
+    const scope = activeSix || document;
+    simConfirm.style.display = 'none'; simStatus.textContent = '';
+    const cf = scope.querySelector('.inf-confirm'); if (cf) { cf.classList.remove('active'); cf.classList.add('done'); }
+    const objs = playBalls.filter(b => b.id !== 'cue').map(b => b.id);
+    const other = objs.find(id => id !== pottedId) || pottedId;
+    const otherNum = parseInt(other.split('-')[1], 10);
+    const nx = scope.querySelector('.inf-next'); if (nx) nx.classList.add('active');
+    shotMsg.className = 'shot-msg show ok'; shotMsg.innerHTML = '接下來請打：子' + otherNum;
+    setTimeout(() => {
+      if (current !== 6) return;
+      shotMsg.className = 'shot-msg';
+      if (nx) { nx.classList.remove('active'); nx.classList.add('done'); }
+      const rep = scope.querySelector('.inf-repeat'); if (rep) rep.classList.add('active');
+      setTimeout(() => { if (current === 6) enterInfo(); }, 700);
+    }, 1200);
   }
 
   // 任意順序：確認打進哪一顆子球（出現目前桌上的子球按鈕）
