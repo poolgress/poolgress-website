@@ -1295,6 +1295,14 @@
   // 重複關卡 ▸ 母球換位置：子球固定，每回合只放 第 N 顆母球＋（全部）子球（母球依回合輪替）
   function isCueMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('母球換位置') >= 0; }
   let cueIdx = 1, cueTotal = 1;   // 母球換位置：目前母球號／母球總數
+  // 8做9：一回合打兩顆球（第一顆＝子1／8，成功後第二顆＝子9（子2）），失敗則跳過第二顆
+  function is89() { return levelVariant === 'repeat' && optionOf(curText).indexOf('8做9') >= 0; }
+  let phase89 = 1, round89ok = false;   // phase89：1＝第一顆，2＝第二顆；round89ok：第一顆是否成功
+  const sub615_89b = document.getElementById('sub615_89b');   // 6.11 偵測（假設放好球了：子9）
+  // 8做9 第二顆球：把第一顆的步驟號對應到第二顆（6.1→6.10、6.3→6.11、6.5→6.12、6.6→6.13、6.7→6.14）
+  function s89(n) { if (!(is89() && phase89 === 2)) return n; return ({ '6.1': '6.10', '6.3': '6.11', '6.5': '6.12', '6.6': '6.13', '6.7': '6.14' })[n] || n; }
+  // 目前「假設放好球了」要高亮的框（8做9 第二顆＝6.11 框）
+  function cur615() { return (is89() && phase89 === 2) ? sub615_89b : curSub615; }
   // 母球換位置：母球位置／路線解析。容許多種使用者實際寫法：
   //   A）母球位置：1號(..) 2號(..)          B）母球1位置：(..)（個別欄位）        C）母球位置：(..)（單顆）
   //   D）第1顆母球位置／1號母球位置／母球 1 位置／母球(1)位置／母球一位置（中文數字）
@@ -1377,11 +1385,17 @@
   const btnRecLoad = document.getElementById('btnRecLoad');
   // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
   function currentBalls() {
+    if (is89()) return phase89 === 2 ? playBalls.filter(b => b.id === 'obj-2') : playBalls;   // 第二顆只放 子9(子2)；第一顆放全部
     if (isCueMove()) return playBalls;   // 母球換位置：母球（單一按鈕，標示母球N）＋ 全部固定子球
     if (!isBallMode() && !isSubMove()) return playBalls;
     return playBalls.filter(b => b.id === 'cue' || currentObjIds.indexOf(b.id) >= 0);
   }
   function currentObjNums() { return new Set(currentObjIds.map(id => parseInt(id.split('-')[1], 10))); }
+  // renderPositions 的 objShow 參數：8做9 第二顆只顯示 子2；球型／子球換位置顯示目前回合子球；其他全部
+  function objShowArg() {
+    if (is89() && phase89 === 2) return new Set([2]);
+    return (isBallMode() || isSubMove()) ? currentObjNums() : null;
+  }
   // 子球換位置：設定第 N 回合 → 只放 母球＋子N，並更新 6.1 標示與按鈕
   function subMoveRound(n) {
     currentObjIds = ['obj-' + n];
@@ -1819,7 +1833,7 @@
 
   // 子步驟高亮
   // 線性子步驟順序（分岔的 fork-step 不在此列，另外處理）
-  const LINEAR = ['6.0','6.1','6.2','6.3','6.4','6.5','6.6','6.7','6.10','6.11'];
+  const LINEAR = ['6.0','6.1','6.2','6.3','6.4','6.5','6.6','6.7','6.10','6.11','6.12','6.13','6.14','6.16'];
 
   function clearFork() {
     document.querySelectorAll('.fork-step').forEach(el => el.classList.remove('active', 'done'));
@@ -1872,9 +1886,10 @@
   // 依本關球數動態建立「就定位」按鈕與流程圖子節點
   function buildReadyUI() {
     simReady.innerHTML = '';
-    curSubFlow.innerHTML = '';
+    const skipSub = is89() && phase89 === 2;   // 8做9 第二顆：只建按鈕，不重建 6.3 框的子節點（6.11 已靜態顯示子9）
+    if (!skipSub) curSubFlow.innerHTML = '';
     currentBalls().forEach(b => {
-      const label = (isCueMove() && b.id === 'cue') ? ('母球' + cueIdx) : b.label;   // 母球換位置：母球鈕標示母球N
+      const label = (isCueMove() && b.id === 'cue') ? ('母球' + cueIdx) : (is89() && phase89 === 2 && b.id === 'obj-2') ? '子9' : b.label;
       const btn = document.createElement('button');
       btn.className = 'sim-btn';
       btn.dataset.id = b.id;
@@ -1883,6 +1898,7 @@
       btn.addEventListener('click', () => placeBall(b.id));
       simReady.appendChild(btn);
 
+      if (skipSub) return;
       const sn = document.createElement('div');
       sn.className = 'subnode';
       sn.dataset.id = b.id;
@@ -1941,7 +1957,7 @@
     simConfirm.style.display = 'none';
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = '';
-    renderPositions(curText, placedSet, null, false, (isBallMode() || isSubMove()) ? currentObjNums() : null, isCueMove() ? cueIdx : null);
+    renderPositions(curText, placedSet, null, false, objShowArg(), isCueMove() ? cueIdx : null);
     setSub('6.1');
   }
 
@@ -1949,6 +1965,12 @@
   function enterDetect() {
     if (current !== 6) return;
     btnLoaded.style.display = 'none';
+    if (is89() && phase89 === 2) {   // 8做9 第二顆球：無「請擺球」音效，直接 6.11 偵測
+      simReady.style.display = 'flex';
+      tableHint.classList.add('show'); cur615().classList.add('on');
+      setSub('6.11');
+      return;
+    }
     // 6.2 播放音效：請擺球（先單獨進行）
     playSound('請擺球.mp3');
     setSub('6.2');
@@ -1956,7 +1978,7 @@
       if (current !== 6) return;
       // 6.3 開始偵測球體
       simReady.style.display = 'flex';
-      tableHint.classList.add('show'); curSub615.classList.add('on');
+      tableHint.classList.add('show'); cur615().classList.add('on');
       setSub('6.3');
     }, 800);
   }
@@ -1975,6 +1997,7 @@
     // 子球換位置／母球換位置：虛線圈圈數量＝過關條件分母（與經典一致）；過關條件未填時退回球數
     if (isSubMove()) { if (!chancesTotal) chancesTotal = ballsTotal; currentObjIds = ['obj-1']; }   // 每回合換一顆子球，從子1開始
     if (isCueMove()) { cueTotal = cueCount(curText); if (!chancesTotal) chancesTotal = cueTotal; cueIdx = 1; }   // 每回合換一顆母球，從母球1開始（子球全程固定）
+    if (is89()) { phase89 = 1; round89ok = false; }   // 8做9：每回合從第一顆球開始；圈圈數＝過關條件分母
     chances.innerHTML = '';
     for (let i = 0; i < chancesTotal; i++) {
       const c = document.createElement('div');
@@ -2013,6 +2036,7 @@
   // 記錄一桿成績
   function recordShot(ok) {
     if (!isInfinite() && simIdx >= chancesTotal) return;
+    if (is89()) { record89(ok); return; }   // 8做9：一回合兩顆球，走專用流程
     simResults.push(ok);
     const c = chances.children[simIdx];
     if (c) { c.classList.add(ok ? 'hit' : 'miss'); c.textContent = ok ? '😀' : '😢'; }
@@ -2089,6 +2113,63 @@
         }
       }, 1300);
     }, 800);
+  }
+
+  // 8做9：一回合打兩顆球（第一顆＝子1／8，第二顆＝子9＝子2）
+  function record89(ok) {
+    simHit.style.display = 'none'; simStatus.classList.remove('blink');
+    const scope = activeSix || document;
+    const steps = Array.from(scope.querySelectorAll('.fork-step[data-result="' + (ok ? 'ok' : 'no') + '"]'));
+    const base = phase89 === 1 ? 0 : 2;   // 第一顆＝6.8/6.9、第二顆＝6.15/6.16
+    const a = steps[base], b = steps[base + 1];
+    if (a) a.classList.add('active');     // 6.8-x / 6.15-x 播放音效
+    playSound(ok ? '漂亮.mp3' : '加油.mp3');
+    setTimeout(() => {
+      if (current !== 6) return;
+      if (a) { a.classList.remove('active'); a.classList.add('done'); }
+      if (b) b.classList.add('active');   // 6.9-x / 6.16-x 結果宣告
+      shotMsg.className = 'shot-msg show ' + (ok ? 'ok' : 'no');
+      shotMsg.innerHTML = ok ? '本桿成功😀' : '本桿失敗😢';
+      setTimeout(() => {
+        if (current !== 6) return;
+        shotMsg.className = 'shot-msg';
+        if (b) { b.classList.remove('active'); b.classList.add('done'); }
+        if (phase89 === 1) {
+          if (ok) { round89ok = true; enterSecondBall89(); }   // 第一顆成功 → 打第二顆球
+          else { round89ok = false; finishRound89(false); }    // 第一顆失敗 → 跳到 6.16
+        } else {
+          finishRound89(round89ok && ok);                      // 兩顆都進才算本回合成功
+        }
+      }, 1300);
+    }, 800);
+  }
+  // 6.10 打第二顆球：標記 子9(子2) 資訊，等待「位置標記完成」
+  function enterSecondBall89() {
+    phase89 = 2;
+    placedSet.clear();
+    shootHint.classList.remove('show'); btnShoot.style.display = 'none'; btnRolling.style.display = 'none';
+    simHit.style.display = 'none'; simReady.style.display = 'none'; simConfirm.style.display = 'none';
+    shotMsg.className = 'shot-msg';
+    tableHint.classList.remove('show'); curSub615.classList.remove('on');
+    buildReadyUI();                       // 重建按鈕（只剩 子9）
+    renderPositions(curText, placedSet, null, false, objShowArg());   // 球桌：母球 + 子9(子2) + 路線 + 目標
+    setSub('6.10');
+    btnLoaded.style.display = '';          // 球桌下方按鈕：位置標記完成
+  }
+  // 本回合結束 → 6.16 關卡重複 → 迴圈回 6.1 或結算
+  function finishRound89(success) {
+    setSub('6.16');
+    const c = chances.children[simIdx];
+    if (c) { c.classList.add(success ? 'hit' : 'miss'); c.textContent = success ? '😀' : '😢'; }
+    simResults.push(success); simIdx++;
+    if (simIdx >= chancesTotal) {
+      simResult.style.display = ''; simStatus.textContent = '已完成 ' + chancesTotal + ' 回合';
+    } else {
+      curLoopCount.textContent = '第 ' + (simIdx + 1) + ' / ' + chancesTotal + ' 次';
+      phase89 = 1; round89ok = false;
+      buildReadyUI();   // 回到第一顆：重建按鈕（母球＋子1＋子2）
+      setTimeout(() => { if (current === 6) enterInfo(); }, 700);
+    }
   }
 
   // 球型關卡終端高亮（6.11-1 通過 / 6.11-2 失敗）
@@ -2173,24 +2254,24 @@
     if (btn) { btn.classList.toggle('done', on); btn.textContent = btn.dataset.label + (on ? ' ✓' : ''); }
     const sn = curSubFlow.querySelector('.subnode[data-id="' + id + '"]');
     if (sn) sn.classList.toggle('on', on);
-    renderPositions(curText, placedSet, justPlaced, false, (isBallMode() || isSubMove()) ? currentObjNums() : null, isCueMove() ? cueIdx : null);
-    setSub('6.3');
+    renderPositions(curText, placedSet, justPlaced, false, objShowArg(), isCueMove() ? cueIdx : null);
+    setSub(s89('6.3'));
     if (isBallMode() && ballRepeat) { const rd = activeSix && activeSix.querySelector('.ball-redetect'); if (rd) rd.classList.add('active'); }
     // 所有（本回合）球都就位後 → 顯示開始擊球
     const need = currentBalls().length;
     if (need && placedSet.size === need) {
-      tableHint.classList.remove('show'); curSub615.classList.remove('on');
+      tableHint.classList.remove('show'); cur615().classList.remove('on');
       const rd = activeSix && activeSix.querySelector('.ball-redetect'); if (rd) rd.classList.remove('active');
       simReady.style.display = 'none';
       const goShoot = () => {
         if (current !== 6 || placedSet.size !== need) return;
         shootHint.classList.add('show'); btnShoot.style.display = '';
-        setSub('6.5');
+        setSub(s89('6.5'));
       };
       setTimeout(() => {
         if (current !== 6 || placedSet.size !== need) return;
-        if (isBallMode() && ballRepeat) {
-          // 重複時略過 6.4 音效，直接 6.5
+        if ((isBallMode() && ballRepeat) || (is89() && phase89 === 2)) {
+          // 球型重複 / 8做9 第二顆：略過「開始擊球」音效步驟，直接到擊球
           goShoot();
         } else {
           // 6.4 播放音效：開始擊球 → 6.5
@@ -2222,14 +2303,14 @@
     // 6.6 擊球瞬間：桌上只保留目標物，出現「球正在滾」
     renderPositions(curText, false, null, true);
     btnRolling.style.display = '';
-    setSub('6.6');
+    setSub(s89('6.6'));
   });
   // 6.7：點「球正在滾」→ 出現判定按鈕
   btnRolling.addEventListener('click', () => {
     if (current !== 6) return;
     btnRolling.style.display = 'none';
     simHit.style.display = 'flex';
-    setSub('6.7');
+    setSub(s89('6.7'));
   });
   // 6.3：成功 / 失敗
   btnHit.addEventListener('click', () => { if (current === 6) recordShot(true); });
