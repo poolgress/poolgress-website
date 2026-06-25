@@ -186,13 +186,13 @@
   /* 步驟 6 / 6″ 加寬，右側預留迴圈線空間；6′ 再加寬 1.5×（300→450）容納重複迴圈通道 */
   .node[data-step="6"], .node.six-once, .node#nodePure, .node#nodeR3, .node#nodeR4 { width: 300px; }
   .node[data-step="6"] .substeps, .node.six-once .substeps, .node#nodePure .substeps, .node#nodeR3 .substeps, .node#nodeR4 .substeps { padding-right: 54px; }
-  .node.six-once#sixOnceNode { width: 450px; }
-  .node.six-once#sixOnceNode .substeps { padding-left: 166px; padding-right: 14px; }
+  .node.six-once.ball-flow { width: 450px; }
+  .node.six-once.ball-flow .substeps { padding-left: 166px; padding-right: 14px; }
   /* 6″ 無限挑戰：左側預留迴圈線空間（6.10 → 6.1） */
   #sixInf .substeps { padding-left: 46px; padding-right: 14px; }
   #sixInf .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
   /* 6.4 縮窄置中，左側讓出空間給實心「略過 6.4」旁路線通過 */
-  #sixOnceNode .substep[data-sub="6.4"] { width: 58%; margin-left: auto; margin-right: auto; }
+  .ball-flow .substep[data-sub="6.4"] { width: 58%; margin-left: auto; margin-right: auto; }
   /* 6.4 → 6.0 的重複迴圈線（節點內右側） */
   .loop-back { position: absolute; right: 4px; top: 80px; bottom: 52px; width: 44px; border: 2px solid var(--blue); border-left: none; border-radius: 0 10px 10px 0; }
   .loop-back::after { content: ""; position: absolute; left: -7px; top: -6px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-right: 7px solid var(--blue); }
@@ -236,15 +236,15 @@
   .fork-step.terminal-end.active { box-shadow: 0 0 0 2px #6366f1; }
   .fork-step.active { box-shadow: 0 0 0 2px var(--blue); }
   /* 6′ 重複迴圈：右側回流通道（規則需求 → 6.3-1 / 6.3-2 → 回到 6.3），連線以 SVG 畫 */
-  #sixOnceNode .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
-  #sixOnceNode .ball-loop { position: absolute; left: 6px; top: 380px; width: 148px; display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 2; pointer-events: none; }
-  #sixOnceNode .ball-loop .loop-decision, #sixOnceNode .ball-loop .fork-step { pointer-events: auto; }
+  .ball-flow .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+  .ball-flow .ball-loop { position: absolute; left: 6px; top: 380px; width: 148px; display: flex; flex-direction: column; gap: 8px; align-items: center; z-index: 2; pointer-events: none; }
+  .ball-flow .ball-loop .loop-decision, .ball-flow .ball-loop .fork-step { pointer-events: auto; }
   .loop-decision { align-self: center; font-size: 11px; font-weight: 700; text-align: center; color: var(--blue-dark); border: 2px solid var(--line); border-radius: 10px; padding: 5px 12px; background: #fff; }
-  #sixOnceNode .loop-branches { display: flex; flex-direction: row; gap: 6px; width: 100%; align-items: flex-start; }
-  #sixOnceNode .loop-branches .loop-branch { flex: 1 1 0; min-width: 0; }
+  .ball-flow .loop-branches { display: flex; flex-direction: row; gap: 6px; width: 100%; align-items: flex-start; }
+  .ball-flow .loop-branches .loop-branch { flex: 1 1 0; min-width: 0; }
   .loop-branch { display: flex; flex-direction: column; gap: 4px; }
   .loop-branch .fork-label { font-size: 10px; font-weight: 700; text-align: center; color: var(--blue-dark); }
-  #sixOnceNode .ball-loop .fork-step { font-size: 10px; line-height: 1.4; padding: 5px 4px; }
+  .ball-flow .ball-loop .fork-step { font-size: 10px; line-height: 1.4; padding: 5px 4px; }
   .loop-pill { align-self: center; font-size: 10px; font-weight: 700; text-align: center; line-height: 1.3; background: var(--blue); color: #fff; padding: 2px 8px; border-radius: 10px; }
   .substep { font-size: 12px; line-height: 1.5; color: var(--text-soft); background: #f6f8fb; border: 1px solid var(--line); border-left: 3px solid #c7d2da; border-radius: 8px; padding: 7px 10px; }
   .substep.active { color: var(--text); background: var(--blue-soft); border-color: var(--blue); border-left-color: var(--blue); font-weight: 600; }
@@ -298,11 +298,11 @@
     .opt-list .opt-node { min-width: 0; }
     .side-branches { position: static; width: 100%; margin-top: 12px; }
     .side-conn { display: none; }
-    .node.six-once#sixOnceNode { width: 100%; max-width: 360px; }
-    .node.six-once#sixOnceNode .substeps { padding-left: 0; padding-right: 54px; }
-    #sixOnceNode .substep[data-sub="6.4"] { width: auto; }
-    #sixOnceNode .ball-loop { position: static; width: auto; margin-top: 12px; pointer-events: auto; }
-    #sixOnceNode .loop-conn { display: none; }
+    .node.six-once.ball-flow { width: 100%; max-width: 360px; }
+    .node.six-once.ball-flow .substeps { padding-left: 0; padding-right: 54px; }
+    .ball-flow .substep[data-sub="6.4"] { width: auto; }
+    .ball-flow .ball-loop { position: static; width: auto; margin-top: 12px; pointer-events: auto; }
+    .ball-flow .loop-conn { display: none; }
   }
 
   /* --- 進入遊戲關卡 --- */
@@ -477,7 +477,7 @@
           <div class="opt-list">
             <div class="opt-node" data-opt="純子球照順序">純子球，要照順序</div>
             <div class="opt-node impl" data-opt="照順序" data-flowkey="ball:照順序">照順序</div>
-            <div class="opt-node" data-opt="任意順序">任意順序</div>
+            <div class="opt-node impl" data-opt="任意順序" data-flowkey="ball:任意順序">任意順序</div>
           </div>
         </div>
         <div class="opt-col" data-kind="infinite">
@@ -657,7 +657,7 @@
         <!-- 變體流程：步驟 6′（球型關卡） -->
         <div class="six-col" data-flowkey="ball:照順序">
           <div class="branch-tag path">球型關卡 ▸ 照順序</div>
-          <div class="node six-once" id="sixOnceNode">
+          <div class="node six-once ball-flow" id="sixOnceNode">
             <div class="num">6′</div><div class="title">進入遊戲關卡</div>
             <div class="substeps">
               <svg class="loop-conn" id="loopConn6p" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
@@ -703,6 +703,63 @@
                   <div class="loop-branch">
                     <div class="fork-label">任意順序</div>
                     <div class="fork-step ball-confirm" id="ballConfirm">6.3-2 確認打進的子球（移除已打進的）</div>
+                  </div>
+                </div>
+                <div class="loop-decision">規則需求？</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 球型關卡 ▸ 任意順序（複製自照順序，完全相同） -->
+        <div class="six-col" data-flowkey="ball:任意順序">
+          <div class="branch-tag path">球型關卡 ▸ 任意順序</div>
+          <div class="node six-once ball-flow" id="sixAnyNode">
+            <div class="num">6′</div><div class="title">進入遊戲關卡</div>
+            <div class="substeps">
+              <svg class="loop-conn" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+              <div class="substep" data-sub="6.0">6.0 模板載入
+                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              </div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
+                <div class="info-chips">標示：<span class="chip">球位</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
+              <div class="sub615" id="sub615_6pAny">
+                <div class="sub615-label">6.3 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.3">假設放好球了
+                  <div class="subflow" id="subFlow6pAny"></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球</div>
+              <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間
+                <div class="info-chips">下方出現「球正在滾」按鈕</div>
+              </div>
+              <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
+              <div class="result-fork ball-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
+                  <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
+                  <div class="fork-step ball-continue" data-result="ok">6.10-1 繼續下一桿<span style="display:none" id="loopCount6pAny">第 1 次</span></div>
+                  <div class="fork-step terminal-ok">6.11-1 關卡通過</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
+                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                  <div class="fork-step terminal-no">6.11-2 關卡失敗</div>
+                </div>
+              </div>
+              <div class="ball-loop">
+                <div class="loop-branches">
+                  <div class="loop-branch">
+                    <div class="fork-label">要照順序打</div>
+                    <div class="fork-step ball-redetect">6.3-1 確定剩下的球體在圈圈中（移除最小號子球）</div>
+                  </div>
+                  <div class="loop-branch">
+                    <div class="fork-label">任意順序</div>
+                    <div class="fork-step ball-confirm">6.3-2 確認打進的子球（移除已打進的）</div>
                   </div>
                 </div>
                 <div class="loop-decision">規則需求？</div>
@@ -1002,6 +1059,11 @@
   const subFlow6p = document.getElementById('subFlow6p');
   const sub615_6p = document.getElementById('sub615_6p');
   const loopCount6p = document.getElementById('loopCount6p');
+  // 球型關卡 ▸ 任意順序（複製自照順序）
+  const sixAnyNode = document.getElementById('sixAnyNode');
+  const subFlow6pAny = document.getElementById('subFlow6pAny');
+  const sub615_6pAny = document.getElementById('sub615_6pAny');
+  const loopCount6pAny = document.getElementById('loopCount6pAny');
   const subFlow6pp = document.getElementById('subFlow6pp');
   const sub615_6pp = document.getElementById('sub615_6pp');
   const loopCount6pp = document.getElementById('loopCount6pp');
@@ -1030,9 +1092,10 @@
     'repeat:子球換位置':   { node: nodeR3,      subFlow: subFlowR3,   sub615: sub615R3,   loopCount: loopCountR3 },
     'repeat:母球換位置':   { node: nodeR4,      subFlow: subFlowR4,   sub615: sub615R4,   loopCount: loopCountR4 },
     'ball:照順序':         { node: sixOnceNode, subFlow: subFlow6p,   sub615: sub615_6p,  loopCount: loopCount6p },
+    'ball:任意順序':       { node: sixAnyNode,  subFlow: subFlow6pAny, sub615: sub615_6pAny, loopCount: loopCount6pAny },
     'infinite:一顆球無限': { node: sixInf,      subFlow: subFlow6pp,  sub615: sub615_6pp, loopCount: loopCount6pp },
   };
-  const variantNodes = [node6El, nodePure, nodeR3, nodeR4, sixOnceNode, sixInf];
+  const variantNodes = [node6El, nodePure, nodeR3, nodeR4, sixOnceNode, sixAnyNode, sixInf];
   // 只顯示目前對應的那一份流程，其餘隱藏（依關卡種類＋關卡選項）
   function showActiveFlow(key) {
     document.querySelectorAll('.six-fork > .six-col').forEach(c => {
@@ -1054,7 +1117,7 @@
   }
   // 決定目前要走哪一份流程的 flowkey（尚未建流程的選項回退到該種類預設）
   function flowKeyFor() {
-    if (levelVariant === 'ball') return 'ball:照順序';
+    if (levelVariant === 'ball') return orderOf(curText) === 'any' ? 'ball:任意順序' : 'ball:照順序';
     if (levelVariant === 'infinite') return 'infinite:一顆球無限';
     const o = optionOf(curText);
     if (o.indexOf('純子球') >= 0) return 'repeat:純子球';
@@ -1290,7 +1353,7 @@
     if (ov) ov.innerHTML = '';
     simIdx = 0; simResults = []; chosenLocation = '';
     tableHint.classList.remove('show');
-    [sub615, sub615_6p, sub615_6pp].forEach(el => el && el.classList.remove('on'));
+    [sub615, sub615_6p, sub615_6pAny, sub615_6pp].forEach(el => el && el.classList.remove('on'));
     shootHint.classList.remove('show'); btnShoot.style.display = 'none';
     btnRolling.style.display = 'none';
     btnLoaded.style.display = 'none'; btnTemplate.style.display = 'none';
@@ -1933,13 +1996,13 @@
         if (current !== 6) return;
         currentObjIds = currentObjIds.filter(x => x !== id);  // 該顆已打進 → 移除
         simConfirm.style.display = 'none'; simStatus.textContent = '';
-        const cb = document.getElementById('ballConfirm'); if (cb) cb.classList.remove('active');
+        const cb = activeSix && activeSix.querySelector('.ball-confirm'); if (cb) cb.classList.remove('active');
         enterRedetect();
       });
       simConfirm.appendChild(btn);
     });
     simConfirm.style.display = 'flex';
-    const cb = document.getElementById('ballConfirm'); if (cb) cb.classList.add('active');
+    const cb = activeSix && activeSix.querySelector('.ball-confirm'); if (cb) cb.classList.add('active');
   }
 
   // 6.3-1／6.3-2 → 6.3：重新偵測剩餘球體（少一顆），完成後 → 6.4 → 6.5
@@ -1956,7 +2019,7 @@
     tableHint.classList.add('show'); curSub615.classList.add('on');
     renderPositions(curText, placedSet, null, false, currentObjNums());  // 只畫剩餘球（含路線）
     setSub('6.3');                                            // 先走 setSub（會清除 fork 高亮）
-    const rd = document.getElementById('ballRedetect');
+    const rd = activeSix && activeSix.querySelector('.ball-redetect');
     if (rd) rd.classList.toggle('active', !!seqHighlight);    // 6.3-1 僅在「要照順序打」亮起（須在 setSub 之後）
   }
 
@@ -1993,12 +2056,12 @@
     if (sn) sn.classList.toggle('on', on);
     renderPositions(curText, placedSet, justPlaced, false, (isBallMode() || isSubMove()) ? currentObjNums() : null, isCueMove() ? cueIdx : null);
     setSub('6.3');
-    if (isBallMode() && ballRepeat) { const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.add('active'); }
+    if (isBallMode() && ballRepeat) { const rd = activeSix && activeSix.querySelector('.ball-redetect'); if (rd) rd.classList.add('active'); }
     // 所有（本回合）球都就位後 → 顯示開始擊球
     const need = currentBalls().length;
     if (need && placedSet.size === need) {
       tableHint.classList.remove('show'); curSub615.classList.remove('on');
-      const rd = document.getElementById('ballRedetect'); if (rd) rd.classList.remove('active');
+      const rd = activeSix && activeSix.querySelector('.ball-redetect'); if (rd) rd.classList.remove('active');
       simReady.style.display = 'none';
       const goShoot = () => {
         if (current !== 6 || placedSet.size !== need) return;
@@ -2081,18 +2144,19 @@
     svg.innerHTML = paths;
   }
   // 6′：右側回流通道 — 6.10-1 →(規則需求)→ 6.3-1／6.3-2 →遠右軌→ 回到 6.3；另畫「重複略過 6.4」旁路
-  function drawBallLoop() {
-    const subs = sixOnceNode && sixOnceNode.querySelector('.substeps');
-    const svg = document.getElementById('loopConn6p');
-    const lane = document.getElementById('ballLoop6p');
-    const box63 = sub615_6p;
-    const cont = document.getElementById('six6pContinue');
-    const rd = document.getElementById('ballRedetect');
-    const cf = document.getElementById('ballConfirm');
+  function drawBallLoop(node) {
+    node = node || sixOnceNode;
+    const subs = node && node.querySelector('.substeps');
+    const svg = node && node.querySelector('.loop-conn');
+    const lane = node && node.querySelector('.ball-loop');
+    const box63 = node && node.querySelector('.sub615');
+    const cont = node && node.querySelector('.ball-continue');
+    const rd = node && node.querySelector('.ball-redetect');
+    const cf = node && node.querySelector('.ball-confirm');
     if (!subs || !svg || !lane || !box63 || !cont || !rd || !cf) return;
     const dec = lane.querySelector('.loop-decision');
-    const b64 = sixOnceNode.querySelector('.substep[data-sub="6.4"]');
-    const b65 = sixOnceNode.querySelector('.substep[data-sub="6.5"]');
+    const b64 = node.querySelector('.substep[data-sub="6.4"]');
+    const b65 = node.querySelector('.substep[data-sub="6.5"]');
     if (!dec || !b64 || !b65) return;
     const sr = subs.getBoundingClientRect();
     if (!sr.height || !sr.width) return;
@@ -2181,7 +2245,7 @@
     svg.innerHTML = p;
   }
 
-  function redrawConnectors() { drawSideConnectors(); drawBallLoop(); drawInfLoop(); drawOptConnectors(); }
+  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawInfLoop(); drawOptConnectors(); }
   showActiveFlow('repeat:經典');   // 預設只顯示「經典」那份流程
   redrawConnectors();
   window.addEventListener('resize', redrawConnectors);
@@ -2189,7 +2253,8 @@
   setTimeout(redrawConnectors, 300);
   // 模擬過程中 6′／6″ 子流程高度會變動（子球 chips、按鈕增減）→ 自動重畫迴圈連線
   if (window.ResizeObserver) {
-    if (sixOnceNode) { const s = sixOnceNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawBallLoop)).observe(s); }
+    if (sixOnceNode) { const s = sixOnceNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixOnceNode))).observe(s); }
+    if (sixAnyNode) { const s = sixAnyNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixAnyNode))).observe(s); }
     if (sixInf) { const s = sixInf.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawInfLoop)).observe(s); }
   }
 </script>
