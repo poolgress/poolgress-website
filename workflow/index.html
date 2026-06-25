@@ -1301,6 +1301,11 @@
   // 8做9：一回合打兩顆球（第一顆＝子1／8，成功後第二顆＝子9（子2）），失敗則跳過第二顆
   function is89() { return levelVariant === 'repeat' && optionOf(curText).indexOf('8做9') >= 0; }
   let phase89 = 1, round89ok = false;   // phase89：1＝第一顆，2＝第二顆；round89ok：第一顆是否成功
+  // 8做9 第二顆球（「子9」）＝號數較大的子球（例：8號／9號→9）；找不到回 9
+  function secondNum89() {
+    const ns = playBalls.filter(b => b.id !== 'cue').map(b => parseInt(b.id.split('-')[1], 10)).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    return ns.length ? ns[ns.length - 1] : 9;
+  }
   const sub615_89b = document.getElementById('sub615_89b');   // 6.11 偵測（假設放好球了：子9）
   // 8做9 第二顆球：把第一顆的步驟號對應到第二顆（6.1→6.10、6.3→6.11、6.5→6.12、6.6→6.13、6.7→6.14）
   function s89(n) { if (!(is89() && phase89 === 2)) return n; return ({ '6.1': '6.10', '6.3': '6.11', '6.5': '6.12', '6.6': '6.13', '6.7': '6.14' })[n] || n; }
@@ -1388,7 +1393,7 @@
   const btnRecLoad = document.getElementById('btnRecLoad');
   // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
   function currentBalls() {
-    if (is89()) return phase89 === 2 ? playBalls.filter(b => b.id === 'obj-2') : playBalls;   // 第二顆只放 子9(子2)；第一顆放全部
+    if (is89()) return phase89 === 2 ? playBalls.filter(b => b.id === 'obj-' + secondNum89()) : playBalls;   // 第二顆只放 子9（號數較大者）；第一顆放全部
     if (isCueMove()) return playBalls;   // 母球換位置：母球（單一按鈕，標示母球N）＋ 全部固定子球
     if (!isBallMode() && !isSubMove()) return playBalls;
     return playBalls.filter(b => b.id === 'cue' || currentObjIds.indexOf(b.id) >= 0);
@@ -1396,7 +1401,7 @@
   function currentObjNums() { return new Set(currentObjIds.map(id => parseInt(id.split('-')[1], 10))); }
   // renderPositions 的 objShow 參數：8做9 第二顆只顯示 子2；球型／子球換位置顯示目前回合子球；其他全部
   function objShowArg() {
-    if (is89() && phase89 === 2) return new Set([2]);
+    if (is89() && phase89 === 2) return new Set([secondNum89()]);
     return (isBallMode() || isSubMove()) ? currentObjNums() : null;
   }
   // renderPositions 的 cueShow 參數：8做9 第二顆球＝-1（不顯示母球）；母球換位置＝目前母球號；其他＝null（單一母球）
@@ -1900,7 +1905,7 @@
     const skipSub = is89() && phase89 === 2;   // 8做9 第二顆：只建按鈕，不重建 6.3 框的子節點（6.11 已靜態顯示子9）
     if (!skipSub) curSubFlow.innerHTML = '';
     currentBalls().forEach(b => {
-      const label = (isCueMove() && b.id === 'cue') ? ('母球' + cueIdx) : (is89() && phase89 === 2 && b.id === 'obj-2') ? '子9' : b.label;
+      const label = (isCueMove() && b.id === 'cue') ? ('母球' + cueIdx) : b.label;   // 子球按鈕標籤即「子N」（如子8／子9）
       const btn = document.createElement('button');
       btn.className = 'sim-btn';
       btn.dataset.id = b.id;
