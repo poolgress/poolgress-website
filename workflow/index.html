@@ -1399,6 +1399,11 @@
     if (is89() && phase89 === 2) return new Set([2]);
     return (isBallMode() || isSubMove()) ? currentObjNums() : null;
   }
+  // renderPositions 的 cueShow 參數：8做9 第二顆球＝-1（不顯示母球）；母球換位置＝目前母球號；其他＝null（單一母球）
+  function cueShowArg() {
+    if (is89() && phase89 === 2) return -1;
+    return isCueMove() ? cueIdx : null;
+  }
   // 子球換位置：設定第 N 回合 → 只放 母球＋子N，並更新 6.1 標示與按鈕
   function subMoveRound(n) {
     currentObjIds = ['obj-' + n];
@@ -1752,7 +1757,10 @@
     if (!targetsOnly) {
     // 母球位置（白色虛線圈 r0.25）。母球換位置：母球有編號，依回合只畫第 cueShow 顆＋該號路線
     let cueCenter = null, cueRoutePts = null;
-    if (cueShow != null) {
+    if (cueShow === -1) {
+      // 不顯示母球（8做9 第二顆球：只標記子9＋路線＋目標物）
+      cueRoutePts = [];
+    } else if (cueShow != null) {
       const cp = cuePos(text, cueShow);
       if (cp) cueCenter = P(cp[0], cp[1]);
       cueRoutePts = cueRoutePtsFor(text, cueShow);
@@ -1960,7 +1968,7 @@
     simConfirm.style.display = 'none';
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     btnLoaded.style.display = '';
-    renderPositions(curText, placedSet, null, false, objShowArg(), isCueMove() ? cueIdx : null);
+    renderPositions(curText, placedSet, null, false, objShowArg(), cueShowArg());
     setSub('6.1');
   }
 
@@ -2155,7 +2163,7 @@
     shotMsg.className = 'shot-msg';
     tableHint.classList.remove('show'); curSub615.classList.remove('on');
     buildReadyUI();                       // 重建按鈕（只剩 子9）
-    renderPositions(curText, placedSet, null, false, objShowArg());   // 球桌：母球 + 子9(子2) + 路線 + 目標
+    renderPositions(curText, placedSet, null, false, objShowArg(), cueShowArg());   // 球桌：只標記 子9(子2) + 路線 + 目標（不含母球）
     setSub('6.10');
     btnLoaded.style.display = '';          // 球桌下方按鈕：位置標記完成
   }
@@ -2257,7 +2265,7 @@
     if (btn) { btn.classList.toggle('done', on); btn.textContent = btn.dataset.label + (on ? ' ✓' : ''); }
     const sn = curSubFlow.querySelector('.subnode[data-id="' + id + '"]');
     if (sn) sn.classList.toggle('on', on);
-    renderPositions(curText, placedSet, justPlaced, false, objShowArg(), isCueMove() ? cueIdx : null);
+    renderPositions(curText, placedSet, justPlaced, false, objShowArg(), cueShowArg());
     setSub(s89('6.3'));
     if (isBallMode() && ballRepeat) { const rd = activeSix && activeSix.querySelector('.ball-redetect'); if (rd) rd.classList.add('active'); }
     // 所有（本回合）球都就位後 → 顯示開始擊球
