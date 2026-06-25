@@ -184,8 +184,8 @@
   /* --- 步驟 6 子步驟 --- */
   .substeps { margin-top: 12px; display: flex; flex-direction: column; gap: 17px; text-align: left; position: relative; }
   /* 步驟 6 / 6″ 加寬，右側預留迴圈線空間；6′ 再加寬 1.5×（300→450）容納重複迴圈通道 */
-  .node[data-step="6"], .node.six-once, .node#nodePure, .node#nodeR3, .node#nodeR4, .node#node89 { width: 300px; }
-  .node[data-step="6"] .substeps, .node.six-once .substeps, .node#nodePure .substeps, .node#nodeR3 .substeps, .node#nodeR4 .substeps, .node#node89 .substeps { padding-right: 54px; }
+  .node[data-step="6"], .node.six-once, .node#nodePure, .node#nodeR3, .node#nodeR4, .node#node89, .node#nodeJie { width: 300px; }
+  .node[data-step="6"] .substeps, .node.six-once .substeps, .node#nodePure .substeps, .node#nodeR3 .substeps, .node#nodeR4 .substeps, .node#node89 .substeps, .node#nodeJie .substeps { padding-right: 54px; }
   .node.six-once.ball-flow { width: 450px; }
   .node.six-once.ball-flow .substeps { padding-left: 166px; padding-right: 14px; }
   /* 8做9：兩顆球流程較長，加寬並於左側預留 6.9-2 失敗→6.16 的跳接線空間 */
@@ -477,7 +477,7 @@
             <div class="opt-node impl" data-opt="子球換位置" data-flowkey="repeat:子球換位置">子球換位置，母球位置固定</div>
             <div class="opt-node impl" data-opt="母球換位置" data-flowkey="repeat:母球換位置">母球換位置，子球位置固定</div>
             <div class="opt-node impl" data-opt="8做9" data-flowkey="repeat:8做9">8做9＿子1子2母球位置固定</div>
-            <div class="opt-node" data-opt="解球">解球關卡＿子母球位置固定</div>
+            <div class="opt-node impl" data-opt="解球" data-flowkey="repeat:解球">解球關卡＿子母球位置固定</div>
           </div>
         </div>
         <div class="opt-col" data-kind="ball">
@@ -576,6 +576,47 @@
               <div class="substep" data-sub="6.10">6.10 關卡重複</div>
               <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
               <div class="loop-back"><div class="loop-count" id="loopCount">第 1 次</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 重複關卡 ▸ 解球關卡＿子母球位置固定（複製自經典，完全相同） -->
+        <div class="six-col" data-flowkey="repeat:解球">
+          <div class="branch-tag path">重複關卡 ▸ 解球關卡＿子母球位置固定</div>
+          <div class="node" id="nodeJie">
+            <div class="num">6</div><div class="title">進入遊戲關卡</div>
+            <div class="substeps">
+              <div class="substep" data-sub="6.0">6.0 模板載入
+                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              </div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
+                <div class="info-chips">標示：<span class="chip">子球</span><span class="chip">母球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
+              <div class="sub615" id="sub615Jie">
+                <div class="sub615-label">6.3 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.3">假設放好球了
+                  <div class="subflow" id="subFlowJie"></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球</div>
+              <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間，畫面清空剩下目標物</div>
+              <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
+              <div class="result-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
+                  <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
+                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.10">6.10 關卡重複</div>
+              <div class="substep" data-sub="6.11">6.11 關卡重複結束</div>
+              <div class="loop-back"><div class="loop-count" id="loopCountJie">第 1 次</div></div>
             </div>
           </div>
         </div>
@@ -1192,6 +1233,11 @@
   const subFlow89 = document.getElementById('subFlow89');
   const sub615_89 = document.getElementById('sub615_89');
   const loopCount89 = document.getElementById('loopCount89');
+  // 重複關卡 ▸ 解球關卡＿子母球位置固定（複製自經典）
+  const nodeJie = document.getElementById('nodeJie');
+  const subFlowJie = document.getElementById('subFlowJie');
+  const sub615Jie = document.getElementById('sub615Jie');
+  const loopCountJie = document.getElementById('loopCountJie');
   // 目前使用中的分支對應的流程圖元素
   let curSubFlow = subFlow, curSub615 = sub615, curLoopCount = loopCount;
   const node6El = nodeEl(6);
@@ -1202,12 +1248,13 @@
     'repeat:子球換位置':   { node: nodeR3,      subFlow: subFlowR3,   sub615: sub615R3,   loopCount: loopCountR3 },
     'repeat:母球換位置':   { node: nodeR4,      subFlow: subFlowR4,   sub615: sub615R4,   loopCount: loopCountR4 },
     'repeat:8做9':         { node: node89,      subFlow: subFlow89,   sub615: sub615_89,  loopCount: loopCount89 },
+    'repeat:解球':         { node: nodeJie,     subFlow: subFlowJie,  sub615: sub615Jie,  loopCount: loopCountJie },
     'ball:照順序':         { node: sixOnceNode, subFlow: subFlow6p,   sub615: sub615_6p,  loopCount: loopCount6p },
     'ball:任意順序':       { node: sixAnyNode,  subFlow: subFlow6pAny, sub615: sub615_6pAny, loopCount: loopCount6pAny },
     'ball:純子球照順序':   { node: sixPureNode, subFlow: subFlow6pPure, sub615: sub615_6pPure, loopCount: loopCount6pPure },
     'infinite:一顆球無限': { node: sixInf,      subFlow: subFlow6pp,  sub615: sub615_6pp, loopCount: loopCount6pp },
   };
-  const variantNodes = [node6El, nodePure, nodeR3, nodeR4, node89, sixOnceNode, sixAnyNode, sixPureNode, sixInf];
+  const variantNodes = [node6El, nodePure, nodeR3, nodeR4, node89, nodeJie, sixOnceNode, sixAnyNode, sixPureNode, sixInf];
   // 只顯示目前對應的那一份流程，其餘隱藏（依關卡種類＋關卡選項）
   function showActiveFlow(key) {
     document.querySelectorAll('.six-fork > .six-col').forEach(c => {
@@ -1242,6 +1289,7 @@
     if (o.indexOf('子球換位置') >= 0) return 'repeat:子球換位置';
     if (o.indexOf('母球換位置') >= 0) return 'repeat:母球換位置';
     if (o.indexOf('8做9') >= 0) return 'repeat:8做9';
+    if (o.indexOf('解球') >= 0) return 'repeat:解球';
     return 'repeat:經典';
   }
   // 依「關卡種類＋關卡選項」在總覽樹上標記目前路徑
