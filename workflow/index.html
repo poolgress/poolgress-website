@@ -1156,6 +1156,11 @@
       }
       const hIdx = headIndex(head);
       if (hIdx != null) { if (!(hIdx in indexed)) indexed[hIdx] = cueCoords(val); continue; }
+      if (/(?:[母主白]球|cue)\s*\d/i.test(val)) {    // 值內含「母球N」分段（母球1 (..)、母球2 (..) 或 母球2：(..)；母球3：(..)，可亂序）
+        const re = /(?:[母主白]球|cue)\s*(\d+)\s*[\s：:、，,；;]*([\s\S]*?)(?=(?:[母主白]球|cue)\s*\d+|$)/gi; let m, found = false;
+        while ((m = re.exec(val))) { const k = parseInt(m[1], 10); const cs = cueCoords(m[2]); if (cs.length && !(k in indexed)) { indexed[k] = cs; found = true; } }
+        if (found) continue;
+      }
       if (/\d+\s*號/.test(val)) {                   // 值內含號 → 依號分配
         const re = /(\d+)\s*號[：:]?\s*([\s\S]*?)(?=\d+\s*號|$)/g; let m;
         while ((m = re.exec(val))) { const k = parseInt(m[1], 10); if (!(k in indexed)) indexed[k] = cueCoords(m[2]); }
