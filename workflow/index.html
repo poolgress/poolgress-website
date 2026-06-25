@@ -193,6 +193,9 @@
   .node#node89 .substeps { padding-left: 44px; padding-right: 54px; }
   .node#node89 .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
   .win-face { text-align: center; font-size: 22px; line-height: 1; margin-top: 4px; }
+  /* 靜態「就定位」按鈕容器（不會被重置清空，用於 8做9 的 6.11 子9 按鈕） */
+  .static-subflow { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .static-subflow .subnode { flex: 0 0 auto; padding: 6px 14px; }
   /* 6″ 無限挑戰：左側預留迴圈線空間（6.10 → 6.1） */
   #sixInf .substeps { padding-left: 46px; padding-right: 14px; }
   #sixInf .loop-conn { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
@@ -700,7 +703,7 @@
               <div class="sub615" id="sub615_89b">
                 <div class="sub615-label">6.11 開始偵測球體，顯示：請把球放在圈圈中</div>
                 <div class="substep" data-sub="6.11">假設放好球了
-                  <div class="info-chips"><span class="chip">子9</span></div>
+                  <div class="static-subflow"><div class="subnode">子9</div></div>
                 </div>
               </div>
               <div class="substep" data-sub="6.12">6.12 等待玩家擊球，顯示：開始擊球</div>
