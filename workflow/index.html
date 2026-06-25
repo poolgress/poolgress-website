@@ -492,7 +492,7 @@
           <div class="opt-kind">無限關卡</div>
           <div class="opt-list">
             <div class="opt-node impl" data-opt="一顆球無限" data-flowkey="infinite:一顆球無限">一顆球無限</div>
-            <div class="opt-node" data-opt="兩顆球無限">兩顆球無限</div>
+            <div class="opt-node impl" data-opt="兩顆球無限" data-flowkey="infinite:兩顆球無限">兩顆球無限</div>
           </div>
         </div>
       </div>
@@ -951,6 +951,53 @@
             </div>
           </div>
         </div>
+
+        <!-- 無限關卡 ▸ 兩顆球無限（複製自任意順序，完全相同） -->
+        <div class="six-col" data-flowkey="infinite:兩顆球無限">
+          <div class="branch-tag path">無限關卡 ▸ 兩顆球無限</div>
+          <div class="node six-once ball-flow" id="sixTwoNode">
+            <div class="num">6′</div><div class="title">進入遊戲關卡</div>
+            <div class="substeps">
+              <svg class="loop-conn" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+              <div class="substep" data-sub="6.0">6.0 模板載入
+                <div class="info-chips">標示：<span class="chip">過關總次數</span></div>
+              </div>
+              <div class="substep" data-sub="6.1">6.1 球桌資訊標記
+                <div class="info-chips">標示：<span class="chip">子球</span><span class="chip">路線</span><span class="chip">目標物</span></div>
+              </div>
+              <div class="substep" data-sub="6.2">6.2 播放音效：請擺球</div>
+              <div class="sub615" id="sub615_6pTwo">
+                <div class="sub615-label">6.3 開始偵測球體，顯示：請把球放在圈圈中</div>
+                <div class="substep" data-sub="6.3">假設放好球了
+                  <div class="subflow" id="subFlow6pTwo"></div>
+                </div>
+              </div>
+              <div class="substep" data-sub="6.4">6.4 播放音效：開始擊球</div>
+              <div class="substep" data-sub="6.5">6.5 等待玩家擊球，顯示：開始擊球</div>
+              <div class="substep" data-sub="6.6">6.6 擊球瞬間
+                <div class="info-chips">下方出現「球正在滾」按鈕</div>
+              </div>
+              <div class="substep" data-sub="6.7">6.7 擊球判定：成功或失敗</div>
+              <div class="result-fork ball-fork">
+                <div class="rf-stem"></div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
+                  <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
+                  <div class="fork-step ball-continue" data-result="ok">6.10-1 繼續下一桿<span style="display:none" id="loopCount6pTwo">第 1 次</span></div>
+                  <div class="fork-step terminal-ok">6.11-1 關卡通過</div>
+                </div>
+                <div class="rf-col">
+                  <div class="fork-step" data-result="no">6.8-2 播放音效：失敗</div>
+                  <div class="fork-step" data-result="no">6.9-2 結果宣告：本桿失敗😢</div>
+                  <div class="fork-step terminal-no">6.11-2 關卡失敗</div>
+                </div>
+              </div>
+              <div class="ball-loop">
+                <div class="fork-step ball-confirm">6.3-2 確認打進的子球（移除已打進的）</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="connector" data-conn="6"></div>
 
@@ -1210,6 +1257,11 @@
   const subFlow6pPure = document.getElementById('subFlow6pPure');
   const sub615_6pPure = document.getElementById('sub615_6pPure');
   const loopCount6pPure = document.getElementById('loopCount6pPure');
+  // 無限關卡 ▸ 兩顆球無限（複製自任意順序）
+  const sixTwoNode = document.getElementById('sixTwoNode');
+  const subFlow6pTwo = document.getElementById('subFlow6pTwo');
+  const sub615_6pTwo = document.getElementById('sub615_6pTwo');
+  const loopCount6pTwo = document.getElementById('loopCount6pTwo');
   const subFlow6pp = document.getElementById('subFlow6pp');
   const sub615_6pp = document.getElementById('sub615_6pp');
   const loopCount6pp = document.getElementById('loopCount6pp');
@@ -1252,9 +1304,10 @@
     'ball:照順序':         { node: sixOnceNode, subFlow: subFlow6p,   sub615: sub615_6p,  loopCount: loopCount6p },
     'ball:任意順序':       { node: sixAnyNode,  subFlow: subFlow6pAny, sub615: sub615_6pAny, loopCount: loopCount6pAny },
     'ball:純子球照順序':   { node: sixPureNode, subFlow: subFlow6pPure, sub615: sub615_6pPure, loopCount: loopCount6pPure },
+    'infinite:兩顆球無限': { node: sixTwoNode,  subFlow: subFlow6pTwo, sub615: sub615_6pTwo, loopCount: loopCount6pTwo },
     'infinite:一顆球無限': { node: sixInf,      subFlow: subFlow6pp,  sub615: sub615_6pp, loopCount: loopCount6pp },
   };
-  const variantNodes = [node6El, nodePure, nodeR3, nodeR4, node89, nodeJie, sixOnceNode, sixAnyNode, sixPureNode, sixInf];
+  const variantNodes = [node6El, nodePure, nodeR3, nodeR4, node89, nodeJie, sixOnceNode, sixAnyNode, sixPureNode, sixInf, sixTwoNode];
   // 只顯示目前對應的那一份流程，其餘隱藏（依關卡種類＋關卡選項）
   function showActiveFlow(key) {
     document.querySelectorAll('.six-fork > .six-col').forEach(c => {
@@ -1283,7 +1336,7 @@
       if (optionOf(curText).indexOf('純子球') >= 0) return 'ball:純子球照順序';
       return orderOf(curText) === 'any' ? 'ball:任意順序' : 'ball:照順序';
     }
-    if (levelVariant === 'infinite') return 'infinite:一顆球無限';
+    if (levelVariant === 'infinite') return optionOf(curText).indexOf('兩顆球') >= 0 ? 'infinite:兩顆球無限' : 'infinite:一顆球無限';
     const o = optionOf(curText);
     if (o.indexOf('純子球') >= 0) return 'repeat:純子球';
     if (o.indexOf('子球換位置') >= 0) return 'repeat:子球換位置';
@@ -2527,7 +2580,7 @@
     svg.innerHTML = p;
   }
 
-  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawBallLoop(sixPureNode); drawInfLoop(); drawNode89(node89); drawOptConnectors(); }
+  function redrawConnectors() { drawSideConnectors(); drawBallLoop(sixOnceNode); drawBallLoop(sixAnyNode); drawBallLoop(sixPureNode); drawBallLoop(sixTwoNode); drawInfLoop(); drawNode89(node89); drawOptConnectors(); }
   showActiveFlow('repeat:經典');   // 預設只顯示「經典」那份流程
   redrawConnectors();
   window.addEventListener('resize', redrawConnectors);
@@ -2538,6 +2591,7 @@
     if (sixOnceNode) { const s = sixOnceNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixOnceNode))).observe(s); }
     if (sixAnyNode) { const s = sixAnyNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixAnyNode))).observe(s); }
     if (sixPureNode) { const s = sixPureNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixPureNode))).observe(s); }
+    if (sixTwoNode) { const s = sixTwoNode.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawBallLoop(sixTwoNode))).observe(s); }
     if (sixInf) { const s = sixInf.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(drawInfLoop)).observe(s); }
     if (node89) { const s = node89.querySelector('.substeps'); if (s) new ResizeObserver(() => requestAnimationFrame(() => drawNode89(node89))).observe(s); }
   }
