@@ -982,6 +982,10 @@
                   <div class="fork-step" data-result="ok">6.8-1 播放音效：成功</div>
                   <div class="fork-step" data-result="ok">6.9-1 結果宣告：本桿成功😀</div>
                   <div class="fork-step inf-score" data-result="ok">目前挑戰加一分</div>
+                  <div class="fork-step inf-confirm" data-result="ok">確認打進的子球
+                    <div class="info-chips"><span class="chip">子1</span><span class="chip">子2</span></div>
+                  </div>
+                  <div class="fork-step inf-next" data-result="ok">接下來請打『剛剛沒有點選的球』</div>
                   <div class="fork-step inf-repeat" data-result="ok">6.10 關卡重複（無上限）</div>
                 </div>
                 <div class="rf-col">
@@ -2202,15 +2206,19 @@
             }
           }
         } else if (isInfinite()) {
-          if (ok) {                  // 6.9-1 → 目前挑戰加一分 → 6.10 關卡重複（無上限）→ 回到 6.1
-            activate(2);             // 目前挑戰加一分
+          if (ok) {                  // 6.9-1 → 加分 →（確認子球 → 請打另一顆）→ 6.10 關卡重複（無上限）→ 回到 6.1
             infScore++; recCur.textContent = infScore;
             curLoopCount.textContent = '挑戰 ' + infScore;
-            setTimeout(() => {
+            // 依序高亮存在的步驟（兩顆球無限多了「確認子球／請打另一顆」；一顆球無限則只有加分→重複）
+            const chain = ['.inf-score', '.inf-confirm', '.inf-next', '.inf-repeat'].map(c => scope.querySelector(c)).filter(Boolean);
+            let k = 0;
+            const stepChain = () => {
               if (current !== 6) return;
-              finish(2); activate(3); // 6.10 關卡重複
-              setTimeout(() => { if (current === 6) enterInfo(); }, 700);
-            }, 700);
+              if (k > 0 && chain[k - 1]) { chain[k - 1].classList.remove('active'); chain[k - 1].classList.add('done'); }
+              if (k < chain.length) { chain[k].classList.add('active'); k++; setTimeout(stepChain, 650); }
+              else setTimeout(() => { if (current === 6) enterInfo(); }, 500);
+            };
+            stepChain();
           } else {                   // 6.9-2 → 6.11 關卡結算
             const endEl = scope.querySelector('.inf-end');
             if (endEl) endEl.classList.add('active');
