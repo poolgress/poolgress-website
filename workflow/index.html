@@ -1853,16 +1853,19 @@
 
     }
 
+    // 目標欄位查值：容許標籤與冒號之間有附註（如「目標線段位置（依序）：」）
+    const valTarget = (label) => { const m = text.match(new RegExp(label + '[^\\n:：]*[:：]\\s*([^\\n]*)')); return m ? m[1].trim() : ''; };
+
     // 子球 / 母球目標袋口（r0.4 圈，線粗0.1）
     const drawPocket = (val, color) => {
       Object.keys(pockets).forEach(name => {
         if (val.includes(name)) { const [a, b] = pockets[name]; const p = P(a, b); out += `<circle cx="${p.x}" cy="${p.y}" r="${R(0.2)}" fill="none" stroke="${color}" stroke-width="${R(0.1)}"/>`; }
       });
     };
-    drawPocket(valOf('子球目標袋口'), '#f5d000');
-    drawPocket(valOf('母球目標袋口'), '#1b5e20');
+    drawPocket(valTarget('子球目標袋口'), '#f5d000');
+    drawPocket(valTarget('母球目標袋口'), '#1b5e20');
 
-    // 子球 / 母球目標線段位置（線粗0.1，旁邊標編號）
+    // 子球 / 母球目標線段位置（依序）（線粗0.1，旁邊標編號）
     const drawSegs = (val, color, labelColor) => {
       const cs = coords(val);
       for (let i = 0; i + 1 < cs.length; i += 2) {
@@ -1871,8 +1874,8 @@
         out += `<text x="${(a.x+b.x)/2 + 10}" y="${(a.y+b.y)/2}" font-size="13" font-weight="700" fill="${labelColor}">${i/2 + 1}</text>`;
       }
     };
-    drawSegs(valOf('子球目標線段位置'), '#f5d000', '#8a6d00');
-    drawSegs(valOf('母球目標線段位置'), '#ffffff', '#0e1216');
+    drawSegs(valTarget('子球目標線段位置'), '#f5d000', '#8a6d00');
+    drawSegs(valTarget('母球目標線段位置'), '#ffffff', '#0e1216');
 
     // 子球 / 母球目標區塊位置（半透明方塊）
     const drawBlocks = (val, fill) => {
@@ -1883,8 +1886,8 @@
         out += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"/>`;
       }
     };
-    drawBlocks(valOf('子球目標區塊位置'), 'rgba(245,208,0,0.32)');
-    drawBlocks(valOf('母球目標區塊位置'), 'rgba(255,255,255,0.42)');
+    drawBlocks(valTarget('子球目標區塊位置'), 'rgba(245,208,0,0.32)');
+    drawBlocks(valTarget('母球目標區塊位置'), 'rgba(255,255,255,0.42)');
 
     ov.innerHTML = out;
   }
