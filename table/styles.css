@@ -192,17 +192,15 @@ html, body {
   overflow: visible;
 }
 .path-line {
-  /* stroke 由各球的 pathColor 以屬性設定（CSS 不指定，才不會蓋掉） */
-  stroke-width: 4pt;
-  stroke-dasharray: 9 14;
+  /* stroke、stroke-width、stroke-dasharray 都由 JS 依球桌比例以屬性設定
+     （這樣粗細與虛線間距永遠相對球桌固定，不隨視窗大小改變） */
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-/* 假想球（轉彎點）：球大小的圓圈，stroke 由路徑色設定 */
+/* 假想球（轉彎點）：球大小的圓圈，stroke / stroke-width 由 JS 依比例設定 */
 .ghost-ball-mark {
   fill: rgba(255, 255, 255, 0.14);
-  stroke-width: 1.5pt;
 }
 
 /* 庫邊層：透明 PNG，永遠疊在球桌（含格線）之上、球之下 */

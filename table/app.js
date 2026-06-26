@@ -1303,6 +1303,10 @@
     if (!pathLines) return;
     const NS = "http://www.w3.org/2000/svg";
     const r = tableRect();
+    const s = r.width / TARGET_REF_W;        // 與球桌等比例（以 1100px 為基準）
+    const lineW = 8 * s;                      // 路線粗細：相對球桌固定
+    const dashArr = (13.5 * s) + " " + (21 * s); // 虛線：實線/間距同步等比
+    const ghostW = 3 * s;                     // 假想球外框粗細
     while (pathLines.firstChild) pathLines.removeChild(pathLines.firstChild);
     const all = drawingPath ? paths.concat([drawingPath]) : paths;
     for (const p of all) {
@@ -1315,6 +1319,8 @@
       poly.setAttribute("class", "path-line");
       poly.setAttribute("fill", "none");
       poly.setAttribute("stroke", color);
+      poly.setAttribute("stroke-width", lineW);
+      poly.setAttribute("stroke-dasharray", dashArr);
       poly.setAttribute("marker-end", "url(#pathArrow)");
       poly.setAttribute("points", pts.map((v) => `${v.fx * r.width},${v.fy * r.height}`).join(" "));
       pathLines.appendChild(poly);
@@ -1328,6 +1334,7 @@
         c.setAttribute("cy", v.fy * r.height);
         c.setAttribute("r", radPx);
         c.setAttribute("stroke", color);
+        c.setAttribute("stroke-width", ghostW);
         pathLines.appendChild(c);
       }
     }
@@ -1866,8 +1873,8 @@
   }
   // 序列化 SVG 會失去外部 CSS，需把路徑/假想球/目標的樣式內嵌，否則會變預設黑色實心
   const SNAPSHOT_CSS =
-    ".path-line{stroke-width:4pt;stroke-dasharray:9 14;fill:none;stroke-linecap:round;stroke-linejoin:round;}" +
-    ".ghost-ball-mark{fill:rgba(255,255,255,0.14);stroke-width:1.5pt;}" +
+    ".path-line{fill:none;stroke-linecap:round;stroke-linejoin:round;}" +
+    ".ghost-ball-mark{fill:rgba(255,255,255,0.14);}" +
     ".pocket-target{fill:none;}.pocket-target.unsel{stroke:#ffffff;}.pocket-target.sel{stroke:#ffbc00;}" +
     ".target-line{fill:none;stroke:#ffffff;stroke-linecap:butt;}" +
     ".target-line-num{fill:#1a1a1a;stroke:#ffffff;paint-order:stroke;font-weight:700;text-anchor:middle;dominant-baseline:central;}" +
