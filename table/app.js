@@ -1866,7 +1866,7 @@
   }
   // 序列化 SVG 會失去外部 CSS，需把路徑/假想球/目標的樣式內嵌，否則會變預設黑色實心
   const SNAPSHOT_CSS =
-    ".path-line{stroke-width:2pt;stroke-dasharray:9 7;fill:none;stroke-linecap:round;stroke-linejoin:round;}" +
+    ".path-line{stroke-width:4pt;stroke-dasharray:9 14;fill:none;stroke-linecap:round;stroke-linejoin:round;}" +
     ".ghost-ball-mark{fill:rgba(255,255,255,0.14);stroke-width:1.5pt;}" +
     ".pocket-target{fill:none;}.pocket-target.unsel{stroke:#ffffff;}.pocket-target.sel{stroke:#ffbc00;}" +
     ".target-line{fill:none;stroke:#ffffff;stroke-linecap:butt;}" +

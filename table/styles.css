@@ -193,8 +193,8 @@ html, body {
 }
 .path-line {
   /* stroke 由各球的 pathColor 以屬性設定（CSS 不指定，才不會蓋掉） */
-  stroke-width: 2pt;
-  stroke-dasharray: 9 7;
+  stroke-width: 4pt;
+  stroke-dasharray: 9 14;
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
