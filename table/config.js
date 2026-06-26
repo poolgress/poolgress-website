@@ -65,7 +65,7 @@ window.CONFIG = {
   //   pathColor — 繪製路徑時的線條顏色
   BALLS: [
     { id: "cue", name: "母球", src: "assets/balls/cue.png", color: "#f7f4ec", text: "", pathColor: "#ffffff" },
-    { id: "1", name: "1 號", src: "assets/balls/1.png", color: "#f2c14e", text: "1", pathColor: "#faba02" },
+    { id: "1", name: "1 號", src: "assets/balls/1.png", color: "#f2c14e", text: "1", pathColor: "#f2dc4e" },
     { id: "2", name: "2 號", src: "assets/balls/2.png", color: "#2a6fb0", text: "2", pathColor: "#074282" },
     { id: "3", name: "3 號", src: "assets/balls/3.png", color: "#d1453b", text: "3", pathColor: "#bf000d" },
     { id: "4", name: "4 號", src: "assets/balls/4.png", color: "#6a4c93", text: "4", pathColor: "#d94a66" },
@@ -73,7 +73,7 @@ window.CONFIG = {
     { id: "6", name: "6 號", src: "assets/balls/6.png", color: "#2e8b57", text: "6", pathColor: "#03774d" },
     { id: "7", name: "7 號", src: "assets/balls/7.png", color: "#8c3b2f", text: "7", pathColor: "#964117" },
     { id: "8", name: "8 號", src: "assets/balls/8.png", color: "#1a1a1a", text: "8", pathColor: "#000000" },
-    { id: "9", name: "9 號", src: "assets/balls/9.png", color: "#f2c14e", text: "9", stripe: true, pathColor: "#faba02" },
+    { id: "9", name: "9 號", src: "assets/balls/9.png", color: "#f2c14e", text: "9", stripe: true, pathColor: "#f2dc4e" },
     { id: "10", name: "10 號", src: "assets/balls/10.png", color: "#2a6fb0", text: "10", stripe: true, pathColor: "#074282" },
     { id: "11", name: "11 號", src: "assets/balls/11.png", color: "#d1453b", text: "11", stripe: true, pathColor: "#bf000d" },
     { id: "12", name: "12 號", src: "assets/balls/12.png", color: "#6a4c93", text: "12", stripe: true, pathColor: "#d94a66" },
