@@ -1691,6 +1691,20 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
+    // 球型圖：下載目前桌面（含母球打點）的高解析 PNG
+    const imgBtn = document.getElementById("exportImageBtn");
+    if (imgBtn) imgBtn.addEventListener("click", async () => {
+      imgBtn.disabled = true; const old = imgBtn.textContent; imgBtn.textContent = "產生中…";
+      try {
+        const dataUrl = await captureThumbnail(1600, "image/png");
+        if (!dataUrl) { alert("產生球型圖失敗"); return; }
+        const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
+        const a = document.createElement("a");
+        a.href = dataUrl; a.download = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".png";
+        document.body.appendChild(a); a.click(); a.remove();
+      } catch (e) { alert("產生球型圖失敗：" + e.message); }
+      finally { imgBtn.textContent = old; imgBtn.disabled = false; }
+    });
   }
 
   function deserializeState(st) {
@@ -1877,11 +1891,12 @@
       img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(str);
     });
   }
-  async function captureThumbnail() {
+  async function captureThumbnail(TW, mime, quality) {
     try {
+      TW = TW || 900; mime = mime || "image/jpeg"; quality = quality == null ? 0.72 : quality;
       const W = tableWrap.clientWidth, H = tableWrap.clientHeight;
       if (!W || !H) return null;
-      const TW = 900, scale = TW / W, TH = Math.round(H * scale); // 高解析度，顯示放大後仍清晰
+      const scale = TW / W, TH = Math.round(H * scale);
       const canvas = document.createElement("canvas");
       canvas.width = TW; canvas.height = TH;
       const ctx = canvas.getContext("2d");
@@ -1899,6 +1914,20 @@
         if (!img || !img.naturalWidth) return;
         const r = b.el.getBoundingClientRect();
         ctx.drawImage(img, (r.left - wr.left) * scale, (r.top - wr.top) * scale, r.width * scale, r.height * scale);
+      });
+      // 多顆母球的順序徽章
+      placedBalls.forEach((b) => {
+        if (b.cfg.id !== "cue" || !b.cueIndex) return;
+        const r = b.el.getBoundingClientRect();
+        const badgeR = (r.width * scale) * 0.2;
+        const cx = (r.right - wr.left) * scale - badgeR * 0.3;
+        const cy = (r.top - wr.top) * scale + badgeR * 0.3;
+        ctx.beginPath(); ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
+        ctx.fillStyle = "#1a1a1a"; ctx.fill();
+        ctx.lineWidth = Math.max(badgeR * 0.16, 1); ctx.strokeStyle = "#fff"; ctx.stroke();
+        ctx.fillStyle = "#fff"; ctx.font = "bold " + (badgeR * 1.25) + "px sans-serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(String(b.cueIndex), cx, cy);
       });
       const tgtImg = await svgToImage(document.getElementById("targetLayer"), W, H, TW, TH);
       if (tgtImg) ctx.drawImage(tgtImg, 0, 0, TW, TH);
@@ -1921,7 +1950,7 @@
           ctx.lineWidth = Math.max(rad * 0.2, 0.8); ctx.strokeStyle = "#ffffff"; ctx.stroke();
         }
       }
-      return canvas.toDataURL("image/jpeg", 0.72);
+      return canvas.toDataURL(mime, quality);
     } catch (e) { return null; }
   }
 
