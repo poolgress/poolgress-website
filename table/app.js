@@ -32,6 +32,7 @@
   const paths = [];        // 已完成的路徑：{ ball, vertices:[{fx,fy,ghost}] }（起點＝球心）
   let drawingPath = null;  // 拖曳中的路徑：{ ball, locked:[{fx,fy}], live:{fx,fy}, lastBall }
   let pathLines = null;    // SVG <g> 容器
+  let ballScale = 1;       // 桌上球整體放大倍率（「改大小」按鈕切換 1 ↔ 1.5）
 
   // 框選環直接用 pick.png 的原始尺寸對球桌的比例（同球的作法，不另乘倍率）。
   // 十字線從環外緣開始（中間不顯示）。
@@ -269,7 +270,7 @@
   function ballWidthFraction(cfg) {
     const tW = tableImg.naturalWidth || 1;
     const bW = naturalW[cfg.id] || 60;
-    return bW / tW;
+    return (bW / tW) * ballScale;
   }
   // 球直徑（px）＝該比例 × 目前球桌顯示寬
   function ballDiameterPx(cfg) {
@@ -634,6 +635,16 @@
     renderTargetLines();
     renderTargetZones();
     updateFloatingScale();
+  }
+
+  // 依目前的 ballScale 重新套用所有桌上球的尺寸（寬度與字級），並重畫路線/選取框。
+  function applyBallSizes() {
+    placedBalls.forEach((b) => {
+      b.el.style.width = ballWidthFraction(b.cfg) * 100 + "%";
+      b.el.style.fontSize = ballDiameterPx(b.cfg) * 0.4 + "px";
+    });
+    updateSelectionUI();
+    renderPaths();
   }
 
   // ---------- 初始化 ----------
@@ -1530,6 +1541,10 @@
     setLevelType("infinite");
     // 檔名欄
     const sn = document.getElementById("saveName"); if (sn) sn.value = "";
+    // 球大小倍率
+    ballScale = 1;
+    const bsb = document.getElementById("ballSizeBtn");
+    if (bsb) { bsb.classList.remove("active"); bsb.setAttribute("aria-pressed", "false"); }
     // 重繪
     renderPaths();
     renderPocketTargets();
@@ -1544,6 +1559,17 @@
     btn.addEventListener("click", () => {
       if (!confirm("確定要重置嗎？\n目前桌面上的所有球、路徑、目標與說明都會清空。\n（不影響已儲存的檔案）")) return;
       resetAll();
+    });
+  }
+
+  // 改大小：切換桌上球的整體放大倍率（1 ↔ 1.5）
+  function initBallSizeBtn() {
+    const btn = document.getElementById("ballSizeBtn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      ballScale = ballScale === 1 ? 1.5 : 1;
+      btn.setAttribute("aria-pressed", String(ballScale !== 1));
+      applyBallSizes();
     });
   }
 
@@ -2333,6 +2359,7 @@
   initRack();
   initSaveLoad();
   initResetBtn();
+  initBallSizeBtn();
   initExportBtn();
   tableWrap.addEventListener("pointerdown", onTablePointerDown);
   fitTable();
