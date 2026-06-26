@@ -678,7 +678,7 @@
     const r = tableRect();
     const s = r.width / TARGET_REF_W; // 與球桌等比例(以 1100px 基準)
     const rad = 16.5 * s;       // 圈圈半徑（放大 1.5 倍）
-    const strokeW = 7.5 * s;    // 圈圈粗度（加粗 1.5 倍）
+    const strokeW = 10 * s;     // 圈圈粗度
     while (targetPocketsG.firstChild) targetPocketsG.removeChild(targetPocketsG.firstChild);
     (CFG.POCKETS || []).forEach((p, i) => {
       const side = pocketSelected[i]; // false | "ball" | "cue"
@@ -691,7 +691,7 @@
       c.setAttribute("cy", cy);
       c.setAttribute("r", rad);
       c.setAttribute("stroke-width", strokeW);
-      if (selected) c.style.stroke = side === "cue" ? "#15803d" : "#ffbc00"; // 子=黃、母=深綠
+      if (selected) c.style.stroke = side === "cue" ? "#15803d" : "#f2dc4e"; // 子=黃、母=深綠
       if (pocketEditOn) {
         c.addEventListener("click", () => {
           pocketSelected[i] = pocketSelected[i] ? false : "ball"; // 點選預設子球
@@ -1901,7 +1901,7 @@
   const SNAPSHOT_CSS =
     ".path-line{fill:none;stroke-linecap:round;stroke-linejoin:round;}" +
     ".ghost-ball-mark{fill:rgba(255,255,255,0.14);}" +
-    ".pocket-target{fill:none;}.pocket-target.unsel{stroke:#ffffff;}.pocket-target.sel{stroke:#ffbc00;}" +
+    ".pocket-target{fill:none;}.pocket-target.unsel{stroke:#ffffff;}.pocket-target.sel{stroke:#f2dc4e;}" +
     ".target-line{fill:none;stroke:#ffffff;stroke-linecap:butt;}" +
     ".target-line-num{fill:#1a1a1a;stroke:#ffffff;paint-order:stroke;font-weight:700;text-anchor:middle;dominant-baseline:central;}" +
     ".target-zone{fill:rgba(255,255,255,0.30);stroke:rgba(255,255,255,0.85);}";

@@ -143,7 +143,7 @@ html, body {
   pointer-events: none;
 }
 .pocket-target.unsel { stroke: #ffffff; } /* 未選：白色 */
-.pocket-target.sel { stroke: #ffbc00; }   /* 已選 */
+.pocket-target.sel { stroke: #f2dc4e; }   /* 已選 */
 .pocket-target.clickable {
   pointer-events: all; /* 整個圓(含內部)都可點選 */
   cursor: pointer;
