@@ -677,8 +677,8 @@
     const NS = "http://www.w3.org/2000/svg";
     const r = tableRect();
     const s = r.width / TARGET_REF_W; // 與球桌等比例(以 1100px 基準)
-    const rad = 11 * s;         // 圈圈半徑
-    const strokeW = 5 * s;      // 圈圈粗度
+    const rad = 16.5 * s;       // 圈圈半徑（放大 1.5 倍）
+    const strokeW = 7.5 * s;    // 圈圈粗度（加粗 1.5 倍）
     while (targetPocketsG.firstChild) targetPocketsG.removeChild(targetPocketsG.firstChild);
     (CFG.POCKETS || []).forEach((p, i) => {
       const side = pocketSelected[i]; // false | "ball" | "cue"
