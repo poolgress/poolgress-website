@@ -1401,6 +1401,8 @@
   function isSubMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('子球換位置') >= 0; }
   // 重複關卡 ▸ 母球換位置：子球固定，每回合只放 第 N 顆母球＋（全部）子球（母球依回合輪替）
   function isCueMove() { return levelVariant === 'repeat' && optionOf(curText).indexOf('母球換位置') >= 0; }
+  // 純子球（＿位置固定／要照順序）：只有子球、沒有母球，6.3 放球與球桌都不含母球
+  function isPureSub() { return optionOf(curText).indexOf('純子球') >= 0; }
   let cueIdx = 1, cueTotal = 1;   // 母球換位置：目前母球號／母球總數
   // 8做9：一回合打兩顆球（第一顆＝子1／8，成功後第二顆＝子9（子2）），失敗則跳過第二顆
   function is89() { return levelVariant === 'repeat' && optionOf(curText).indexOf('8做9') >= 0; }
@@ -1498,6 +1500,10 @@
   // 本回合需要就位的球（球型關卡：母球 + 剩餘子球；其他：全部）
   function currentBalls() {
     if (is89()) return phase89 === 2 ? playBalls.filter(b => b.id === 'obj-' + secondNum89()) : playBalls;   // 第二顆只放 子9（號數較大者）；第一顆放全部
+    if (isPureSub()) {   // 純子球：不含母球
+      if (isBallMode()) return playBalls.filter(b => b.id !== 'cue' && currentObjIds.indexOf(b.id) >= 0);
+      return playBalls.filter(b => b.id !== 'cue');
+    }
     if (isCueMove()) return playBalls;   // 母球換位置：母球（單一按鈕，標示母球N）＋ 全部固定子球
     if (!isBallMode() && !isSubMove()) return playBalls;
     return playBalls.filter(b => b.id === 'cue' || currentObjIds.indexOf(b.id) >= 0);
@@ -1510,7 +1516,7 @@
   }
   // renderPositions 的 cueShow 參數：8做9 第二顆球＝-1（不顯示母球）；母球換位置＝目前母球號；其他＝null（單一母球）
   function cueShowArg() {
-    if (is89() && phase89 === 2) return -1;
+    if ((is89() && phase89 === 2) || isPureSub()) return -1;   // 8做9 第二顆／純子球：球桌不顯示母球
     return isCueMove() ? cueIdx : null;
   }
   // 子球換位置：設定第 N 回合 → 只放 母球＋子N，並更新 6.1 標示與按鈕
