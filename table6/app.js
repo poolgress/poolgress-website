@@ -337,6 +337,13 @@
 
     el.addEventListener("pointerdown", (e) => onBallPointerDown(b, e));
     el.addEventListener("dblclick", () => removeBall(b));
+    // 母球：右鍵切換編號在右／左（預設右）
+    el.addEventListener("contextmenu", (e) => {
+      if (b.cfg.id !== "cue") return;
+      e.preventDefault();
+      b.numSide = b.numSide === "left" ? "right" : "left";
+      updateCueNumbers();
+    });
 
     overlay.appendChild(el);
     placedBalls.push(b);
@@ -367,6 +374,7 @@
       b.cueIndex = i + 1;
       if (!badge) { badge = document.createElement("div"); badge.className = "cue-num"; b.el.appendChild(badge); }
       badge.textContent = String(i + 1);
+      badge.classList.toggle("left", b.numSide === "left"); // 預設右；left 時切左邊
     });
   }
 
@@ -471,6 +479,7 @@
 
   // ---------- 拖曳：移動桌上既有的球 ----------
   function onBallPointerDown(b, e) {
+    if (e.button !== 0) return; // 只左鍵拖曳；右鍵留給 contextmenu（母球編號切邊）
     e.preventDefault();
     e.stopPropagation(); // 不要冒泡到球桌的「點空白處取消選取」
     selectBall(b);
@@ -2042,16 +2051,20 @@
         const r = b.el.getBoundingClientRect();
         ctx.drawImage(img, (r.left - wr.left) * scale, (r.top - wr.top) * scale, r.width * scale, r.height * scale);
       });
-      // 多顆母球的順序徽章：置中、黑字、無圓底、放大 5 倍（與桌面 .cue-num 一致）
+      // 多顆母球的順序徽章：黑字、無圓底、放大 5 倍、預設右邊（右鍵可切左），與桌面 .cue-num 一致
       placedBalls.forEach((b) => {
         if (b.cfg.id !== "cue" || !b.cueIndex) return;
         const r = b.el.getBoundingClientRect();
-        const cx = (r.left + r.width / 2 - wr.left) * scale;
         const cy = (r.top + r.height / 2 - wr.top) * scale;
-        // 原字級＝球寬×0.25，放大 5 倍
-        ctx.fillStyle = "#000"; ctx.font = "bold " + (r.width * scale * 0.25 * 5) + "px sans-serif";
-        ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(String(b.cueIndex), cx, cy);
+        const fontPx = r.width * scale * 0.25 * 5; // 原字級＝球寬×0.25，放大 5 倍
+        ctx.fillStyle = "#000"; ctx.font = "bold " + fontPx + "px sans-serif"; ctx.textBaseline = "middle";
+        if (b.numSide === "left") {
+          ctx.textAlign = "right";
+          ctx.fillText(String(b.cueIndex), (r.left - wr.left) * scale - fontPx * 0.1, cy);
+        } else {
+          ctx.textAlign = "left";
+          ctx.fillText(String(b.cueIndex), (r.right - wr.left) * scale + fontPx * 0.1, cy);
+        }
       });
       const tgtImg = await svgToImage(document.getElementById("targetLayer"), W, H, TW, TH);
       if (tgtImg) ctx.drawImage(tgtImg, 0, 0, TW, TH);

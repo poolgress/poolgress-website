@@ -660,8 +660,8 @@ html, body {
 .cue-num {
   position: absolute;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  left: 100%;                /* 預設：母球右邊 */
+  transform: translate(0.1em, -50%);
   color: #000;               /* 黑色字 */
   font-size: 4.5em;          /* 原 0.9em 放大 5 倍 */
   font-weight: 700;
@@ -669,6 +669,11 @@ html, body {
   white-space: nowrap;
   pointer-events: none;
   z-index: 2;
+}
+.cue-num.left {              /* 右鍵切換：母球左邊 */
+  left: auto;
+  right: 100%;
+  transform: translate(-0.1em, -50%);
 }
 
 /* 暫代球（僅在圖檔載入失敗時用）：純色塊 + 號碼，無特效 */
