@@ -84,14 +84,19 @@ window.GameRender = (function () {
 
     // 參考路線（vertices[0]＝球心起點；ghost 頂點畫空心圈）。
     // 顏色依所屬球別（沿用編輯器視覺語言：母球白、子球黃）——SVG 無預設 stroke，必須明確指定。
+    // 母球的路線包進帶 data-cueindex 的群組：母球換位關卡逐輪只顯示本輪母球的路線。
     (lv.paths || []).forEach((pa) => {
       const owner = (lv.balls || [])[pa.ball];
-      const stroke = owner && owner.id === "cue" ? "#ffffff" : "#f2dc4e";
+      const isCue = owner && owner.id === "cue";
+      const stroke = isCue ? "#ffffff" : "#f2dc4e";
+      const grp = svgEl("g", {});
+      if (isCue) grp.dataset.cueindex = String(owner.cueIndex || 1);
       const pts = pa.vertices.map((v) => px(v.x, v.y));
-      gPaths.appendChild(svgEl("polyline", { points: pts.map((p) => p.x + "," + p.y).join(" "), stroke: stroke }, "path-line"));
+      grp.appendChild(svgEl("polyline", { points: pts.map((p) => p.x + "," + p.y).join(" "), stroke: stroke }, "path-line"));
       pa.vertices.forEach((v, i) => {
-        if (v.ghost) { const p = pts[i]; gPaths.appendChild(svgEl("circle", { cx: p.x, cy: p.y, r: r, stroke: stroke }, "ghost-mark path-line")); }
+        if (v.ghost) { const p = pts[i]; grp.appendChild(svgEl("circle", { cx: p.x, cy: p.y, r: r, stroke: stroke }, "ghost-mark path-line")); }
       });
+      gPaths.appendChild(grp);
     });
 
     // 擺球虛線圈（母球圈帶 data-cueindex，供換位關卡逐次顯示）
@@ -159,9 +164,12 @@ window.GameRender = (function () {
     show("gPlace", placingLike);
     show("gPaths", placingLike);       // 結果顯示時隱藏無關標記（母規格 §4.2 RESULT）
     show("gTargets", true);
-    // 母球換位：只顯示本次作用的母球圈
+    // 母球換位：只顯示本次作用的母球圈與其路線（其他母球和對應路線不出現）
     document.querySelectorAll("#gPlace .place-cue").forEach((c) => {
       c.style.display = (placingLike && Number(c.dataset.cueindex) === state.cueSlot) ? "" : "none";
+    });
+    document.querySelectorAll("#gPaths g[data-cueindex]").forEach((g) => {
+      g.style.display = Number(g.dataset.cueindex) === state.cueSlot ? "" : "none";
     });
     // 狀態列
     const bar = document.getElementById("statusBar");
