@@ -1616,8 +1616,8 @@
     const subList = LEVEL_SUBOPTS[lvType] || [];
     const optIdx = parseInt(val("noteLevelOpt") || "0", 10);
     if (subList[optIdx]) out.push("關卡選項：" + subList[optIdx]);
-    if (lvType !== "infinite") out.push("過關條件：" + (val("noteCondPass") || "?") + " / " + (val("noteCondTotal") || "?") + " 分");
-    out.push("星星獎勵：一顆星 " + (val("noteStar1") || "—") + " 分、兩顆星 " + (val("noteStar2") || "—") + " 分、三顆星 " + (val("noteStar3") || "—") + " 分");
+    if (lvType !== "infinite") out.push("過關條件：成功 " + (val("noteCondPass") || "?") + " / 共 " + (val("noteCondTotal") || "?") + " 次");
+    out.push("星星獎勵：一顆星 成功" + (val("noteStar1") || "—") + " 次、兩顆星 成功" + (val("noteStar2") || "—") + " 次、三顆星 成功" + (val("noteStar3") || "—") + " 次");
 
     // 關卡要求（依模板）
     const tmpl = currentReqTemplate();
