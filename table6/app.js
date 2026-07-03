@@ -2154,6 +2154,13 @@
     });
     return res.json();
   }
+  async function cloudRenameFolder(folderId, newName) {
+    await driveApi("drive/v3/files/" + folderId + "?fields=id,name", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName }),
+    });
+  }
   async function cloudDeleteFolder(folderId) {
     // 先把資料夾內檔案搬回未分類（root），再刪掉資料夾
     const root = await ensureFolder();
@@ -2259,8 +2266,21 @@
       chip.className = "cloud-folder-chip" + (Cloud.currentFolderId === id ? " active" : "");
       chip.textContent = label;
       chip.addEventListener("click", () => { Cloud.currentFolderId = id; refreshCloudList(); });
-      // 非「未分類」可刪除
+      // 非「未分類」可改名、可刪除
       if (id) {
+        const ed = document.createElement("span");
+        ed.className = "cloud-folder-edit"; ed.textContent = "✎"; ed.title = "修改資料夾名稱";
+        ed.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const newName = (prompt("修改資料夾名稱：", label) || "").trim();
+          if (!newName || newName === label) return;
+          try {
+            await cloudRenameFolder(id, newName);
+            await cloudListFolders();
+            renderCloudFolders();
+          } catch (err) { alert("改名失敗：" + err.message); }
+        });
+        chip.appendChild(ed);
         const x = document.createElement("span");
         x.className = "cloud-folder-x"; x.textContent = "×"; x.title = "刪除資料夾（內含檔案會移回未分類）";
         x.addEventListener("click", async (e) => {

@@ -516,6 +516,8 @@ html, body {
 .cloud-folder-chip.active { background: #ffbc00; color: #1a1a1a; border-color: #ffbc00; font-weight: 600; }
 .cloud-folder-x { font-weight: 700; opacity: 0.55; }
 .cloud-folder-x:hover { opacity: 1; }
+.cloud-folder-edit { font-weight: 700; opacity: 0.55; margin-left: 4px; }
+.cloud-folder-edit:hover { opacity: 1; }
 .cloud-folder-add {
   appearance: none; border: 1px dashed var(--panel-border); background: transparent; color: var(--muted);
   font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
