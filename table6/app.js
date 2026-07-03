@@ -2036,6 +2036,8 @@
       const canvas = document.createElement("canvas");
       canvas.width = TW; canvas.height = TH;
       const ctx = canvas.getContext("2d");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high"; // 縮放用高品質濾波，避免球等圖片邊緣鋸齒
       ctx.fillStyle = "#0e0f12"; ctx.fillRect(0, 0, TW, TH);
       if (layerVisible(tableImg)) ctx.drawImage(tableImg, 0, 0, TW, TH);
       const gridImg = document.getElementById("gridImg");
