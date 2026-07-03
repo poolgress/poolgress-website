@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Poolgress球型</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="layout">
+    <!-- 球桌區 -->
+    <section class="table-area">
+      <div class="table-wrap" id="tableWrap">
+        <img class="table-img" id="tableImg" alt="撞球桌" />
+        <!-- 格線層（透明 PNG，疊在球桌上、球之下）-->
+        <img class="grid-img" id="gridImg" alt="" />
+        <!-- 庫邊層（透明 PNG，永遠顯示，疊在格線之上、球之下）-->
+        <img class="cushion-img" id="cushionImg" alt="" />
+        <!-- 路徑層（虛線 + 箭頭，疊在球之下）-->
+        <svg class="path-layer" id="pathLayer">
+          <defs>
+            <marker id="pathArrow" markerWidth="5.4" markerHeight="5.4" refX="4.2" refY="2.7" orient="auto" markerUnits="strokeWidth">
+              <path d="M0.4,0.5 L4.2,2.7 L0.4,4.9" fill="none" stroke="context-stroke" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round"></path>
+            </marker>
+          </defs>
+          <g id="pathLines"></g>
+        </svg>
+        <!-- 放置的球都掛在這層 -->
+        <div class="balls-overlay" id="ballsOverlay"></div>
+        <!-- 目標層（袋口/線段/區塊圈選），疊在最上層 -->
+        <svg class="target-layer" id="targetLayer">
+          <g id="targetZones"></g>
+          <g id="targetLines"></g>
+          <g id="targetPockets"></g>
+        </svg>
+      </div>
+      <!-- 球庫：橫式，從左排到右，固定在球桌下方 -->
+      <div class="rack" id="rack">
+        <div class="rack-items" id="rackItems"></div>
+      </div>
+      <!-- 球桌下方控制列 -->
+      <div class="table-controls">
+        <button type="button" id="gridToggle" class="ctrl-btn" aria-pressed="false">格線</button>
+        <button type="button" id="snapToggle" class="ctrl-btn" aria-pressed="false">吸附格線</button>
+        <button type="button" id="pathToggle" class="ctrl-btn" aria-pressed="false">路線</button>
+        <button type="button" id="cueBtn" class="ctrl-btn" aria-pressed="false">母球打點</button>
+        <button type="button" id="noteBtn" class="ctrl-btn" aria-pressed="false">說明</button>
+        <button type="button" id="pocketTargetBtn" class="ctrl-btn" aria-pressed="false">袋口</button>
+        <button type="button" id="lineTargetBtn" class="ctrl-btn" aria-pressed="false">線段</button>
+        <button type="button" id="zoneTargetBtn" class="ctrl-btn" aria-pressed="false">區塊</button>
+        <button type="button" id="ballSizeBtn" class="ctrl-btn" aria-pressed="false">改大小</button>
+        <button type="button" id="saveLoadBtn" class="ctrl-btn">存檔 / 讀取</button>
+        <button type="button" id="exportBtn" class="ctrl-btn">輸出</button>
+        <button type="button" id="resetBtn" class="ctrl-btn">重置</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 存檔 / 讀取 視窗 -->
+  <div class="save-modal" id="saveModal" hidden>
+    <div class="save-panel">
+      <div class="save-title">存檔 / 讀取</div>
+      <div class="save-row">
+        <input type="text" id="saveName" class="save-name" placeholder="輸入檔名…" />
+      </div>
+
+      <!-- 分頁：本機 / 雲端 -->
+      <div class="save-tabs">
+        <button type="button" id="tabLocal" class="save-tab active">本機</button>
+        <button type="button" id="tabCloud" class="save-tab">雲端硬碟 ☁</button>
+      </div>
+
+      <!-- 本機存檔 -->
+      <div class="save-pane" id="panelLocal">
+        <div class="save-row">
+          <button type="button" id="saveDoBtn" class="ctrl-btn">儲存到本機</button>
+        </div>
+        <div class="save-list" id="saveList"></div>
+      </div>
+
+      <!-- 雲端存檔（Google 雲端硬碟） -->
+      <div class="save-pane" id="panelCloud" hidden>
+        <div class="cloud-bar">
+          <span id="cloudStatus" class="cloud-status">尚未登入</span>
+          <button type="button" id="cloudAuthBtn" class="ctrl-btn">登入 Google</button>
+        </div>
+        <!-- 資料夾分類列 -->
+        <div class="cloud-folders" id="cloudFolders"></div>
+        <!-- 縮圖卡片格 -->
+        <div class="cloud-grid" id="cloudList"></div>
+        <!-- 儲存鈕：固定在視窗右下角 -->
+        <div class="cloud-save-row">
+          <button type="button" id="cloudSaveBtn" class="ctrl-btn" disabled>儲存到雲端</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 輸出文字 視窗 -->
+  <div class="save-modal" id="exportModal" hidden>
+    <div class="save-panel">
+      <div class="save-title">可能需要的資訊！</div>
+      <div class="save-tabs">
+        <button type="button" id="expTabInfo" class="save-tab active">資訊</button>
+        <button type="button" id="expTabJson" class="save-tab">JSON</button>
+      </div>
+      <div class="export-errors" id="exportErrors" hidden></div>
+      <textarea id="exportText" class="export-text" readonly></textarea>
+      <div class="save-row export-actions">
+        <button type="button" id="exportCopyBtn" class="ctrl-btn">複製</button>
+        <button type="button" id="exportDownloadBtn" class="ctrl-btn">下載</button>
+        <button type="button" id="exportImageBtn" class="ctrl-btn">球型圖</button>
+        <button type="button" id="exportCloseBtn" class="ctrl-btn save-close">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 說明：可記錄文字的白色圓角方塊（寬固定 400pt，高度隨文字增減）-->
+  <div class="note-box" id="noteBox" hidden>
+    <div class="note-name-row">
+      <span class="note-cond-label">關卡名稱：</span>
+      <input type="text" class="note-name-input" id="noteLevelName" maxlength="60" />
+    </div>
+    <div class="note-header" id="noteHeader">關卡說明：</div>
+    <textarea class="note-input" id="noteInput" rows="1" maxlength="500" placeholder="在這裡輸入說明文字…"></textarea>
+    <div class="note-cond-row note-cond-row2">
+      <span class="note-cond-label">過關條件：</span>
+      <span class="note-cond-infinite" id="noteCondInfinite">無限</span>
+      <span class="note-cond-stage" id="noteCondStage">
+        <input type="number" class="note-cond-num" id="noteCondPass" min="0" />
+        <span class="note-cond-sep">/</span>
+        <input type="number" class="note-cond-num" id="noteCondTotal" min="0" />
+        <span class="note-cond-unit">分</span>
+      </span>
+    </div>
+    <!-- 星星獎勵 -->
+    <div class="note-star-row">
+      <span class="note-cond-label">星星獎勵：</span>
+      <span class="note-star-item">一顆星：<input type="number" class="note-star-num" id="noteStar1" min="0" />分，</span>
+      <span class="note-star-item">兩顆星：<input type="number" class="note-star-num" id="noteStar2" min="0" />分，</span>
+      <span class="note-star-item">三顆星：<input type="number" class="note-star-num" id="noteStar3" min="0" />分</span>
+    </div>
+    <!-- 關卡種類 + 關卡選項（移到星星獎勵下方）-->
+    <div class="note-cond-row">
+      <span class="note-cond-label">關卡種類：</span>
+      <span class="note-type" id="noteType">
+        <button type="button" class="note-type-btn" id="noteTypeBtn">
+          <span class="note-type-label">無限關卡</span><span class="note-type-arrow">▾</span>
+        </button>
+        <input type="hidden" id="noteLevelType" value="infinite" />
+        <div class="note-type-list" id="noteTypeList" hidden>
+          <div class="note-type-opt" data-value="repeat">重複關卡</div>
+          <div class="note-type-opt" data-value="pattern">球型關卡</div>
+          <div class="note-type-opt" data-value="infinite">無限關卡</div>
+        </div>
+      </span>
+      <span class="note-opt-group">
+        <span class="note-cond-label note-opt-gap">關卡選項：</span>
+        <span class="note-type" id="noteOptType">
+          <button type="button" class="note-type-btn" id="noteOptBtn">
+            <span class="note-type-label" id="noteOptLabel"></span><span class="note-type-arrow">▾</span>
+          </button>
+          <input type="hidden" id="noteLevelOpt" value="0" />
+          <div class="note-type-list" id="noteOptList" hidden></div>
+        </span>
+      </span>
+    </div>
+    <!-- 關卡要求（選項由 app.js 動態產生）-->
+    <div class="note-reqs" id="noteReqs" hidden>
+      <div class="note-reqs-title">關卡要求：</div>
+      <div class="note-reqs-general" id="noteReqsGeneral"></div>
+      <div id="noteReqsSelects"></div>
+      <div id="noteReqsExtra">
+        <div class="note-reqs-subtitle">額外提醒：</div>
+        <div class="note-req"><span class="note-req-opts" id="reqExtra3"></span></div>
+        <div class="note-req" id="reqExtra2Row"><span class="note-req-opts" id="reqExtra2"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 母球打點：可拖曳的浮動母球面，上面有可拖曳的打點 -->
+  <div class="cueball-widget" id="cueballWidget" hidden>
+    <img class="cueball-img" id="cueballImg" alt="母球打點" draggable="false" />
+    <div class="strike-point" id="strikePoint"></div>
+  </div>
+
+  <!-- Google 登入元件（用於雲端硬碟存檔） -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="config.js"></script>
+  <script src="level-schema.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,774 @@
+:root {
+  --bg: #1e2024;
+  --panel: #2a2d33;
+  --panel-border: #3a3e46;
+  --text: #e8e6e1;
+  --muted: #9aa0a8;
+  --accent: #4cae7a;
+  /* 暫代球桌（沒有圖檔時）的顏色 */
+  --felt: #1f7a4d;
+  --felt-edge: #155c3a;
+  --rail: #5a3a22;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+.app-header {
+  padding: 14px 20px 6px;
+}
+.app-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+.app-header .hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.layout {
+  display: flex;
+  gap: 16px;
+  padding: 12px 20px 20px;
+  height: 100%;
+  align-items: stretch;
+}
+
+/* ---------- 球桌區 ---------- */
+.table-area {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* 球桌下方控制列 */
+.table-controls {
+  display: flex;
+  gap: calc(10px * var(--ui-scale, 1));
+  align-items: center;
+  justify-content: center;
+}
+/* 下方按鈕：文字與內距隨球桌比例縮放（不影響存檔視窗內的按鈕）。基準 1.2 × 1.05。 */
+.table-controls .ctrl-btn {
+  font-size: calc(15.3px * var(--ui-scale, 1)); /* 17.3 − 2 */
+  padding: calc(10.08px * var(--ui-scale, 1)) calc(20.16px * var(--ui-scale, 1)); /* 8/16 × 1.2 × 1.05 */
+  border-radius: calc(10.08px * var(--ui-scale, 1)); /* 8 × 1.2 × 1.05 */
+  white-space: nowrap; /* 文字永不折行，空間不足時隨球桌一起縮小 */
+  flex-shrink: 0;      /* 按鈕不被擠壓，避免文字被壓到折行 */
+}
+.ctrl-btn {
+  appearance: none;
+  border: 1px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ctrl-btn:hover {
+  background: #34383f;
+}
+.ctrl-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #11241a;
+  font-weight: 600;
+}
+
+/* 球桌容器：維持比例、隨可用空間縮放。預設用標準球桌 2:1 比例。 */
+.table-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  aspect-ratio: 11784 / 6534; /* 對齊 table.png 實際比例，避免拉伸變形 */
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  user-select: none;
+  touch-action: none; /* 讓 Pointer 事件主導，避免捲動干擾拖曳 */
+}
+
+.table-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  border-radius: 10px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 格線層：透明 PNG，疊在球桌圖上、球之下 */
+.grid-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  border-radius: 10px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  display: none; /* 預設關閉，由按鈕切換 */
+}
+
+/* 目標層：SVG，疊在最上層；袋口圈選等 */
+.target-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* 個別圈圈在編輯時才可點 */
+  overflow: visible;
+}
+.pocket-target {
+  fill: none;
+  /* 半徑與粗度由 JS 依球桌比例設定 */
+  pointer-events: none;
+}
+.pocket-target.unsel { stroke: #ffffff; } /* 未選：白色 */
+.pocket-target.sel { stroke: #f2dc4e; }   /* 已選 */
+.pocket-target.clickable {
+  pointer-events: all; /* 整個圓(含內部)都可點選 */
+  cursor: pointer;
+}
+.target-line {
+  fill: none;
+  stroke: #ffffff;        /* 全部白色 */
+  stroke-linecap: butt;   /* 兩端改平；粗度由 JS 依球桌比例設定 */
+  pointer-events: none;
+}
+/* 線段編號（從 1 起）；字級與描邊由 JS 依球桌比例設定 */
+.target-line-num {
+  fill: #1a1a1a;
+  stroke: #ffffff;
+  paint-order: stroke;    /* 白邊在底、黑字在上 → 在白線/felt 上都可讀 */
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+/* 目標線段編輯模式時，線段可點（雙擊刪除） */
+.target-layer.line-edit .target-line {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+/* 目標區塊：白色半透明方塊 */
+.target-zone {
+  fill: rgba(255, 255, 255, 0.30);
+  stroke: rgba(255, 255, 255, 0.85);
+  /* 邊框粗度由 JS 依球桌比例設定 */
+  pointer-events: none;
+}
+.target-layer.zone-edit .target-zone {
+  pointer-events: all; /* 編輯時整塊可點（雙擊刪除） */
+  cursor: pointer;
+}
+
+/* 路徑層：SVG，疊在球桌之上、球之下；虛線 + 末端箭頭 */
+.path-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.path-line {
+  /* stroke、stroke-width、stroke-dasharray 都由 JS 依球桌比例以屬性設定
+     （這樣粗細與虛線間距永遠相對球桌固定，不隨視窗大小改變） */
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* 假想球（轉彎點）：球大小的圓圈，stroke / stroke-width 由 JS 依比例設定 */
+.ghost-ball-mark {
+  fill: rgba(255, 255, 255, 0.14);
+}
+
+/* 庫邊層：透明 PNG，永遠疊在球桌（含格線）之上、球之下 */
+.cushion-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  border-radius: 10px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 沒有球桌圖檔時，用 CSS 畫一張暫代球桌 */
+.table-wrap.placeholder {
+  background:
+    linear-gradient(var(--felt), var(--felt));
+  border: 14px solid var(--rail);
+}
+.table-wrap.placeholder::before {
+  /* 檯面內框，視覺上呈現可放置區 */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 3px var(--felt-edge);
+  pointer-events: none;
+}
+
+/* 放置球的疊層 */
+.balls-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* 容器不攔截，只有球本身可互動 */
+}
+
+/* ---------- 說明：白色圓角文字方塊（寬固定 400pt，高度隨文字） ---------- */
+.note-box {
+  position: fixed;
+  left: 30px;
+  top: 330px;
+  width: 540px; /* 固定寬度 */
+  background: #ffffff;
+  color: #1a1a1a;
+  border-radius: 12px; /* 四周倒圓角 */
+  padding: 12px 16px;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+.note-box[hidden] { display: none; }
+.note-header {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 6px;
+  cursor: grab; /* 拖標題列＝移動方塊 */
+  user-select: none;
+}
+.note-header:active { cursor: grabbing; }
+.note-input {
+  display: block;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden; /* 不顯示捲軸，靠自動長高 */
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+/* 關卡名稱：最上方一列 */
+.note-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  cursor: grab; /* 空白處可拖曳移動視窗 */
+}
+.note-name-row:active { cursor: grabbing; }
+.note-name-input {
+  flex: 0 0 auto;
+  width: 180px;              /* 底線長度（先前 90px 的 2 倍）*/
+  border: none;
+  border-bottom: 1px solid #cfcfcf;
+  outline: none;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  padding: 2px 2px;
+}
+/* 關卡種類：自訂下拉（彈出選單跟著視窗縮放、與按鈕同寬） */
+.note-type { position: relative; display: inline-block; }
+.note-type-btn {
+  font: inherit;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 6px;
+  padding: 2px 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.note-type-arrow { font-size: 10px; line-height: 1; }
+.note-type-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+  z-index: 10;
+  background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  min-width: 100%;          /* 選單視窗 ≥ 按鈕寬度 → 跟選單一樣寬 */
+  box-sizing: border-box;
+}
+.note-type-list[hidden] { display: none; }
+.note-type-opt {
+  font-size: 14px;
+  color: #1a1a1a;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.note-type-opt:hover { background: #ffe9a8; }
+.note-cond-gap { margin-left: 16px; } /* 過關條件左邊加空格 */
+.note-opt-gap { margin-left: 10px; }  /* 關卡選項左邊加空格 */
+.note-opt-group { display: inline-flex; align-items: center; gap: 6px; } /* 標籤+下拉成一組，換行時一起 */
+.note-cond-row2 { margin-top: 12px; } /* 過關條件獨立一行 */
+.note-cond-infinite { font-size: 14px; font-weight: 400; color: #1a1a1a; }
+.note-cond-stage { display: inline-flex; align-items: center; gap: 6px; }
+/* 星星獎勵 */
+.note-star-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  margin-top: 10px;
+}
+.note-star-item { font-size: 14px; color: #1a1a1a; white-space: nowrap; }
+.note-star-num {
+  width: 26px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #cfcfcf;
+  outline: none;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  padding: 1px 2px;
+  margin: 0 1px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.note-star-num::-webkit-inner-spin-button,
+.note-star-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* 關卡要求（重複關卡） */
+.note-reqs { margin-top: 14px; display: flex; flex-direction: column; gap: 5px; }
+.note-reqs[hidden] { display: none; }
+.note-reqs-title { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+.note-reqs-general { font-size: 14px; color: #1a1a1a; }
+.note-reqs-subtitle { font-weight: 700; font-size: 15px; color: #1a1a1a; margin-top: 4px; }
+.note-req { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.note-req[hidden], #noteReqsExtra[hidden] { display: none; } /* 蓋過 .note-req 的 display:flex */
+.note-req-label { font-weight: 700; font-size: 15px; color: #1a1a1a; }
+.note-req-opts { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.note-req-opt { display: inline-flex; align-items: center; gap: 3px; font-size: 14px; color: #1a1a1a; cursor: pointer; }
+.note-req-opt input { margin: 0; cursor: pointer; accent-color: #ffbc00; }
+/* 過關條件：空一行後一列 → 種類選單 + 標題 + 條件 */
+.note-cond-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px; /* 與上方說明區空一行 */
+}
+.note-cond-label {
+  font-weight: 700;
+  font-size: 15px;
+  user-select: none;
+}
+.note-cond-num {
+  width: 23px;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #cfcfcf;
+  outline: none;
+  background: transparent;
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  padding: 2px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.note-cond-num::-webkit-inner-spin-button,
+.note-cond-num::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.note-cond-sep,
+.note-cond-unit {
+  font-size: 14px;
+  color: #1a1a1a;
+  user-select: none;
+}
+
+/* ---------- 存檔 / 讀取 視窗 ---------- */
+.save-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.save-modal[hidden] { display: none; }
+.save-panel {
+  width: 860px;
+  max-width: 92vw;
+  max-height: 88vh;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden; /* 內容不溢出視窗 */
+}
+.save-title { font-size: 16px; font-weight: 600; color: var(--text); }
+.save-row { display: flex; gap: 8px; }
+.save-name {
+  flex: 1;
+  border: 1px solid var(--panel-border);
+  background: #1e2024;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+.save-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 46vh;
+}
+.save-empty { color: var(--muted); font-size: 13px; padding: 8px 2px; }
+.save-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2f333a;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.save-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.save-item-name { color: var(--text); font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.save-item-time { color: var(--muted); font-size: 11px; }
+.save-item .ctrl-btn { padding: 5px 10px; font-size: 13px; }
+.save-close { align-self: flex-end; }
+
+/* 存檔視窗：本機 / 雲端分頁 */
+.save-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--panel-border); }
+.save-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.save-tab:hover { color: var(--text); }
+.save-tab.active { color: var(--text); border-bottom-color: #ffbc00; font-weight: 600; }
+.save-pane { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; }
+.save-pane[hidden] { display: none; }
+.cloud-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cloud-status { color: var(--muted); font-size: 13px; margin-right: auto; }
+
+/* 雲端：資料夾分類列 */
+.cloud-folders { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.cloud-folder-chip {
+  appearance: none; border: 1px solid var(--panel-border); background: #2f333a; color: var(--text);
+  font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.cloud-folder-chip:hover { background: #3a3f47; }
+.cloud-folder-chip.active { background: #ffbc00; color: #1a1a1a; border-color: #ffbc00; font-weight: 600; }
+.cloud-folder-x { font-weight: 700; opacity: 0.55; }
+.cloud-folder-x:hover { opacity: 1; }
+.cloud-folder-add {
+  appearance: none; border: 1px dashed var(--panel-border); background: transparent; color: var(--muted);
+  font: inherit; font-size: 13px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+}
+.cloud-folder-add:hover { color: var(--text); border-color: var(--text); }
+
+/* 雲端：縮圖卡片格 */
+.cloud-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 12px;
+  overflow-y: auto; flex: 1 1 auto; min-height: 0; align-content: start;
+}
+.cloud-grid .save-empty { grid-column: 1 / -1; }
+.cloud-card { background: #2f333a; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.cloud-thumb {
+  position: relative; width: 100%; aspect-ratio: 11784 / 6534; background: #0e0f12;
+  border-radius: 6px; overflow: hidden; cursor: pointer;
+}
+.cloud-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cloud-thumb.no-thumb::after {
+  content: "無預覽"; position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: var(--muted); font-size: 12px;
+}
+.cloud-card-name { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cloud-card-time { font-size: 11px; color: var(--muted); }
+.cloud-card-actions { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.cloud-card-actions .ctrl-btn { padding: 4px 8px; font-size: 12px; }
+.cloud-move {
+  font: inherit; font-size: 12px; padding: 4px 6px; border-radius: 6px;
+  background: #1e2024; color: var(--text); border: 1px solid var(--panel-border); max-width: 90px;
+}
+/* 雲端：儲存鈕固定在視窗右下角 */
+.cloud-save-row { display: flex; justify-content: flex-end; margin-top: 2px; flex: 0 0 auto; }
+
+/* 輸出文字視窗 */
+.export-text {
+  width: 100%;
+  min-height: 320px;
+  max-height: 60vh;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid var(--panel-border);
+  background: #1e2024;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre;
+  overflow: auto;
+}
+.export-actions { justify-content: flex-end; }
+
+/* ---------- 母球打點：浮動可拖曳母球面 + 打點 ---------- */
+.cueball-widget {
+  position: fixed;
+  left: 30px;
+  top: 150px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  z-index: 1000;
+  cursor: grab; /* 拖球面＝移動整個母球 */
+  touch-action: none;
+  user-select: none;
+}
+.cueball-widget[hidden] { display: none; }
+.cueball-widget.dragging { cursor: grabbing; }
+.cueball-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.strike-point {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: rgba(40, 120, 230, 0.92);
+  border: 3px solid #fff;
+  transform: translate(-50%, -50%);
+  cursor: grab; /* 拖點＝移動打點 */
+  touch-action: none;
+}
+
+/* ---------- 選取：對準十字線(4 段, 4pt) + 框選環(pick.png) ---------- */
+.cross-seg {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  display: none;
+}
+.cross-seg.h {
+  height: 1.5pt;
+  transform: translateY(-50%);
+}
+.cross-seg.v {
+  width: 1.5pt;
+  transform: translateX(-50%);
+}
+.sel-ring {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: none;
+  z-index: 20; /* 疊在球之上，環住選取的球 */
+}
+.sel-ring img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- 桌上的球 ---------- */
+.ball {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.ball.dragging {
+  cursor: grabbing;
+  z-index: 10;
+}
+.ball img {
+  display: block; /* 去掉 inline 圖片底部的行框空隙，讓球框與圖等高(正方) */
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+/* 多顆母球時的順序數字徽章（標在母球右上角旁邊） */
+.cue-num {
+  position: absolute;
+  top: -0.3em;
+  right: -0.3em;
+  min-width: 1em;
+  height: 1em;
+  padding: 0 0.15em;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #1a1a1a;
+  color: #fff;
+  border: 0.08em solid #fff;
+  font-size: 0.9em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 暫代球（僅在圖檔載入失敗時用）：純色塊 + 號碼，無特效 */
+.ball-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ball-color, #888);
+}
+.ball-fallback.stripe {
+  background:
+    linear-gradient(var(--ball-color, #888) 0 0) no-repeat center / 100% 56%,
+    #f7f4ec;
+}
+.ball-fallback.stripe .num-badge {
+  background: #fff;
+  color: #1a1a1a;
+  border-radius: 50%;
+  width: 52%;
+  height: 52%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: none;
+}
+
+/* ---------- 球庫面板 ---------- */
+/* 球庫：橫式，固定在球桌正下方，寬度對齊球桌並隨之等比縮放 */
+.rack {
+  width: 100%;
+  max-width: 1100px;          /* 與 .table-wrap 同寬 */
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 9.5px;       /* 10 × 0.95 */
+  padding: 0.665% 0.95%;      /* 0.7%/1% × 0.95，隨球桌寬度等比縮放 */
+  box-sizing: border-box;
+}
+.rack-items {
+  display: flex;
+  flex-direction: row;        /* 橫式：從左排到右 */
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.rack-item {
+  position: relative;
+  width: 4.845%;              /* 16 顆均分整列，隨球桌寬度等比縮放（5.1 × 0.95）*/
+  aspect-ratio: 1 / 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.rack-item:active { cursor: grabbing; }
+.rack-item img,
+.rack-item .ball-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.rack-item .label {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- 拖曳時跟隨游標的幽靈球（無陰影/特效） ---------- */
+.ghost-ball {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1000;
+}
+.ghost-ball img,
+.ghost-ball .ball-fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+/* 拖到鋪面外（將取消/刪除）時，僅以淡化提示，非裝飾性特效 */
+.ghost-ball.will-remove { opacity: 0.4; }
+
+/* 輸出視窗的驗證訊息（錯誤紅、警告橘） */
+.export-errors { margin: 6px 0 8px; max-height: 120px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
+.export-errors .export-err { color: #c0392b; }
+.export-errors .export-warn { color: #b7791f; }
+.export-actions .ctrl-btn:disabled { opacity: .45; cursor: not-allowed; }
