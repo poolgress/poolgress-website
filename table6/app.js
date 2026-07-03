@@ -703,7 +703,7 @@
       if (selected) c.style.stroke = side === "cue" ? "#15803d" : "#f2dc4e"; // 子=黃、母=深綠
       if (pocketEditOn) {
         c.addEventListener("click", () => {
-          pocketSelected[i] = pocketSelected[i] ? false : "ball"; // 點選預設子球
+          pocketSelected[i] = pocketSelected[i] ? false : autoTargetSide("pocket"); // 側色由判定推導
           renderPocketTargets();
         });
         c.addEventListener("contextmenu", (e) => {
@@ -949,7 +949,7 @@
         window.removeEventListener("pointerup", up);
         const end = pick(ev.clientX, ev.clientY);
         if (Math.abs(end.fx - start.fx) > 0.001 && Math.abs(end.fy - start.fy) > 0.001) {
-          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "cue" });
+          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: autoTargetSide("zone") });
         }
         drawingZone = null;
         renderTargetZones();
@@ -1080,6 +1080,47 @@
   }
   function getReq(name) { const s = document.querySelector('input[name="' + name + '"]:checked'); return s ? Number(s.value) : 0; }
   function setReq(name, i) { const e = document.querySelector('input[name="' + name + '"][value="' + (Number(i) || 0) + '"]'); if (e) e.checked = true; }
+
+  // ── 關卡判定 → 桌面目標側色自動同步（桌面只畫圖，側色由判定推導）──
+  // 某側球目前的判定需要哪種桌面目標：'pocket'（進袋）/'zone'（停區塊）/null（要在桌上等）。
+  // 索引基準＝REQ_BALL3 / level-schema REQ_CODES：0 要在桌上 / 1 進目標袋口 / 2 停在區塊。
+  function sideTargetNeed(side) {
+    const tmpl = currentReqTemplate();
+    if (!tmpl) return null;
+    const name = side === "cue" ? "req_cue" : "req_ball";
+    const sel = (tmpl.selects || []).find((s) => s.name === name);
+    if (!sel || sel.fixed) return null; // 該側無選單或固定「要在桌上」→ 不需目標
+    const idx = getReq(name);
+    return idx === 1 ? "pocket" : idx === 2 ? "zone" : null;
+  }
+  // 恰一側需要此目標→回該側；否則預設子球（作者仍可右鍵切換）。
+  function autoTargetSide(kind) {
+    const ball = sideTargetNeed("ball") === kind;
+    const cue = sideTargetNeed("cue") === kind;
+    if (ball && !cue) return "ball";
+    if (cue && !ball) return "cue";
+    return "ball";
+  }
+  // 判定改變時，把既有目標側色同步過去；僅在「恰一側需要」時統一，避免蓋掉手動右鍵選擇。
+  function syncTargetSidesToReqs() {
+    const onlyOne = (kind) => {
+      const ball = sideTargetNeed("ball") === kind;
+      const cue = sideTargetNeed("cue") === kind;
+      return ball !== cue ? (ball ? "ball" : "cue") : null;
+    };
+    const ps = onlyOne("pocket");
+    if (ps) {
+      let ch = false;
+      for (let i = 0; i < pocketSelected.length; i++) if (pocketSelected[i] && pocketSelected[i] !== ps) { pocketSelected[i] = ps; ch = true; }
+      if (ch) renderPocketTargets();
+    }
+    const zs = onlyOne("zone");
+    if (zs) {
+      let ch = false;
+      targetZones.forEach((z) => { if ((z.side || "ball") !== zs) { z.side = zs; ch = true; } });
+      if (ch) renderTargetZones();
+    }
+  }
   // 依目前模板重建 關卡要求（通則 + 子球要求 + 母球要求；額外提醒固定，只建一次）
   function renderReqs() {
     const box = document.getElementById("noteReqs");
@@ -1102,6 +1143,7 @@
         else buildReqOpts(opts, s.name, s.opts, s.def);
       });
     }
+    syncTargetSidesToReqs(); // 重建判定選單後，桌面既有目標側色跟著同步
   }
   function getNoteReqs() {
     const o = { req_extra3: getReq("req_extra3"), req_extra2: getReq("req_extra2") };
@@ -1155,6 +1197,9 @@
       });
       document.addEventListener("click", (e) => { if (!optWrap.contains(e.target)) optList.setAttribute("hidden", ""); });
     }
+    // 判定選項（子球/母球要求）變動 → 桌面目標側色自動同步
+    const reqSelectsBox = document.getElementById("noteReqsSelects");
+    if (reqSelectsBox) reqSelectsBox.addEventListener("change", syncTargetSidesToReqs);
     setLevelType(document.getElementById("noteLevelType").value || "infinite"); // 初始化下拉 + 關卡要求
 
     const autoGrow = () => {
