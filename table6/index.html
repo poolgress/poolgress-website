@@ -140,41 +140,23 @@
       <span class="note-star-item">兩顆星：<input type="number" class="note-star-num" id="noteStar2" min="0" />分，</span>
       <span class="note-star-item">三顆星：<input type="number" class="note-star-num" id="noteStar3" min="0" />分</span>
     </div>
-    <!-- 關卡種類 + 關卡選項（移到星星獎勵下方）-->
+    <!-- 關卡類型（MVP：固定次數＝重複關卡，種類鎖定，只留選項單一選單）-->
     <div class="note-cond-row">
-      <span class="note-cond-label">關卡種類：</span>
-      <span class="note-type" id="noteType">
-        <button type="button" class="note-type-btn" id="noteTypeBtn">
-          <span class="note-type-label">無限關卡</span><span class="note-type-arrow">▾</span>
+      <span class="note-cond-label">關卡類型：</span>
+      <!-- 種類鎖定 repeat：hidden 欄位保留供序列化與 reqTemplateKey -->
+      <input type="hidden" id="noteLevelType" value="repeat" />
+      <span class="note-type" id="noteOptType">
+        <button type="button" class="note-type-btn" id="noteOptBtn">
+          <span class="note-type-label" id="noteOptLabel"></span><span class="note-type-arrow">▾</span>
         </button>
-        <input type="hidden" id="noteLevelType" value="infinite" />
-        <div class="note-type-list" id="noteTypeList" hidden>
-          <div class="note-type-opt" data-value="repeat">重複關卡</div>
-          <div class="note-type-opt" data-value="pattern">球型關卡</div>
-          <div class="note-type-opt" data-value="infinite">無限關卡</div>
-        </div>
-      </span>
-      <span class="note-opt-group">
-        <span class="note-cond-label note-opt-gap">關卡選項：</span>
-        <span class="note-type" id="noteOptType">
-          <button type="button" class="note-type-btn" id="noteOptBtn">
-            <span class="note-type-label" id="noteOptLabel"></span><span class="note-type-arrow">▾</span>
-          </button>
-          <input type="hidden" id="noteLevelOpt" value="0" />
-          <div class="note-type-list" id="noteOptList" hidden></div>
-        </span>
+        <input type="hidden" id="noteLevelOpt" value="0" />
+        <div class="note-type-list" id="noteOptList" hidden></div>
       </span>
     </div>
-    <!-- 關卡要求（選項由 app.js 動態產生）-->
+    <!-- 關卡要求（選項由 app.js 動態產生；已移除通則與額外提醒）-->
     <div class="note-reqs" id="noteReqs" hidden>
       <div class="note-reqs-title">關卡要求：</div>
-      <div class="note-reqs-general" id="noteReqsGeneral"></div>
       <div id="noteReqsSelects"></div>
-      <div id="noteReqsExtra">
-        <div class="note-reqs-subtitle">額外提醒：</div>
-        <div class="note-req"><span class="note-req-opts" id="reqExtra3"></span></div>
-        <div class="note-req" id="reqExtra2Row"><span class="note-req-opts" id="reqExtra2"></span></div>
-      </div>
     </div>
   </div>
 

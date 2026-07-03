@@ -990,13 +990,23 @@
     infinite: ["一顆球無限", "兩顆球無限"],
   };
   function currentSubopts() { return LEVEL_SUBOPTS[(document.getElementById("noteLevelType") || {}).value] || []; }
+  // MVP 只出 game/ 目前支援的關卡選項。索引＝OPT_CODES 凍結索引（不可重排）：
+  // repeat → 0 經典 / 1 純子球 / 3 母球換位。
+  const MVP_OPTS = { repeat: [0, 1, 3] };
+  function mvpOptIndices() {
+    const t = (document.getElementById("noteLevelType") || {}).value;
+    const subs = LEVEL_SUBOPTS[t] || [];
+    const wl = MVP_OPTS[t];
+    return (wl ? wl : subs.map((_, i) => i)).filter((i) => i < subs.length);
+  }
   function renderLevelOptList() {
     const list = document.getElementById("noteOptList");
     if (!list) return;
     list.innerHTML = "";
-    currentSubopts().forEach((txt, i) => {
+    const subs = currentSubopts();
+    mvpOptIndices().forEach((i) => {
       const d = document.createElement("div");
-      d.className = "note-type-opt"; d.dataset.value = String(i); d.textContent = txt;
+      d.className = "note-type-opt"; d.dataset.value = String(i); d.textContent = subs[i];
       list.appendChild(d);
     });
   }
@@ -1077,8 +1087,7 @@
     const tmpl = currentReqTemplate();
     if (!tmpl) { box.setAttribute("hidden", ""); return; }
     box.removeAttribute("hidden");
-    const gen = document.getElementById("noteReqsGeneral"); if (gen) gen.textContent = "通則：" + tmpl.general;
-    // 動態建立要求選單
+    // 動態建立要求選單（通則、額外提醒已移除，只留判定用的子球/母球要求）
     const sc = document.getElementById("noteReqsSelects");
     if (sc) {
       sc.innerHTML = "";
@@ -1093,16 +1102,6 @@
         else buildReqOpts(opts, s.name, s.opts, s.def);
       });
     }
-    // 額外提醒（固定）只建一次，避免換模板時被重置
-    const e3 = document.getElementById("reqExtra3"), e2 = document.getElementById("reqExtra2");
-    if (e3 && !e3.dataset.built) { buildReqOpts(e3, "req_extra3", REQ_EXTRA3); e3.dataset.built = "1"; }
-    if (e2 && !e2.dataset.built) { buildReqOpts(e2, "req_extra2", REQ_EXTRA2); e2.dataset.built = "1"; }
-    // 依模板顯示額外提醒：both=三選一+二選一、3only=只三選一、none=不顯示
-    const mode = tmpl.extra || "both";
-    const extraBox = document.getElementById("noteReqsExtra");
-    const e2row = document.getElementById("reqExtra2Row");
-    if (extraBox) extraBox.toggleAttribute("hidden", mode === "none");
-    if (e2row) e2row.toggleAttribute("hidden", mode !== "both");
   }
   function getNoteReqs() {
     const o = { req_extra3: getReq("req_extra3"), req_extra2: getReq("req_extra2") };
@@ -1625,17 +1624,9 @@
     if (tmpl) {
       out.push("");
       out.push("關卡要求：");
-      out.push("通則：" + tmpl.general);
       tmpl.selects.forEach((s) => {
         out.push(s.label + "：" + (s.fixed ? s.fixed : s.opts[getReq(s.name)]));
       });
-      const mode = tmpl.extra || "both";
-      if (mode !== "none") {
-        const arr = [];
-        const e3 = REQ_EXTRA3[getReq("req_extra3")]; if (e3 && e3 !== "沒有") arr.push(e3);
-        if (mode === "both") { const e2 = REQ_EXTRA2[getReq("req_extra2")]; if (e2 && e2 !== "沒有") arr.push(e2); }
-        if (arr.length) out.push("額外提醒：" + arr.join("、"));
-      }
     }
 
     out.push("");
