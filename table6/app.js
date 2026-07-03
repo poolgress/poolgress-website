@@ -1777,6 +1777,7 @@
     const errBox = document.getElementById("exportErrors");
     const copyBtn = document.getElementById("exportCopyBtn");
     const dlBtn = document.getElementById("exportDownloadBtn");
+    const startBtn = document.getElementById("exportStartBtn");
     const refresh = () => {
       // 驗證閘：有錯誤 → JSON 不給、複製/下載鎖住（spec 6.1 B1「不合法擋輸出並提示」）
       const v = window.LevelSchema.validateLevel(serializeState());
@@ -1789,6 +1790,7 @@
       }
       if (copyBtn) copyBtn.disabled = blocked;
       if (dlBtn) dlBtn.disabled = blocked;
+      if (startBtn) startBtn.disabled = blocked; // 開始流程與複製/下載同一道驗證閘
       ta.value = (blocked && exportMode === "json")
         ? "（關卡資料有誤，請先修正上方紅字後再輸出 JSON）"
         : exportContent();
@@ -1821,6 +1823,22 @@
       const a = document.createElement("a"); a.href = url; a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    // 開始流程：把關卡送進遊戲的匯入清單（同網域 localStorage，依 levelId 去重），開新分頁進遊戲
+    // 遊戲流程：關卡列表 → 說明 → 開始 → 逐次挑戰 → 結算（game/ 已實作，鍵名須與 game/levels.js 的 LS_KEY 一致）
+    if (startBtn) startBtn.addEventListener("click", () => {
+      const LS_KEY = "poolgressGameImports";
+      try {
+        const lv = serializeStateStar();
+        let arr;
+        try { arr = JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (e) { arr = []; }
+        if (!Array.isArray(arr)) arr = [];
+        const i = arr.findIndex((x) => x && x.levelId === lv.levelId);
+        if (i >= 0) arr[i] = lv; else arr.push(lv); // 同關卡重按＝更新，不堆疊
+        localStorage.setItem(LS_KEY, JSON.stringify(arr));
+      } catch (e) { alert("送出關卡失敗：" + e.message); return; }
+      startBtn.textContent = "已送出"; setTimeout(() => (startBtn.textContent = "開始流程"), 1500);
+      window.open("/game/", "_blank"); // 同網域：本機與 poolgress.com 皆為 /game/
     });
     // 球型圖：下載目前桌面（含母球打點）的高解析 PNG
     const imgBtn = document.getElementById("exportImageBtn");
