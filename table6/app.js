@@ -1777,7 +1777,6 @@
     const errBox = document.getElementById("exportErrors");
     const copyBtn = document.getElementById("exportCopyBtn");
     const dlBtn = document.getElementById("exportDownloadBtn");
-    const startBtn = document.getElementById("exportStartBtn");
     const refresh = () => {
       // 驗證閘：有錯誤 → JSON 不給、複製/下載鎖住（spec 6.1 B1「不合法擋輸出並提示」）
       const v = window.LevelSchema.validateLevel(serializeState());
@@ -1790,7 +1789,6 @@
       }
       if (copyBtn) copyBtn.disabled = blocked;
       if (dlBtn) dlBtn.disabled = blocked;
-      if (startBtn) startBtn.disabled = blocked; // 開始流程與複製/下載同一道驗證閘
       ta.value = (blocked && exportMode === "json")
         ? "（關卡資料有誤，請先修正上方紅字後再輸出 JSON）"
         : exportContent();
@@ -1824,10 +1822,31 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
-    // 開始流程：把關卡（含球型圖）送進遊戲的匯入清單（同網域 localStorage，依 levelId 去重），開新分頁進遊戲
-    // 遊戲流程：關卡列表 → 說明 → 開始 → 逐次挑戰 → 結算（鍵名須與 game6/levels.js 的 LS_KEY 一致）
-    if (startBtn) startBtn.addEventListener("click", async () => {
+    // 球型圖：下載目前桌面（含母球打點）的高解析 PNG
+    const imgBtn = document.getElementById("exportImageBtn");
+    if (imgBtn) imgBtn.addEventListener("click", async () => {
+      imgBtn.disabled = true; const old = imgBtn.textContent; imgBtn.textContent = "產生中…";
+      try {
+        const dataUrl = await captureThumbnail(1600, "image/webp", 0.9); // WebP、邊長減半（3200→1600）
+        if (!dataUrl) { alert("產生球型圖失敗"); return; }
+        const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
+        const a = document.createElement("a");
+        a.href = dataUrl; a.download = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".webp";
+        document.body.appendChild(a); a.click(); a.remove();
+      } catch (e) { alert("產生球型圖失敗：" + e.message); }
+      finally { imgBtn.textContent = old; imgBtn.disabled = false; }
+    });
+  }
+
+  // 開始流程（控制列右下角按鈕）：驗證 → 把關卡（含球型圖）送進遊戲匯入清單（levelId 去重）→ 開 /game6/ 直達該關
+  function initStartFlow() {
+    const startBtn = document.getElementById("startFlowBtn");
+    if (!startBtn) return;
+    startBtn.addEventListener("click", async () => {
       const LS_KEY = "poolgressGameImports";
+      // 點擊時驗證（同輸出閘 validateLevel）：有錯就擋下並提示
+      const v = window.LevelSchema.validateLevel(serializeState());
+      if (v.errors.length) { alert("關卡資料有誤，請先修正：\n\n" + v.errors.join("\n")); return; }
       startBtn.disabled = true; const oldTxt = startBtn.textContent; startBtn.textContent = "送出中…";
       try {
         const lv = serializeStateStar();
@@ -1856,20 +1875,6 @@
       startBtn.textContent = "已送出"; setTimeout(() => (startBtn.textContent = "開始流程"), 1500);
       // 帶 levelId 直達該關（game6 無列表，開頁即入此關說明）
       window.open("/game6/#level=" + encodeURIComponent(ensureLevelId()), "_blank");
-    });
-    // 球型圖：下載目前桌面（含母球打點）的高解析 PNG
-    const imgBtn = document.getElementById("exportImageBtn");
-    if (imgBtn) imgBtn.addEventListener("click", async () => {
-      imgBtn.disabled = true; const old = imgBtn.textContent; imgBtn.textContent = "產生中…";
-      try {
-        const dataUrl = await captureThumbnail(1600, "image/webp", 0.9); // WebP、邊長減半（3200→1600）
-        if (!dataUrl) { alert("產生球型圖失敗"); return; }
-        const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
-        const a = document.createElement("a");
-        a.href = dataUrl; a.download = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".webp";
-        document.body.appendChild(a); a.click(); a.remove();
-      } catch (e) { alert("產生球型圖失敗：" + e.message); }
-      finally { imgBtn.textContent = old; imgBtn.disabled = false; }
     });
   }
 
@@ -2502,6 +2507,7 @@
   initResetBtn();
   initBallSizeBtn();
   initExportBtn();
+  initStartFlow();
   tableWrap.addEventListener("pointerdown", onTablePointerDown);
   fitTable();
   updateFloatingScale();
