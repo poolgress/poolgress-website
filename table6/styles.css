@@ -774,6 +774,8 @@ html, body {
 .export-errors .export-warn { color: #b7791f; }
 .export-actions .ctrl-btn:disabled { opacity: .45; cursor: not-allowed; }
 
-/* 開始流程（控制列右端）：入口動作，用綠色突顯 */
-.table-controls .start-flow { background: #16a34a; color: #fff; border-color: #15803d; margin-left: auto; }
+/* 輸出＋開始流程 直向堆疊（開始流程在輸出正下方） */
+.ctrl-stack { display: flex; flex-direction: column; gap: 6px; align-self: flex-start; }
+/* 開始流程：入口動作，用綠色突顯 */
+.table-controls .start-flow { background: #16a34a; color: #fff; border-color: #15803d; }
 .table-controls .start-flow:hover { background: #15803d; }
