@@ -2574,9 +2574,10 @@
           deserializeState(obj && obj.data ? obj.data : obj);
           await waitBallImages();
           const img = await captureThumbnail(1600, "image/webp", 0.9); // 1600×888（桌面比例）
-          if (img) entries.push({ name: folderName + "/" + name + ".webp", data: dataUrlBytes(img) });
+          const base = folderName + "/" + folderName + "-" + name; // 檔名＝資料夾名-球型名
+          if (img) entries.push({ name: base + ".webp", data: dataUrlBytes(img) });
           const st = obj && obj.data ? obj.data : obj;
-          entries.push({ name: folderName + "/" + name + ".txt", data: enc.encode(packNoteText((st && st.note) || {})) });
+          entries.push({ name: base + ".txt", data: enc.encode(packNoteText((st && st.note) || {})) });
         }
         const url = URL.createObjectURL(makeZip(entries));
         const a = document.createElement("a"); a.href = url; a.download = folderName + ".zip";
