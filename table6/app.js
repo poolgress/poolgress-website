@@ -2242,9 +2242,9 @@
     if (el) el.textContent = text;
   }
   function setCloudBusy(busy) {
-    ["cloudAuthBtn", "cloudSaveBtn"].forEach((id) => {
+    ["cloudAuthBtn", "cloudSaveBtn", "cloudPackBtn"].forEach((id) => {
       const b = document.getElementById(id);
-      if (b) b.disabled = busy || (id === "cloudSaveBtn" && !Cloud.signedIn);
+      if (b) b.disabled = busy || ((id === "cloudSaveBtn" || id === "cloudPackBtn") && !Cloud.signedIn);
     });
   }
 
@@ -2419,6 +2419,68 @@
     });
   }
 
+  // ── 打包地圖：ZIP 工具（store 無壓縮；檔名 UTF-8 旗標 0x0800）──
+  const CRC_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+    return t;
+  })();
+  function crc32(u8) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  // entries: [{ name: "資料夾/檔名", data: Uint8Array }] → zip Blob
+  function makeZip(entries) {
+    const enc = new TextEncoder();
+    const parts = [], central = [];
+    let offset = 0;
+    entries.forEach((e) => {
+      const nameBytes = enc.encode(e.name), data = e.data, crc = crc32(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true);
+      lh.setUint16(26, nameBytes.length, true);
+      parts.push(new Uint8Array(lh.buffer), nameBytes, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true);
+      ch.setUint16(28, nameBytes.length, true); ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), nameBytes);
+      offset += 30 + nameBytes.length + data.length;
+    });
+    let cdSize = 0; central.forEach((p) => (cdSize += p.length));
+    const eocd = new DataView(new ArrayBuffer(22));
+    eocd.setUint32(0, 0x06054b50, true); eocd.setUint16(8, entries.length, true); eocd.setUint16(10, entries.length, true);
+    eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [new Uint8Array(eocd.buffer)]), { type: "application/zip" });
+  }
+  function dataUrlBytes(dataUrl) {
+    const bin = atob(dataUrl.split(",")[1]);
+    const u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return u;
+  }
+  // 等桌上球的圖載入完（deserialize 後、截圖前；逾時 1.5s 照走）
+  function waitBallImages() {
+    return Promise.all(placedBalls.map((b) => {
+      const img = b.el.querySelector("img");
+      if (!img || img.complete) return Promise.resolve();
+      return new Promise((r) => {
+        img.addEventListener("load", r, { once: true });
+        img.addEventListener("error", r, { once: true });
+        setTimeout(r, 1500);
+      });
+    }));
+  }
+  // 打包地圖說明 txt（球型說明的四項）
+  function packNoteText(note) {
+    return "關卡名稱：" + (note.name || "") +
+      "\n關卡說明：" + (note.desc || "") +
+      "\n過關條件：成功 " + (note.pass || "?") + " / 共 " + (note.total || "?") + " 次" +
+      "\n星星獎勵：一顆星 成功" + (note.star1 || "—") + " 次、兩顆星 成功" + (note.star2 || "—") + " 次、三顆星 成功" + (note.star3 || "—") + " 次\n";
+  }
+
   function initSaveLoad() {
     const openBtn = document.getElementById("saveLoadBtn");
     const modal = document.getElementById("saveModal");
@@ -2486,6 +2548,47 @@
       }
       catch (e) { alert("雲端儲存失敗：" + e.message); }
       finally { cloudSaveBtn.textContent = old; cloudSaveBtn.disabled = !Cloud.signedIn; }
+    });
+
+    // 打包地圖：下載目前資料夾全部球型的「球型圖（1600 寬 webp）＋說明 txt」成 <資料夾名>.zip（解壓＝同名資料夾）
+    const cloudPackBtn = document.getElementById("cloudPackBtn");
+    if (cloudPackBtn) cloudPackBtn.addEventListener("click", async () => {
+      if (!Cloud.signedIn) return;
+      const parent = currentParentId();
+      const folderName = Cloud.currentFolderId
+        ? ((Cloud.folders.find((x) => x.id === Cloud.currentFolderId) || {}).name || "map")
+        : "未分類";
+      const old = cloudPackBtn.textContent;
+      setCloudBusy(true);
+      const original = serializeState(); // 打包會逐一載入各存檔重繪截圖，完成後還原目前桌面
+      try {
+        const files = await cloudList(parent);
+        if (!files.length) { alert("「" + folderName + "」裡沒有球型存檔"); return; }
+        const enc = new TextEncoder();
+        const entries = [];
+        let done = 0;
+        for (const f of files) {
+          const name = f.name.replace(/\.json$/i, "");
+          setCloudStatus("打包中 " + (++done) + "/" + files.length + "：" + name);
+          const obj = await cloudGetContent(f);
+          deserializeState(obj && obj.data ? obj.data : obj);
+          await waitBallImages();
+          const img = await captureThumbnail(1600, "image/webp", 0.9); // 1600×888（桌面比例）
+          if (img) entries.push({ name: folderName + "/" + name + ".webp", data: dataUrlBytes(img) });
+          const st = obj && obj.data ? obj.data : obj;
+          entries.push({ name: folderName + "/" + name + ".txt", data: enc.encode(packNoteText((st && st.note) || {})) });
+        }
+        const url = URL.createObjectURL(makeZip(entries));
+        const a = document.createElement("a"); a.href = url; a.download = folderName + ".zip";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setCloudStatus("已打包 " + files.length + " 個球型 → " + folderName + ".zip");
+      } catch (e) { alert("打包失敗：" + e.message); }
+      finally {
+        deserializeState(original);
+        cloudPackBtn.textContent = old;
+        setCloudBusy(false);
+      }
     });
   }
 

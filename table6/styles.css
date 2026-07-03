@@ -547,7 +547,7 @@ html, body {
   background: #1e2024; color: var(--text); border: 1px solid var(--panel-border); max-width: 90px;
 }
 /* 雲端：儲存鈕固定在視窗右下角 */
-.cloud-save-row { display: flex; justify-content: flex-end; margin-top: 2px; flex: 0 0 auto; }
+.cloud-save-row { display: flex; justify-content: space-between; margin-top: 2px; flex: 0 0 auto; } /* 左：打包地圖／右：儲存 */
 
 /* 輸出文字視窗 */
 .export-text {
