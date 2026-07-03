@@ -716,6 +716,7 @@
       }
       targetPocketsG.appendChild(c);
     });
+    renderReqHint(); // 袋口增刪/切色 → 刷新一致性提示
   }
 
   function initPocketTarget() {
@@ -910,6 +911,7 @@
     if (drawingZone) {
       mk({ x1: drawingZone.start.fx, y1: drawingZone.start.fy, x2: drawingZone.end.fx, y2: drawingZone.end.fy, side: "cue" }, true);
     }
+    renderReqHint(); // 區塊增刪/切色 → 刷新一致性提示
   }
 
   function initZoneTarget() {
@@ -1101,6 +1103,23 @@
     if (cue && !ball) return "cue";
     return "ball";
   }
+  // 一致性即時提示：判定要求某側進袋/停區塊，但桌面沒有對應側的目標 → 紅字提醒。
+  // 規則與 level-schema.validateContent 的「要求×目標存在性」等價，但即時顯示於說明面板。
+  function renderReqHint() {
+    const hint = document.getElementById("noteReqsHint");
+    if (!hint) return;
+    const hasPocket = (side) => pocketSelected.some((p) => p === side);
+    const hasZone = (side) => targetZones.some((z) => (z.side || "ball") === side);
+    const msgs = [];
+    [["ball", "子球"], ["cue", "母球"]].forEach(([side, label]) => {
+      const need = sideTargetNeed(side);
+      if (need === "pocket" && !hasPocket(side)) msgs.push(label + "要「進目標袋口」，但桌面還沒標" + label + "目標袋口");
+      if (need === "zone" && !hasZone(side)) msgs.push(label + "要「停在區塊」，但桌面還沒畫" + label + "目標區塊");
+    });
+    hint.innerHTML = msgs.map((m) => "⚠ " + m).join("<br>");
+    hint.toggleAttribute("hidden", msgs.length === 0);
+  }
+
   // 判定改變時，把既有目標側色同步過去；僅在「恰一側需要」時統一，避免蓋掉手動右鍵選擇。
   function syncTargetSidesToReqs() {
     const onlyOne = (kind) => {
@@ -1120,6 +1139,7 @@
       targetZones.forEach((z) => { if ((z.side || "ball") !== zs) { z.side = zs; ch = true; } });
       if (ch) renderTargetZones();
     }
+    renderReqHint(); // 同步後刷新一致性提示
   }
   // 依目前模板重建 關卡要求（通則 + 子球要求 + 母球要求；額外提醒固定，只建一次）
   function renderReqs() {
