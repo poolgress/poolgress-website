@@ -1677,10 +1677,10 @@
     const lvType = val("noteLevelType");
     out.push("關卡名稱：" + val("noteLevelName").trim());
     out.push("關卡說明：" + val("noteInput").trim());
-    out.push("關卡種類：" + levelLabel(lvType));
     const subList = LEVEL_SUBOPTS[lvType] || [];
     const optIdx = parseInt(val("noteLevelOpt") || "0", 10);
-    if (subList[optIdx]) out.push("關卡選項：" + subList[optIdx]);
+    // UI 已把種類＋選項合併成「關卡類型」，資訊輸出對齊為單列（種類鎖定 repeat，不再單獨印）
+    if (subList[optIdx]) out.push("關卡類型：" + subList[optIdx]);
     if (lvType !== "infinite") out.push("過關條件：成功 " + (val("noteCondPass") || "?") + " / 共 " + (val("noteCondTotal") || "?") + " 次");
     out.push("星星獎勵：一顆星 成功" + (val("noteStar1") || "—") + " 次、兩顆星 成功" + (val("noteStar2") || "—") + " 次、三顆星 成功" + (val("noteStar3") || "—") + " 次");
 
