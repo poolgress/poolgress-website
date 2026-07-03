@@ -1623,7 +1623,7 @@
     const tmpl = currentReqTemplate();
     if (tmpl) {
       out.push("");
-      out.push("關卡要求：");
+      out.push("關卡判定：擊球後，球停在哪裡");
       tmpl.selects.forEach((s) => {
         out.push(s.label + "：" + (s.fixed ? s.fixed : s.opts[getReq(s.name)]));
       });
