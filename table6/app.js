@@ -1818,11 +1818,11 @@
     if (imgBtn) imgBtn.addEventListener("click", async () => {
       imgBtn.disabled = true; const old = imgBtn.textContent; imgBtn.textContent = "產生中…";
       try {
-        const dataUrl = await captureThumbnail(3200, "image/png");
+        const dataUrl = await captureThumbnail(1600, "image/webp", 0.9); // WebP、邊長減半（3200→1600）
         if (!dataUrl) { alert("產生球型圖失敗"); return; }
         const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
         const a = document.createElement("a");
-        a.href = dataUrl; a.download = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".png";
+        a.href = dataUrl; a.download = rawName.replace(/[\\/:*?"<>|]/g, "_") + ".webp";
         document.body.appendChild(a); a.click(); a.remove();
       } catch (e) { alert("產生球型圖失敗：" + e.message); }
       finally { imgBtn.textContent = old; imgBtn.disabled = false; }
