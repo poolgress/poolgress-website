@@ -2042,17 +2042,14 @@
         const r = b.el.getBoundingClientRect();
         ctx.drawImage(img, (r.left - wr.left) * scale, (r.top - wr.top) * scale, r.width * scale, r.height * scale);
       });
-      // 多顆母球的順序徽章
+      // 多顆母球的順序徽章：置中、黑字、無圓底、放大 5 倍（與桌面 .cue-num 一致）
       placedBalls.forEach((b) => {
         if (b.cfg.id !== "cue" || !b.cueIndex) return;
         const r = b.el.getBoundingClientRect();
-        const badgeR = (r.width * scale) * 0.2;
-        const cx = (r.right - wr.left) * scale - badgeR * 0.3;
-        const cy = (r.top - wr.top) * scale + badgeR * 0.3;
-        ctx.beginPath(); ctx.arc(cx, cy, badgeR, 0, Math.PI * 2);
-        ctx.fillStyle = "#1a1a1a"; ctx.fill();
-        ctx.lineWidth = Math.max(badgeR * 0.16, 1); ctx.strokeStyle = "#fff"; ctx.stroke();
-        ctx.fillStyle = "#fff"; ctx.font = "bold " + (badgeR * 1.25) + "px sans-serif";
+        const cx = (r.left + r.width / 2 - wr.left) * scale;
+        const cy = (r.top + r.height / 2 - wr.top) * scale;
+        // 原字級＝球寬×0.25，放大 5 倍
+        ctx.fillStyle = "#000"; ctx.font = "bold " + (r.width * scale * 0.25 * 5) + "px sans-serif";
         ctx.textAlign = "center"; ctx.textBaseline = "middle";
         ctx.fillText(String(b.cueIndex), cx, cy);
       });

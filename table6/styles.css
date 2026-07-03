@@ -659,21 +659,14 @@ html, body {
 /* 多顆母球時的順序數字徽章（標在母球右上角旁邊） */
 .cue-num {
   position: absolute;
-  top: -0.3em;
-  right: -0.3em;
-  min-width: 1em;
-  height: 1em;
-  padding: 0 0.15em;
-  box-sizing: border-box;
-  border-radius: 999px;
-  background: #1a1a1a;
-  color: #fff;
-  border: 0.08em solid #fff;
-  font-size: 0.9em;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;               /* 黑色字 */
+  font-size: 4.5em;          /* 原 0.9em 放大 5 倍 */
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
   pointer-events: none;
   z-index: 2;
 }
