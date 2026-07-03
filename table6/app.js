@@ -1854,7 +1854,8 @@
       } catch (e) { alert("送出關卡失敗：" + e.message); return; }
       finally { startBtn.disabled = false; startBtn.textContent = oldTxt; }
       startBtn.textContent = "已送出"; setTimeout(() => (startBtn.textContent = "開始流程"), 1500);
-      window.open("/game6/", "_blank"); // 同網域：本機與 poolgress.com 皆為 /game6/
+      // 帶 levelId 直達該關（game6 無列表，開頁即入此關說明）
+      window.open("/game6/#level=" + encodeURIComponent(ensureLevelId()), "_blank");
     });
     // 球型圖：下載目前桌面（含母球打點）的高解析 PNG
     const imgBtn = document.getElementById("exportImageBtn");

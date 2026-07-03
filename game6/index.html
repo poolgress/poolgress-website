@@ -7,21 +7,14 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- 畫面 1：關卡列表 -->
-  <section id="screenList">
-    <h1>Poolgress 關卡</h1>
-    <div id="levelList" class="level-list"></div>
-    <details class="import-box">
-      <summary>匯入關卡（貼上編輯器輸出的 JSON）</summary>
-      <textarea id="importText" rows="6" placeholder="貼上 JSON…"></textarea>
-      <button id="importBtn">匯入</button>
-      <div id="importMsg"></div>
-    </details>
+  <!-- 畫面 0：沒有可玩關卡（入口只有編輯器的「開始流程」） -->
+  <section id="screenEmpty" hidden>
+    <h1>Poolgress 遊戲</h1>
+    <p id="emptyMsg">還沒有關卡：請在編輯器（/table6/）按「輸出 → 開始流程」進入遊戲。</p>
   </section>
 
-  <!-- 畫面 2：關卡說明 -->
+  <!-- 畫面 1：關卡說明（開始流程直接進到這裡） -->
   <section id="screenInfo" hidden>
-    <button class="back" id="infoBack">←</button>
     <h2 id="infoName"></h2>
     <img id="infoImage" class="level-image" alt="球型圖" hidden />
     <p id="infoDesc"></p>
@@ -78,7 +71,7 @@
     <p id="endPass"></p>
     <p id="endStars" hidden></p>
     <button id="replayBtn" class="primary">再玩一次</button>
-    <button id="endBack">回關卡列表</button>
+    <button id="endBack">回關卡說明</button>
   </section>
 
   <script src="config.js"></script>
@@ -86,7 +79,7 @@
   <script src="levels.js"></script>
   <script src="judge.js"></script>
   <script src="machine.js"></script>
-  <script src="cv-mock.js"></script>
+  <script src="cv-manual.js"></script>
   <script src="audio.js"></script>
   <script src="render.js"></script>
   <script src="main.js"></script>

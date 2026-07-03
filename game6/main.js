@@ -6,7 +6,7 @@
   let machine = null;
 
   function show(id) {
-    ["screenList", "screenInfo", "screenPlay", "screenEnd"].forEach((s) => {
+    ["screenEmpty", "screenInfo", "screenPlay", "screenEnd"].forEach((s) => {
       document.getElementById(s).hidden = s !== id;
     });
   }
@@ -23,22 +23,19 @@
     if (src) img.src = src;
   }
 
-  // ── 關卡列表 ──
-  async function renderList() {
-    const box = document.getElementById("levelList");
-    box.innerHTML = "";
+  // ── 入口：無列表——依網址 #level=<levelId> 直接載入該關（編輯器「開始流程」帶入）──
+  async function boot() {
     const entries = await window.GameLevels.loadAll();
-    if (!entries.length) { box.textContent = "沒有關卡：請在下方匯入編輯器輸出的 JSON。"; return; }
-    entries.forEach((en) => {
-      const card = document.createElement("button");
-      card.className = "level-card" + (en.errors.length ? " bad" : "");
-      const name = en.level && en.level.note && en.level.note.name ? en.level.note.name : en.name;
-      const tag = en.errors.length ? '<span class="tag err">資料錯誤</span>' : '<span class="tag">' + en.level.note.opt + "</span>";
-      card.innerHTML = "<b>" + name + "</b>" + tag;
-      if (en.errors.length) card.title = en.errors.join("\n");
-      else card.addEventListener("click", () => openInfo({ name, level: en.level }));
-      box.appendChild(card);
-    });
+    const m = (location.hash || "").match(/level=([^&]+)/);
+    const id = m ? decodeURIComponent(m[1]) : null;
+    let en = null;
+    if (id) en = entries.find((e) => e.level && e.level.levelId === id && !e.errors.length);
+    if (!en) { // 後備：最新匯入的合法關卡（loadAll 順序＝內建在前、匯入在後）
+      const ok = entries.filter((e) => e.level && !e.errors.length);
+      en = ok.length ? ok[ok.length - 1] : null;
+    }
+    if (!en) { show("screenEmpty"); return; }
+    openInfo({ name: en.level.note.name || en.name, level: en.level });
   }
 
   // ── 關卡說明 ──
@@ -58,17 +55,17 @@
     const lv = current.level;
     document.getElementById("playTitle").textContent = lv.note.name || current.name;
     window.GameRender.init(lv);
-    window.CvMock.buildPanel(document.getElementById("cvPanel"), lv);
+    window.CvManual.buildPanel(document.getElementById("cvPanel"), lv);
     machine = window.GameMachine.createMachine(lv, {
-      judge: (evs) => window.GameJudge.judgeAttempt(lv, evs),
+      judge: () => window.CvManual.judgeResult(), // 判定＝三步驟面板的「成功/失敗」手動宣告
       armingMs: CFG.ARMING_MS,
       resultMs: CFG.RESULT_MS,
       setTimeout: window.setTimeout.bind(window),
       clearTimeout: window.clearTimeout.bind(window),
-      onChange: (st) => { window.GameRender.update(st); window.GameAudio.onState(st); window.CvMock.setPlaced(st.allPlaced); },
+      onChange: (st) => { window.GameRender.update(st); window.GameAudio.onState(st); window.CvManual.sync(st); },
       onFinish: (results) => setTimeout(() => showEnd(results), 600),
     });
-    window.CvMock.onEvent((ev) => machine.handle(ev));
+    window.CvManual.onEvent((ev) => machine.handle(ev));
     window.GameAudio.unlock(); // 使用者手勢（開始遊戲/再玩一次按鈕）內解鎖音訊
     // 機器不發初始 emit：手動跑一次初始狀態（PLACING 提示大字＋「請擺球」音效）
     const st0 = machine.getState();
@@ -112,7 +109,6 @@
   }
 
   // ── 事件接線 ──
-  document.getElementById("infoBack").addEventListener("click", () => show("screenList"));
   document.getElementById("startBtn").addEventListener("click", startGame);
   // 返回鍵 → 放棄確認彈窗（流程圖側分支：放棄→回該關說明頁、繼續玩→回原狀態）
   document.getElementById("playBack").addEventListener("click", () => {
@@ -135,13 +131,7 @@
   });
   document.getElementById("helpClose").addEventListener("click", () => (document.getElementById("helpOverlay").hidden = true));
   document.getElementById("replayBtn").addEventListener("click", startGame); // 全新開始（machine 重建）
-  document.getElementById("endBack").addEventListener("click", () => show("screenList"));
-  document.getElementById("importBtn").addEventListener("click", () => {
-    const ta = document.getElementById("importText");
-    const res = window.GameLevels.importJson(ta.value);
-    document.getElementById("importMsg").textContent = res.ok ? "匯入成功" : "匯入失敗：" + res.errors.join("；");
-    if (res.ok) { ta.value = ""; renderList(); }
-  });
+  document.getElementById("endBack").addEventListener("click", () => openInfo(current)); // 回該關說明頁
 
-  renderList();
+  boot();
 })();

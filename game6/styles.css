@@ -119,3 +119,17 @@ button { font: inherit; cursor: pointer; }
 .end-stars .on { color: #f5b400; }
 .end-stars .off { color: #d4d8de; }
 #endAttempts .attempt { font-size: 1.1rem; }
+
+/* ── 三步驟手動面板（取代模擬辨識面板） ── */
+.step-row { display: flex; align-items: center; gap: 8px; width: 100%; margin: 6px 0; }
+.step-label { font-weight: 700; color: #ffd76b; white-space: nowrap; }
+.step-btn { padding: 10px 16px; border: 0; border-radius: 10px; background: #ffffff22; color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.step-btn:disabled { opacity: .35; cursor: default; }
+.step-btn.done { background: #1f9d55; }
+.step-btn.strike { background: #ffbc00; color: #1a1a1a; }
+.step-btn.ok:not(:disabled) { background: #22c55e; }
+.step-btn.fail:not(:disabled) { background: #ef4444; }
+
+/* 就位後的擺球圈：綠色實線框＋打勾 */
+.place-circle.placed { stroke: #22c55e; stroke-dasharray: none; stroke-width: 4; }
+.place-check { fill: #22c55e; font-weight: 700; paint-order: stroke; stroke: #00000066; stroke-width: 1; }

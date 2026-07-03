@@ -9,6 +9,7 @@ window.GameRender = (function () {
   const REASON_TEXT = {
     touch_foul: "滾動中碰球", off_table: "球離桌",
     ball_req_failed: "子球未達成要求", cue_req_failed: "母球未達成要求",
+    manual_fail: "判定失敗",
   };
   const STATUS = {
     placing: { text: "擺球中：請把球擺到虛線位置", cls: "" },
@@ -104,6 +105,28 @@ window.GameRender = (function () {
 
   function show(id, on) { const e = document.getElementById(id); if (e) e.style.display = on ? "" : "none"; }
 
+  // 就位標記：kind = "object"|"cue" → 該類擺球圈變綠框＋打勾（cv-manual 的第一步驟）
+  function setPlacedMark(kind, on) {
+    const sel = kind === "cue" ? ".place-cue" : ".place-object";
+    document.querySelectorAll("#gPlace " + sel).forEach((c) => {
+      c.classList.toggle("placed", on);
+      const g = c.parentNode;
+      // 打勾符號：跟著該圈建立/移除（text 反轉 rotor 的 90° 讓勾正立）
+      let mark = g.querySelector('.place-check[data-for="' + kind + '"][data-cx="' + c.getAttribute("cx") + '"]');
+      if (on && !mark) {
+        const cx = Number(c.getAttribute("cx")), cy = Number(c.getAttribute("cy")), rr = Number(c.getAttribute("r"));
+        mark = svgEl("text", { x: cx, y: cy, "font-size": rr * 1.4, "text-anchor": "middle", "dominant-baseline": "central", transform: "rotate(-90 " + cx + " " + cy + ")" }, "place-check");
+        mark.dataset.for = kind; mark.dataset.cx = c.getAttribute("cx");
+        mark.textContent = "✓";
+        g.appendChild(mark);
+      } else if (!on && mark) mark.remove();
+    });
+  }
+  function resetPlacedMarks() {
+    document.querySelectorAll("#gPlace .place-circle.placed").forEach((c) => c.classList.remove("placed"));
+    document.querySelectorAll("#gPlace .place-check").forEach((m) => m.remove());
+  }
+
   // 球桌大字提示（流程圖 6.3/6.5）：擺球脈動、可擊球閃爍
   function setHint(ph) {
     const el = document.getElementById("tableHint");
@@ -174,5 +197,5 @@ window.GameRender = (function () {
     }
   }
 
-  return { init, update, renderAttempts, REASON_TEXT };
+  return { init, update, renderAttempts, setPlacedMark, resetPlacedMarks, REASON_TEXT };
 })();
