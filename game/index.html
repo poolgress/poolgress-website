@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Poolgress 遊戲</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 畫面 1：關卡列表 -->
+  <section id="screenList">
+    <h1>Poolgress 關卡</h1>
+    <div id="levelList" class="level-list"></div>
+    <details class="import-box">
+      <summary>匯入關卡（貼上編輯器輸出的 JSON）</summary>
+      <textarea id="importText" rows="6" placeholder="貼上 JSON…"></textarea>
+      <button id="importBtn">匯入</button>
+      <div id="importMsg"></div>
+    </details>
+  </section>
+
+  <!-- 畫面 2：關卡說明 -->
+  <section id="screenInfo" hidden>
+    <button class="back" id="infoBack">←</button>
+    <h2 id="infoName"></h2>
+    <p id="infoDesc"></p>
+    <p id="infoCond"></p>
+    <p id="infoStars"></p>
+    <button id="startBtn" class="primary">開始遊戲</button>
+  </section>
+
+  <!-- 畫面 3：關卡進行 -->
+  <section id="screenPlay" hidden>
+    <header class="play-top">
+      <button class="back" id="playBack">←</button>
+      <span id="playTitle"></span>
+      <button id="playHelp">?</button>
+    </header>
+    <div id="statusBar"></div>
+    <div id="noticeBar" hidden></div>
+    <div id="tableOuter"><div id="tableRotor">
+      <img id="tableImg" alt="" draggable="false" />
+      <img id="cushionImg" alt="" draggable="false" />
+      <svg id="overlay"></svg>
+    </div></div>
+    <div id="attemptRow"></div>
+    <div id="cvPanel"></div>
+    <div id="helpOverlay" hidden>
+      <div class="help-panel">
+        <h3 id="helpName"></h3><p id="helpDesc"></p><p id="helpCond"></p>
+        <button id="helpClose">關閉</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 畫面 4：結算 -->
+  <section id="screenEnd" hidden>
+    <h2>結算</h2>
+    <div id="endAttempts"></div>
+    <p id="endScore"></p>
+    <p id="endPass"></p>
+    <p id="endStars"></p>
+    <button id="replayBtn" class="primary">再玩一次</button>
+    <button id="endBack">回關卡列表</button>
+  </section>
+
+  <script src="config.js"></script>
+  <script src="level-schema.js"></script>
+  <script src="levels.js"></script>
+  <script src="judge.js"></script>
+  <script src="machine.js"></script>
+  <script src="cv-mock.js"></script>
+  <script src="render.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

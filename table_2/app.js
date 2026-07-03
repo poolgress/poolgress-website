@@ -33,6 +33,15 @@
   let drawingPath = null;  // 拖曳中的路徑：{ ball, locked:[{fx,fy}], live:{fx,fy}, lastBall }
   let pathLines = null;    // SVG <g> 容器
   let ballScale = 1;       // 桌上球整體放大倍率（「改大小」按鈕切換 1 ↔ 1.5）
+  let levelId = null;      // 關卡唯一識別：首次輸出/存檔時產生，載入時還原，重置時清空
+  function ensureLevelId() {
+    if (!levelId) {
+      levelId = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : "lv-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+    }
+    return levelId;
+  }
 
   // 框選環直接用 pick.png 的原始尺寸對球桌的比例（同球的作法，不另乘倍率）。
   // 十字線從環外緣開始（中間不顯示）。
@@ -1002,38 +1011,41 @@
   }
 
   // 「關卡要求」：依（關卡種類＋關卡選項）切換模板
-  const REQ_BALL6 = ["不要求", "要在桌上", "進目標袋口", "進六個袋口", "經過目標線段", "停留在目標區塊", "經過目標線段後停留在目標區塊（待討論）"];
+  // v1 要求選單（三選項）。索引順序＝level-schema.js 的 REQ_CODES，兩邊要一起改。
+  // 已下架：不要求（永久移除）、進六個袋口、經過目標線段、複合（見 spec 附錄 B）。
+  const REQ_BALL3 = ["要在桌上", "進目標袋口", "停留在目標區塊"];
   const REQ_EXTRA3 = ["沒有", "邊緣子球緊貼顆星邊", "邊緣子球不貼顆星邊"];
   const REQ_EXTRA2 = ["沒有", "母球不能接觸到顆星邊"];
   // extra: "both"=三選一+二選一；"3only"=只有三選一；"none"=不顯示額外提醒
-  // selects: 一組帶標籤的要求選單，每項 { name, label, opts | fixed, gap? }
+  // selects: 一組帶標籤的要求選單，每項 { name, label, opts | fixed, gap?, def? }
   const REQ_TEMPLATES = {
     A: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "3only", selects: [
-      { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
-      { name: "req_cue", label: "母球要求", opts: REQ_BALL6 },
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL3, def: 1 },
+      { name: "req_cue", label: "母球要求", opts: REQ_BALL3, def: 0 },
     ] },
     C: { general: "母球自由球、不可以碰觸到其他球", extra: "3only", selects: [
-      { name: "req_ball", label: "子球要求", opts: ["進目標袋口", "進六個袋口"] },
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL3, def: 1 },
       { name: "req_cue", label: "母球要求", fixed: "要在桌上" },
     ] },
     G: { general: "母球自由球、不可以碰觸到其他球", extra: "both", selects: [ // 同 C，但額外提醒含二選一（球型 照順序/任意順序）
-      { name: "req_ball", label: "子球要求", opts: ["進目標袋口", "進六個袋口"] },
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL3, def: 1 },
       { name: "req_cue", label: "母球要求", fixed: "要在桌上" },
     ] },
     D: { general: "直接擊打子球、不可以碰觸到其他球", extra: "3only", selects: [
-      { name: "req_ball", label: "子球要求", opts: REQ_BALL6 },
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL3, def: 1 },
     ] },
     E: { general: "球都有固定位置、沒有自由球、不可以碰觸到其他球", extra: "3only", selects: [
-      { name: "req_8",    label: "打8號的子球要求", opts: REQ_BALL6 },
-      { name: "req_8cue", label: "打8號的母球要求", opts: REQ_BALL6 },
-      { name: "req_9",    label: "打9號的子球要求", opts: REQ_BALL6, gap: true },
-      { name: "req_9cue", label: "打9號的母球要求", opts: REQ_BALL6 },
+      { name: "req_8",    label: "打8號的子球要求", opts: REQ_BALL3, def: 1 },
+      { name: "req_8cue", label: "打8號的母球要求", opts: REQ_BALL3, def: 0 },
+      { name: "req_9",    label: "打9號的子球要求", opts: REQ_BALL3, def: 1, gap: true },
+      { name: "req_9cue", label: "打9號的母球要求", opts: REQ_BALL3, def: 0 },
     ] },
     F: { general: "要擊中子球、球都有固定位置、不可以碰觸到其他球", extra: "3only", selects: [
-      { name: "req_cue",  label: "母球要求", opts: ["不要求", "經過目標線段"] },
-      { name: "req_ball", label: "子球要求", opts: ["不要求", "要在桌上", "進目標袋口", "進六個袋口"] },
+      { name: "req_cue",  label: "母球要求", opts: REQ_BALL3, def: 0 },
+      { name: "req_ball", label: "子球要求", opts: REQ_BALL3, def: 1 },
     ] },
   };
+  // 與 level-schema.js 的 templateKey 完全同步。★ 兩邊要一起改。
   function reqTemplateKey(type, optIdx) {
     if (type === "repeat") { if (optIdx === 1) return "D"; if (optIdx === 4) return "E"; if (optIdx === 5) return "F"; return "A"; } // 純子球→D；8做9→E；解球→F；其餘→A
     if (type === "pattern") return optIdx === 0 ? "D" : "G";   // 純子球，要照順序→D；照順序/任意順序→G（有額外提醒）
@@ -1045,13 +1057,14 @@
     const optIdx = parseInt((document.getElementById("noteLevelOpt") || {}).value || "0", 10);
     return REQ_TEMPLATES[reqTemplateKey(type, optIdx)] || null;
   }
-  function buildReqOpts(container, name, opts) {
+  function buildReqOpts(container, name, opts, defIdx) {
     if (!container) return;
+    const d = Number(defIdx) || 0;
     container.innerHTML = "";
     opts.forEach((o, i) => {
       const lab = document.createElement("label");
-      lab.className = "note-req-opt" + (o.indexOf("待討論") >= 0 ? " pending" : "");
-      lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"' + (i === 0 ? " checked" : "") + ">" + o;
+      lab.className = "note-req-opt";
+      lab.innerHTML = '<input type="radio" name="' + name + '" value="' + i + '"' + (i === d ? " checked" : "") + ">" + o;
       container.appendChild(lab);
     });
   }
@@ -1077,7 +1090,7 @@
         const opts = document.createElement("span"); opts.className = "note-req-opts";
         row.appendChild(lab); row.appendChild(opts); sc.appendChild(row);
         if (s.fixed) opts.innerHTML = '<span class="note-req-opt">' + s.fixed + "</span>";
-        else buildReqOpts(opts, s.name, s.opts);
+        else buildReqOpts(opts, s.name, s.opts, s.def);
       });
     }
     // 額外提醒（固定）只建一次，避免換模板時被重置
@@ -1473,8 +1486,15 @@
     const w = document.getElementById("cueballWidget");
     const nb = document.getElementById("noteBox");
     return {
-      v: 1,
-      balls: placedBalls.map((b) => ({ id: b.cfg.id, fx: b.fx, fy: b.fy })),
+      v: 2,
+      levelId: ensureLevelId(),
+      ballScale: ballScale,
+      balls: (() => {
+        let n = 0;
+        return placedBalls.map((b) => (b.cfg.id === "cue"
+          ? { id: b.cfg.id, cueIndex: ++n, fx: b.fx, fy: b.fy }   // 陣列順序＝編號，與畫面徽章一致
+          : { id: b.cfg.id, fx: b.fx, fy: b.fy }));
+      })(),
       paths: paths.map((p) => ({
         ball: placedBalls.indexOf(p.ball),
         vertices: p.vertices.map((vx) => ({ fx: vx.fx, fy: vx.fy, ghost: !!vx.ghost })),
@@ -1542,6 +1562,7 @@
     // 檔名欄
     const sn = document.getElementById("saveName"); if (sn) sn.value = "";
     // 球大小倍率
+    levelId = null; // 重置＝新關卡，下次輸出產生新 id
     ballScale = 1;
     const bsb = document.getElementById("ballSizeBtn");
     if (bsb) { bsb.classList.remove("active"); bsb.setAttribute("aria-pressed", "false"); }
@@ -1661,21 +1682,19 @@
     return out.join("\n");
   }
 
-  // JSON 用的顆星座標版本（座標改成 0~8 / 0~4，整數＝顆星點）
-  function serializeStateStar() {
-    const s = serializeState();
-    const P = (fx, fy) => ({ x: round3(starX(fx)), y: round3(starY(fy)) });
+  // 遊戲用輸出 JSON：組裝交給 level-schema.js（欄位定義見 docs spec 第 6 節）
+  function exportGeo() {
+    const anyCfg = placedBalls[0] ? placedBalls[0].cfg : (CFG.BALLS && CFG.BALLS[0]);
     return {
-      v: s.v,
-      座標: "顆星：原點＝左上角庫鼻交點，x:0~8、y:0~4，整數＝顆星點",
-      balls: s.balls.map((b) => { const p = P(b.fx, b.fy); return { id: b.id, x: p.x, y: p.y }; }),
-      paths: s.paths.map((pa) => ({ ball: pa.ball, vertices: pa.vertices.map((v) => { const p = P(v.fx, v.fy); return { x: p.x, y: p.y, ghost: v.ghost }; }) })),
-      pockets: s.pockets,
-      lines: s.lines.map((l) => { const a = P(l.x1, l.y1), b = P(l.x2, l.y2); return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, side: l.side }; }),
-      zones: s.zones.map((z) => { const a = P(z.x1, z.y1), b = P(z.x2, z.y2); return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, side: z.side }; }),
-      grid: s.grid, snap: s.snap,
-      cue: s.cue, note: s.note,
+      grid: CFG.GRID,
+      pockets: CFG.POCKETS || [],
+      pocketRadiusFraction: CFG.POCKET_TARGET_RADIUS || 0,
+      ballWidthFraction: anyCfg ? ballWidthFraction(anyCfg) : 0, // 含 ballScale（所見即所得）
+      levelId: ensureLevelId(),
     };
+  }
+  function serializeStateStar() {
+    return window.LevelSchema.buildGameExport(serializeState(), exportGeo());
   }
   let exportMode = "info"; // "info"=文字資訊 / "json"
   function exportContent() {
@@ -1690,8 +1709,24 @@
     if (!btn || !modal || !ta) return;
     const tabInfo = document.getElementById("expTabInfo");
     const tabJson = document.getElementById("expTabJson");
+    const errBox = document.getElementById("exportErrors");
+    const copyBtn = document.getElementById("exportCopyBtn");
+    const dlBtn = document.getElementById("exportDownloadBtn");
     const refresh = () => {
-      ta.value = exportContent();
+      // 驗證閘：有錯誤 → JSON 不給、複製/下載鎖住（spec 6.1 B1「不合法擋輸出並提示」）
+      const v = window.LevelSchema.validateLevel(serializeState());
+      const blocked = v.errors.length > 0;
+      if (errBox) {
+        errBox.toggleAttribute("hidden", v.errors.length + v.warnings.length === 0);
+        errBox.innerHTML =
+          v.errors.map((m) => '<div class="export-err">✕ ' + m + "</div>").join("") +
+          v.warnings.map((m) => '<div class="export-warn">⚠ ' + m + "</div>").join("");
+      }
+      if (copyBtn) copyBtn.disabled = blocked;
+      if (dlBtn) dlBtn.disabled = blocked;
+      ta.value = (blocked && exportMode === "json")
+        ? "（關卡資料有誤，請先修正上方紅字後再輸出 JSON）"
+        : exportContent();
       if (tabInfo) tabInfo.classList.toggle("active", exportMode === "info");
       if (tabJson) tabJson.classList.toggle("active", exportMode === "json");
     };
@@ -1706,13 +1741,11 @@
     const closeBtn = document.getElementById("exportCloseBtn");
     if (closeBtn) closeBtn.addEventListener("click", () => modal.setAttribute("hidden", ""));
     modal.addEventListener("click", (e) => { if (e.target === modal) modal.setAttribute("hidden", ""); });
-    const copyBtn = document.getElementById("exportCopyBtn");
     if (copyBtn) copyBtn.addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(ta.value); }
       catch (e) { ta.select(); document.execCommand("copy"); }
       copyBtn.textContent = "已複製"; setTimeout(() => (copyBtn.textContent = "複製"), 1200);
     });
-    const dlBtn = document.getElementById("exportDownloadBtn");
     if (dlBtn) dlBtn.addEventListener("click", () => {
       const rawName = (document.getElementById("noteLevelName") || {}).value.trim() || "poolgress";
       const ext = exportMode === "json" ? ".json" : ".txt";
@@ -1743,6 +1776,10 @@
   function deserializeState(st) {
     if (!st) return;
     clearAllDrawing();
+    levelId = st.levelId || null; // 舊檔無 id → 之後輸出時才產生
+    ballScale = (st.v >= 2 && Number(st.ballScale) > 0) ? Number(st.ballScale) : 1;
+    const bsBtn = document.getElementById("ballSizeBtn");
+    if (bsBtn) { bsBtn.classList.toggle("active", ballScale !== 1); bsBtn.setAttribute("aria-pressed", String(ballScale !== 1)); }
     (st.balls || []).forEach((b) => {
       const cfg = CFG.BALLS.find((c) => c.id === b.id);
       if (cfg) placeBall(cfg, b.fx, b.fy);
@@ -1784,7 +1821,8 @@
       const s3 = document.getElementById("noteStar3"); if (s3) s3.value = st.note.star3 || "";
       setLevelType(st.note.type || "infinite"); // 內含 renderLevelOptList + 重置選項
       setLevelOpt(st.note.opt || 0);            // 還原關卡選項
-      setNoteReqs(st.note.reqs);                // 還原關卡要求
+      // v1 舊檔的要求索引是七選項選單 → 遷移到新三選項；v2 以後直接用
+      setNoteReqs(st.v >= 2 ? st.note.reqs : window.LevelSchema.migrateReqs(st.note.reqs));
       if (nb) nb.toggleAttribute("hidden", !st.note.shown);
       if (nbtn) { nbtn.classList.toggle("active", !!st.note.shown); nbtn.setAttribute("aria-pressed", String(!!st.note.shown)); }
       if (st.note.shown) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }

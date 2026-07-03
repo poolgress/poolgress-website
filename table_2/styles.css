@@ -766,3 +766,9 @@ html, body {
 }
 /* 拖到鋪面外（將取消/刪除）時，僅以淡化提示，非裝飾性特效 */
 .ghost-ball.will-remove { opacity: 0.4; }
+
+/* 輸出視窗的驗證訊息（錯誤紅、警告橘） */
+.export-errors { margin: 6px 0 8px; max-height: 120px; overflow-y: auto; font-size: 13px; line-height: 1.55; }
+.export-errors .export-err { color: #c0392b; }
+.export-errors .export-warn { color: #b7791f; }
+.export-actions .ctrl-btn:disabled { opacity: .45; cursor: not-allowed; }
