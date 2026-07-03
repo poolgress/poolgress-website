@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 2,
+  "levelId": "builtin-objectonly-001",
+  "coordSystem": { "unit": "star", "xMax": 8, "yMax": 4, "origin": "top-left-cushion-nose" },
+  "meta": {
+    "ballDiameterStar": 0.279,
+    "placeToleranceStar": 0.14,
+    "pockets": [
+      { "x": -0.04, "y": -0.06, "radiusStar": 0.296 },
+      { "x": 8.04, "y": -0.06, "radiusStar": 0.296 },
+      { "x": -0.04, "y": 4.06, "radiusStar": 0.296 },
+      { "x": 8.04, "y": 4.06, "radiusStar": 0.296 },
+      { "x": 4.0, "y": -0.19, "radiusStar": 0.296 },
+      { "x": 4.0, "y": 4.19, "radiusStar": 0.296 }
+    ]
+  },
+  "note": {
+    "name": "第 2 關：純子球直擊",
+    "desc": "球杆直接擊打 1 號球，把它打進右上袋口。",
+    "type": "repeat",
+    "opt": "object_only",
+    "pass": 2,
+    "total": 3,
+    "stars": [2, 3, 3],
+    "reqs": { "ball": "pot_target_pocket", "extra": [] }
+  },
+  "balls": [ { "id": "1", "x": 4.0, "y": 2.0 } ],
+  "paths": [
+    { "ball": 0, "vertices": [ { "x": 4.0, "y": 2.0, "ghost": false }, { "x": 8, "y": 0, "ghost": false } ] }
+  ],
+  "pockets": [false, "ball", false, false, false, false],
+  "lines": [],
+  "zones": [],
+  "strike": null
+}

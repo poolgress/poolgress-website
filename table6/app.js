@@ -1824,21 +1824,37 @@
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
-    // 開始流程：把關卡送進遊戲的匯入清單（同網域 localStorage，依 levelId 去重），開新分頁進遊戲
-    // 遊戲流程：關卡列表 → 說明 → 開始 → 逐次挑戰 → 結算（game/ 已實作，鍵名須與 game/levels.js 的 LS_KEY 一致）
-    if (startBtn) startBtn.addEventListener("click", () => {
+    // 開始流程：把關卡（含球型圖）送進遊戲的匯入清單（同網域 localStorage，依 levelId 去重），開新分頁進遊戲
+    // 遊戲流程：關卡列表 → 說明 → 開始 → 逐次挑戰 → 結算（鍵名須與 game6/levels.js 的 LS_KEY 一致）
+    if (startBtn) startBtn.addEventListener("click", async () => {
       const LS_KEY = "poolgressGameImports";
+      startBtn.disabled = true; const oldTxt = startBtn.textContent; startBtn.textContent = "送出中…";
       try {
         const lv = serializeStateStar();
-        let arr;
-        try { arr = JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (e) { arr = []; }
-        if (!Array.isArray(arr)) arr = [];
-        const i = arr.findIndex((x) => x && x.levelId === lv.levelId);
-        if (i >= 0) arr[i] = lv; else arr.push(lv); // 同關卡重按＝更新，不堆疊
-        localStorage.setItem(LS_KEY, JSON.stringify(arr));
+        // 球型圖隨關卡帶進遊戲（說明頁/結算頁顯示）；產圖失敗不擋流程
+        try {
+          const img = await captureThumbnail(1200, "image/webp", 0.8);
+          if (img) lv.image = img;
+        } catch (e) { /* 不帶圖 */ }
+        const write = (entry) => {
+          let arr;
+          try { arr = JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (e) { arr = []; }
+          if (!Array.isArray(arr)) arr = [];
+          const i = arr.findIndex((x) => x && x.levelId === entry.levelId);
+          if (i >= 0) arr[i] = entry; else arr.push(entry); // 同關卡重按＝更新，不堆疊
+          localStorage.setItem(LS_KEY, JSON.stringify(arr));
+        };
+        try { write(lv); }
+        catch (e) {
+          // quota 超限：退回不帶圖再試一次
+          delete lv.image;
+          write(lv);
+          alert("儲存空間不足，本關以不帶球型圖的方式送出");
+        }
       } catch (e) { alert("送出關卡失敗：" + e.message); return; }
+      finally { startBtn.disabled = false; startBtn.textContent = oldTxt; }
       startBtn.textContent = "已送出"; setTimeout(() => (startBtn.textContent = "開始流程"), 1500);
-      window.open("/game/", "_blank"); // 同網域：本機與 poolgress.com 皆為 /game/
+      window.open("/game6/", "_blank"); // 同網域：本機與 poolgress.com 皆為 /game6/
     });
     // 球型圖：下載目前桌面（含母球打點）的高解析 PNG
     const imgBtn = document.getElementById("exportImageBtn");

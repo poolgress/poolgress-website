@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 2,
+  "levelId": "builtin-classic-001",
+  "coordSystem": { "unit": "star", "xMax": 8, "yMax": 4, "origin": "top-left-cushion-nose" },
+  "meta": {
+    "ballDiameterStar": 0.279,
+    "placeToleranceStar": 0.14,
+    "pockets": [
+      { "x": -0.04, "y": -0.06, "radiusStar": 0.296 },
+      { "x": 8.04, "y": -0.06, "radiusStar": 0.296 },
+      { "x": -0.04, "y": 4.06, "radiusStar": 0.296 },
+      { "x": 8.04, "y": 4.06, "radiusStar": 0.296 },
+      { "x": 4.0, "y": -0.19, "radiusStar": 0.296 },
+      { "x": 4.0, "y": 4.19, "radiusStar": 0.296 }
+    ]
+  },
+  "note": {
+    "name": "第 1 關：直線進袋",
+    "desc": "把 9 號球打進左上袋口，母球要留在桌上。",
+    "type": "repeat",
+    "opt": "classic_fixed",
+    "pass": 3,
+    "total": 5,
+    "stars": [3, 4, 5],
+    "reqs": { "ball": "pot_target_pocket", "cue": "stay_on_table", "extra": [] }
+  },
+  "balls": [
+    { "id": "cue", "cueIndex": 1, "x": 5.5, "y": 3.0 },
+    { "id": "9", "x": 3.0, "y": 1.5 }
+  ],
+  "paths": [
+    { "ball": 1, "vertices": [ { "x": 3.0, "y": 1.5, "ghost": false }, { "x": 0, "y": 0, "ghost": false } ] }
+  ],
+  "pockets": ["ball", false, false, false, false, false],
+  "lines": [],
+  "zones": [],
+  "strike": { "x": 0, "y": 0 }
+}
