@@ -1552,7 +1552,7 @@
   }
 
   // ---------- 存檔 / 讀取（localStorage） ----------
-  const SAVE_KEY = "poolDiagramSaves";
+  const SAVE_KEY = "poolDiagramSaves_t7"; // table7 專屬本機存檔空間（與 table/table6 分離）
 
   function serializeState() {
     const sp = document.getElementById("strikePoint");
@@ -2618,7 +2618,6 @@
   initResetBtn();
   initBallSizeBtn();
   initExportBtn();
-  initStartFlow();
   tableWrap.addEventListener("pointerdown", onTablePointerDown);
   fitTable();
   updateFloatingScale();

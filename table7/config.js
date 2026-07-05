@@ -47,7 +47,7 @@ window.CONFIG = {
   //   FOLDER_NAME — 存檔會放進使用者自己雲端硬碟的這個資料夾。
   GOOGLE: {
     CLIENT_ID: "502126425089-tb6t8n1r9j9oouismccfudqp6kf3ahj8.apps.googleusercontent.com",
-    FOLDER_NAME: "Poolgress 撞球練習圖",
+    FOLDER_NAME: "Poolgress 撞球練習圖 T7", // table7 專屬雲端資料夾（與 table/table6 分離）
   },
 
   // 矩形後備邊界（僅在紅圖遮罩尚未載入完成前使用；正常情況以 AMBIT_IMAGE 的
