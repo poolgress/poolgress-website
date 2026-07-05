@@ -272,8 +272,10 @@ html, body {
   font: inherit;
   font-size: 14px;
   line-height: 1.5;
-  min-height: 1.5em;
+  min-height: 6em; /* 預設四行（1.5em × 4）；內容更長時 autoGrow 再增高 */
 }
+/* 關卡說明提示語 */
+.note-desc-hint { font-size: 12px; color: #6b7280; margin: 2px 0 6px; }
 /* 關卡名稱：最上方一列 */
 .note-name-row {
   display: flex;
