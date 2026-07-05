@@ -960,7 +960,7 @@
         window.removeEventListener("pointerup", up);
         const end = pick(ev.clientX, ev.clientY);
         if (Math.abs(end.fx - start.fx) > 0.001 && Math.abs(end.fy - start.fy) > 0.001) {
-          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: autoTargetSide("zone") });
+          targetZones.push({ x1: start.fx, y1: start.fy, x2: end.fx, y2: end.fy, side: "cue" }); // table7：預設白色（右鍵可切黃）
         }
         drawingZone = null;
         renderTargetZones();
