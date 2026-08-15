@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>找不到頁面｜Poolgress</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0f1e33" />
+    <!-- 獨立靜態頁（不經 build）：GitHub Pages 於任何不存在的路徑自動顯示 -->
+    <style>
+      * { margin: 0; box-sizing: border-box; }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fbf9f5;
+        color: #33393f;
+        font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+        text-align: center;
+        padding: 1.5rem;
+      }
+      .ball {
+        width: 72px; height: 72px; margin: 0 auto;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #4a90e2, #1f3c6a);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .ball span {
+        width: 34px; height: 34px; border-radius: 50%; background: #fbf9f5;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; color: #14171a; font-size: 0.95rem;
+      }
+      h1 { margin-top: 1.5rem; font-size: 1.75rem; color: #14171a; letter-spacing: 0.02em; }
+      p { margin-top: 0.75rem; color: #5d666e; line-height: 1.9; }
+      a.btn {
+        display: inline-block; margin-top: 2rem;
+        background: #2b66b4; color: #fff; text-decoration: none;
+        padding: 0.85rem 2rem; border-radius: 999px; font-weight: 600;
+        transition: background-color 150ms ease;
+      }
+      a.btn:hover { background: #23528f; }
+      a.plain { display: inline-block; margin-top: 1rem; color: #23528f; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="ball" aria-hidden="true"><span>404</span></div>
+      <h1>這一球打偏了</h1>
+      <p>找不到你要的頁面——它可能被移動或不存在。</p>
+      <a class="btn" id="home" href="/">回 Poolgress 首頁</a>
+      <br />
+      <a class="plain" id="courses" href="/courses.html">看看線上課程</a>
+    </main>
+    <script>
+      /* 404 頁會在任意壞路徑下顯示，相對連結不可靠；
+         以第一段路徑推回站台根（/poolgress/ 或 /ui/ 子路徑部署都正確） */
+      var seg = location.pathname.split('/')[1]
+      var base = seg && seg.indexOf('.') === -1 ? '/' + seg + '/' : '/'
+      document.getElementById('home').href = base
+      document.getElementById('courses').href = base + 'courses.html'
+    </script>
+  </body>
+</html>
