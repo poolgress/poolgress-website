@@ -50,7 +50,7 @@
       <p>找不到你要的頁面——它可能被移動或不存在。</p>
       <a class="btn" id="home" href="/">回 Poolgress 首頁</a>
       <br />
-      <a class="plain" id="courses" href="/courses.html">看看線上課程</a>
+      <a class="plain" id="courses" href="/course.html">看看線上課程</a>
     </main>
     <script>
       /* 404 頁會在任意壞路徑下顯示，相對連結不可靠；
@@ -58,7 +58,7 @@
       var seg = location.pathname.split('/')[1]
       var base = seg && seg.indexOf('.') === -1 ? '/' + seg + '/' : '/'
       document.getElementById('home').href = base
-      document.getElementById('courses').href = base + 'courses.html'
+      document.getElementById('courses').href = base + 'course.html'
     </script>
   </body>
 </html>
