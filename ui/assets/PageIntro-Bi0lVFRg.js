@@ -1,0 +1,2 @@
+import{j as e}from"./index-Dxon7kCU.js";function i({eyebrow:a,title:r,intro:n}){return e.jsx("header",{className:"pg-page-intro",children:e.jsxs("div",{className:"pg-page-intro__inner",children:[e.jsx("p",{className:"pg-t-eyebrow",children:a}),e.jsx("h1",{className:"pg-page-intro__title",children:r.split(`
+`).map(s=>e.jsx("span",{className:"pg-page-intro__tline",children:s},s))}),e.jsx("p",{className:"pg-t-body pg-page-intro__intro",children:n})]})})}export{i as P};
