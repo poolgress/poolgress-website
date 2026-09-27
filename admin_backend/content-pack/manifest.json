@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "schemaVersion": 1,
+  "minAppVersion": "1.0.0",
+  "publishedAt": "2026-09-27T07:50:40.789Z",
+  "content": {
+    "bucket": "content-packs",
+    "path": "content/v1.json",
+    "sha256": "5b375f82410ca2d5d5e8402732464ac99852d2253fbd011c709669a683159051",
+    "size": 6450
+  },
+  "assets": [
+    {
+      "bucket": "content-assets",
+      "path": "venues/v1/gogo-3c031818e5.webp",
+      "sha256": "3c031818e57c7e9abf0f79b5270bb2c47ec69011042904b807d6166b32132926",
+      "size": 18416
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v1/v1-d2fcea4948.webp",
+      "sha256": "d2fcea4948b2673023d11eff678704ad45ed3f4f5b4584e33bda1e56f6430781",
+      "size": 106776
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v1/demo_video_1-eb79518dce.webp",
+      "sha256": "eb79518dce43e7632635aa86d2b1a951a0bf3e6cabdefa0465cad56e63200b4c",
+      "size": 24468
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v1/post_p1-8945a41360.webp",
+      "sha256": "8945a4136049de016170d5e190b491949028104c2c0ad29e8c8131fa3881cdf3",
+      "size": 27440
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v1/demo_video_2-ef79771fb2.webp",
+      "sha256": "ef79771fb2c90dd3bae3485328ffadafb2e36130f791c2b797c9fdcdbe43f63b",
+      "size": 22344
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v2/athlete-2e99bed1e0.webp",
+      "sha256": "2e99bed1e0dc882d5a041e454ae22cd91419d1791debd9c23eb2c24b01441d37",
+      "size": 72844
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v2/v2-df16897b39.webp",
+      "sha256": "df16897b395d28c6d8c2677ad1287e67802096ee48a3861e7bdf21f8ccb0969c",
+      "size": 96818
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v2/demo_video_2-ef79771fb2.webp",
+      "sha256": "ef79771fb2c90dd3bae3485328ffadafb2e36130f791c2b797c9fdcdbe43f63b",
+      "size": 22344
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v2/demo_video_1-eb79518dce.webp",
+      "sha256": "eb79518dce43e7632635aa86d2b1a951a0bf3e6cabdefa0465cad56e63200b4c",
+      "size": 24468
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v2/post_p1-8945a41360.webp",
+      "sha256": "8945a4136049de016170d5e190b491949028104c2c0ad29e8c8131fa3881cdf3",
+      "size": 27440
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v3/pool_house-c38276808b.webp",
+      "sha256": "c38276808b7e9b8fd4a4ba7cd2d2443b70ad70e8d8358919b9fe6c583db0115a",
+      "size": 36578
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v3/v3-ac51b8c9c7.webp",
+      "sha256": "ac51b8c9c73f126f54725026be07371c0a61c8675a971c5ede7593384dbe0699",
+      "size": 93004
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v3/post_p1-8945a41360.webp",
+      "sha256": "8945a4136049de016170d5e190b491949028104c2c0ad29e8c8131fa3881cdf3",
+      "size": 27440
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v3/demo_video_2-ef79771fb2.webp",
+      "sha256": "ef79771fb2c90dd3bae3485328ffadafb2e36130f791c2b797c9fdcdbe43f63b",
+      "size": 22344
+    },
+    {
+      "bucket": "content-assets",
+      "path": "venues/v3/demo_video_1-eb79518dce.webp",
+      "sha256": "eb79518dce43e7632635aa86d2b1a951a0bf3e6cabdefa0465cad56e63200b4c",
+      "size": 24468
+    }
+  ]
+}
