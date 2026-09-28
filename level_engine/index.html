@@ -6,13 +6,13 @@
   <meta name="description" content="教練的撞球出題工作台：擺球、畫路線、選袋口、訂規則，匯出完整關卡。">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e5b49'/%3E%3Ccircle cx='16' cy='16' r='9' fill='white'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23eeaa40'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="editor.css?v=20260928-16">
-  <script src="model.js?v=20260928-16" defer></script><script src="presets.js" defer></script><script src="editor.js?v=20260928-31" defer></script>
+  <script src="model.js?v=20260928-16" defer></script><script src="presets.js" defer></script><script src="editor.js?v=20260929-1" defer></script>
 </head>
 <body>
 <header class="appbar"><div class="wordmark"><span class="brandmark">●</span> Poolgress <span>關卡工作台</span></div><nav><button id="importBtn">匯入 JSON</button><button id="saveBtn">儲存草稿</button><button id="exportBtn" class="primary">匯出關卡 ↗</button></nav></header>
 <main>
   <div id="saveStatus" class="sr-only" role="status">草稿僅保存在這台裝置</div>
-  <div class="starterbar"><label for="preset">從現有關卡開始</label><select id="preset"><option value="">選擇 20 關範例…</option></select><button id="loadPreset">套用範例</button><button id="downloadAllBtn">下載 20 關</button><span class="divider"></span><button id="newBtn">＋ 空白關卡</button><button id="draftsBtn">我的草稿</button></div>
+  <div class="starterbar"><label for="preset">從現有關卡開始</label><select id="preset"><option value="">選擇 20 關範例…</option></select><button id="loadPreset">套用範例</button><button id="downloadAllBtn">下載 20 關</button><button id="downloadAllJsonBtn">下載 20 關 JSON</button><span class="divider"></span><button id="newBtn">＋ 空白關卡</button><button id="draftsBtn">我的草稿</button></div>
   <div class="workspace">
     <section class="drawing-column" aria-label="球型繪製與出題設定">
       <div class="canvas-panel">
