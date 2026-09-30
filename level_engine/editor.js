@@ -45,6 +45,9 @@ function draw(){
   let out='<defs>'+['cue','gray','red',...Array.from({length:15},(_,i)=>String(i+1))].map(id=>`<marker id="arrow-${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L8 5 L1 9" fill="none" stroke="${M.ballColor(id)}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>`).join('')+'</defs>';
   function rect(z,ghost=false){const color=z.side==='cue'?'#fff':'#ffcb67',dash=ghost||z.shot===2?'stroke-dasharray="5 5"':'';return `<rect x="${Math.min(z.x1,z.x2)*W}" y="${Math.min(z.y1,z.y2)*H}" width="${Math.abs(z.x2-z.x1)*W}" height="${Math.abs(z.y2-z.y1)*H}" fill="${color}" fill-opacity=".18" stroke="${color}" stroke-width="3" ${dash}/>`;}
   state.zones.forEach(z=>out+=rect(z));if(gesture?.type==='zone')out+=rect({...gesture.start,x1:gesture.start.fx,y1:gesture.start.fy,x2:gesture.end.fx,y2:gesture.end.fy,side:tool==='zoneCue'?'cue':'ball'},true);
+  const lineCounts={ball:0,cue:0};
+  function targetLine(l,index=null,preview=false){const side=l.side||'ball',color=side==='cue'?'#fff':'#ffbc00',number=preview?lineCounts[side]+1:++lineCounts[side],mx=(l.x1+l.x2)*W/2,my=(l.y1+l.y2)*H/2,shot=l.shot===2?' stroke-dasharray="14 8"':'';return `<line class="target-line${preview?' target-line-preview':''}" ${index===null?'':`data-target-line-index="${index}"`} x1="${l.x1*W}" y1="${l.y1*H}" x2="${l.x2*W}" y2="${l.y2*H}" stroke="${color}" stroke-width="8"${shot}/><text class="target-line-num" x="${mx}" y="${my}">${number}</text>`;}
+  state.lines.forEach((l,i)=>out+=targetLine(l,i));if(gesture?.type==='targetLine')out+=targetLine({x1:gesture.start.fx,y1:gesture.start.fy,x2:gesture.end.fx,y2:gesture.end.fy,side:tool==='targetLineCue'?'cue':'ball',shot:state.flow==='E'?targetShot:1},null,true);
   const paths=gesture?.type==='path'&&gesture.moved?[...state.paths.filter(p=>p.ball!==gesture.index),{ball:gesture.index,style:gesture.style,vertices:[...gesture.locked,gesture.live]}]:state.paths;
   paths.forEach(p=>{const b=state.balls[p.ball];if(!b||!p.vertices.length)return;const points=[b,...p.vertices].map(v=>({x:v.fx*W,y:v.fy*H})),color=M.ballColor(b.id),dash=p.style==='solid'?'none':'18 12',segments=M.routeSegments(points);segments.forEach((s,i)=>{if(s.offset)out+=`<line x1="${s.joinX}" y1="${s.joinY}" x2="${s.x1}" y2="${s.y1}" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${dash}"/>`;out+=`<line x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${dash}" ${i===segments.length-1?`marker-end="url(#arrow-${b.id})"`:''}/>`;});p.vertices.slice(0,-1).forEach(v=>out+=`<circle cx="${v.fx*W}" cy="${v.fy*H}" r="10.5" fill="none" stroke="${color}" stroke-width="2"/>`);});
   $('drawing').innerHTML=out;
@@ -57,7 +60,9 @@ function renderBalls(){
 }
 function updateSelection(){}
 function renderZones(){
-  $('zoneList').innerHTML=state.zones.map((z,i)=>{const a=M.star(Math.min(z.x1,z.x2),Math.min(z.y1,z.y2)),b=M.star(Math.max(z.x1,z.x2),Math.max(z.y1,z.y2));return `<div class="zone-row"><span>${z.shot?`第 ${z.shot} 桿 · `:''}${z.side==='cue'?'母球':'子球'}區 ${i+1} · (${a.x.toFixed(2)}, ${a.y.toFixed(2)}) → (${b.x.toFixed(2)}, ${b.y.toFixed(2)}) 星</span><button data-remove-zone="${i}" aria-label="移除第 ${i+1} 個停球區">移除</button></div>`;}).join('');
+  const zones=state.zones.map((z,i)=>{const a=M.star(Math.min(z.x1,z.x2),Math.min(z.y1,z.y2)),b=M.star(Math.max(z.x1,z.x2),Math.max(z.y1,z.y2));return `<div class="zone-row"><span>${z.shot?`第 ${z.shot} 桿 · `:''}${z.side==='cue'?'母球':'子球'}區 ${i+1} · (${a.x.toFixed(2)}, ${a.y.toFixed(2)}) → (${b.x.toFixed(2)}, ${b.y.toFixed(2)}) 星</span><button data-remove-zone="${i}" aria-label="移除第 ${i+1} 個停球區">移除</button></div>`;});
+  const counts={ball:0,cue:0},lines=state.lines.map((l,i)=>{const n=++counts[l.side||'ball'],a=M.star(l.x1,l.y1),b=M.star(l.x2,l.y2);return `<div class="zone-row"><span>${l.shot?`第 ${l.shot} 桿 · `:''}${l.side==='cue'?'母球':'子球'}線段 ${n} · (${a.x.toFixed(2)}, ${a.y.toFixed(2)}) → (${b.x.toFixed(2)}, ${b.y.toFixed(2)}) 星</span><button data-remove-line="${i}" aria-label="移除第 ${n} 個目標線段">移除</button></div>`;});
+  $('zoneList').innerHTML=[...zones,...lines].join('');
 }
 function stopAnimation(silent=true){
   animationRun++;activeAnimations.forEach(a=>a.cancel());activeAnimations=[];$('table').dataset.animating='false';
@@ -91,7 +96,7 @@ function setTool(t){
   document.querySelectorAll('[data-target-tool]').forEach(b=>b.setAttribute('aria-pressed',String(t===b.dataset.targetTool&&(t!=='pocket'||pocketMode===b.dataset.side))));
   $('zoneList').hidden=mode!=='target';
   document.querySelectorAll('[data-pocket-index]').forEach(el=>el.disabled=t!=='pocket');
-  $('table').dataset.mode=mode;updateSelection();
+  $('table').dataset.mode=mode;$('table').dataset.targetLine=String(t==='targetLineBall'||t==='targetLineCue');updateSelection();
   draw();
 }
 function constrain(p,snap=state.snap){let {x,y}=M.star(p.fx,p.fy);if(snap){x=Math.round(x*4)/4;y=Math.round(y*4)/4;}return M.frac(Math.max(.09,Math.min(7.91,x)),Math.max(.09,Math.min(3.91,y)));}
@@ -115,10 +120,12 @@ $('allObjectPockets').addEventListener('click',()=>{if(tool!=='pocket'||pocketMo
 $('pocketLayer').addEventListener('click',e=>{const pocket=e.target.closest('[data-pocket-index]');if(!pocket)return;if(tool!=='pocket')return;stash();const i=Number(pocket.dataset.pocketIndex),pockets=targetShot===2?state.pockets2:state.pockets;setPocket(i,pocketMode,![pocketMode,'both'].includes(pockets[i]),targetShot);syncPocketTarget(pocketMode,targetShot);commit(true);$('pocketLayer').querySelector(`[data-pocket-index="${i}"]`)?.focus();});
 $('table').addEventListener('pointerdown',e=>{
   if(e.button!==0)return;
+  if(e.target.closest('[data-target-line-index]'))return;
   if(e.target.closest('[data-pocket-index]'))return;
   const b=e.target.closest('[data-ball]');if(b&&mainMode()!=='target'){selected=Number(b.dataset.ball);renderBalls();if(tool==='move'||tool==='path'){gesture=tool==='path'?{type:'path',index:selected,before:M.copy(state),locked:[],lastHit:null,live:{...state.balls[selected]},style:lineStyle,moved:false}:{type:'ball',start:pointer(e),before:M.copy(state),index:selected};$('table').setPointerCapture(e.pointerId);}return;}
   if(tool==='path'){if(selected<0){toast('先選取桌上的一顆球，再畫路線');return;}stash();let p=state.paths.find(p=>p.ball===selected);if(!p){p={ball:selected,style:lineStyle,vertices:[]};state.paths.push(p);}p.vertices.push({...pointer(e),ghost:false});commit();return;}
   if(tool==='zoneCue'||tool==='zoneBall'){if(tool==='zoneCue'&&state.strike==='direct'){toast('本關無母球，請使用子球停球區');return;}const p=M.snapPoint(pointer(e),state.snap);gesture={type:'zone',start:p,end:p,before:M.copy(state)};$('table').setPointerCapture(e.pointerId);}
+  else if(tool==='targetLineCue'||tool==='targetLineBall'){if(tool==='targetLineCue'&&state.strike==='direct'){toast('本關無母球，請使用子球目標線段');return;}const p=M.snapPoint(pointer(e),state.snap);gesture={type:'targetLine',start:p,end:p,before:M.copy(state)};$('table').setPointerCapture(e.pointerId);}
   else if(tool==='move'){selected=-1;renderBalls();}
 });
 $('table').addEventListener('pointermove',e=>{if(!gesture)return;if(gesture.type==='ball'){const p=pointer(e,true);Object.assign(state.balls[gesture.index],p);const b=$('ballLayer').querySelector(`[data-ball="${gesture.index}"]`);b.style.left=p.fx*100+'%';b.style.top=p.fy*100+'%';updateSelection();draw();}else if(gesture.type==='path'){const p=pointer(e),a=M.star(p.fx,p.fy),b=M.star(state.balls[gesture.index].fx,state.balls[gesture.index].fy);if(Math.hypot(a.x-b.x,a.y-b.y)>.04)gesture.moved=true;Object.assign(gesture,M.extendRoute(state.balls,gesture.index,gesture.locked,p,gesture.lastHit));draw();}else{gesture.end=M.snapPoint(pointer(e),state.snap);draw();}});
@@ -126,10 +133,14 @@ function finishGesture(e,cancel=false){if(!gesture)return;const g=gesture;gestur
   if(Math.abs(g.end.fx-g.start.fx)<.01||Math.abs(g.end.fy-g.start.fy)<.01){draw();return;}
   const side=tool==='zoneCue'?'cue':'ball',shot=state.flow==='E'?targetShot:1,key=side==='cue'?(shot===2?'cueTarget2':'cueTarget'):(shot===2?'objectTarget2':'objectTarget');state.zones.push({x1:Math.min(g.start.fx,g.end.fx),y1:Math.min(g.start.fy,g.end.fy),x2:Math.max(g.start.fx,g.end.fx),y2:Math.max(g.start.fy,g.end.fy),side,shot});
   state[key]=['pocket','pocket_or_zone'].includes(state[key])?'pocket_or_zone':'zone';
+}else if(g.type==='targetLine'){
+  if(Math.hypot(g.end.fx-g.start.fx,g.end.fy-g.start.fy)<.01){draw();return;}
+  state.lines.push({x1:g.start.fx,y1:g.start.fy,x2:g.end.fx,y2:g.end.fy,side:tool==='targetLineCue'?'cue':'ball',shot:state.flow==='E'?targetShot:1});
 }else if(g.type==='path'&&g.moved){state.paths=state.paths.filter(p=>p.ball!==g.index);state.paths.push({ball:g.index,style:g.style,vertices:[...g.locked,{...g.live,ghost:false}]});}if(JSON.stringify(state)!==JSON.stringify(g.before)){history.push(g.before);future=[];}commit(true);}
 $('table').addEventListener('pointerup',e=>finishGesture(e));$('table').addEventListener('pointercancel',e=>finishGesture(e,true));
 $('table').addEventListener('keydown',e=>{if(tool!=='move')return;const b=e.target.closest('[data-ball]');if(!b)return;selected=Number(b.dataset.ball);if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();removeBall();return;}const dir={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!dir)return;e.preventDefault();stash();const ball=state.balls[selected],p=M.star(ball.fx,ball.fy),step=e.shiftKey?.25:.05;Object.assign(ball,constrain(M.frac(p.x+dir[0]*step,p.y+dir[1]*step),false));commit();$('ballLayer').querySelector(`[data-ball="${selected}"]`)?.focus();});
-$('zoneList').addEventListener('click',e=>{if(mainMode()!=='target')return;const b=e.target.closest('[data-remove-zone]');if(!b)return;stash();state.zones.splice(Number(b.dataset.removeZone),1);commit();});
+$('drawing').addEventListener('dblclick',e=>{const line=e.target.closest('[data-target-line-index]');if(!line||mainMode()!=='target')return;e.preventDefault();e.stopPropagation();stash();state.lines.splice(Number(line.dataset.targetLineIndex),1);commit();toast('已移除目標線段，可按復原找回');});
+$('zoneList').addEventListener('click',e=>{if(mainMode()!=='target')return;const zone=e.target.closest('[data-remove-zone]'),line=e.target.closest('[data-remove-line]');if(!zone&&!line)return;stash();if(zone)state.zones.splice(Number(zone.dataset.removeZone),1);else state.lines.splice(Number(line.dataset.removeLine),1);commit();});
 for(const id of ['objectPockets','cuePockets','objectPockets2','cuePockets2'])$(id).addEventListener('change',e=>{const el=e.target;if(!el.matches('[data-pocket]'))return;const shot=Number(el.dataset.shot)||1;stash();setPocket(Number(el.dataset.pocket),el.dataset.side,el.checked,shot);syncPocketTarget(el.dataset.side,shot);commit(true);});
 document.querySelector('.settings-grid').addEventListener('change',e=>{const input=e.target.closest('[data-bind]');if(!input||!input.checked)return;const target=$(input.dataset.bind);target.value=input.value;target.dispatchEvent(new Event('change',{bubbles:true}));});
 for(const [id,key]of [['grid','grid'],['snap','snap'],['order','order'],['noContact','noContact']])$(id).addEventListener('change',()=>{stash();state[key]=$(id).checked;commit();});
@@ -149,7 +160,7 @@ $('deleteBtn').addEventListener('click',()=>{
   const mode=mainMode();
   if(mode==='move'){if(selected<0){toast('請先選取要移除的球');return;}removeBall();toast('已移除球，可按復原找回');return;}
   if(mode==='path'){if(selected<0||!state.paths.some(p=>p.ball===selected)){toast('請先選取有路線的球');return;}stash();state.paths=state.paths.filter(p=>p.ball!==selected);commit();toast('已移除路線，可按復原找回');return;}
-  toast('停球區可按旁邊的「移除」；袋口再點一次即可取消');
+  toast('區塊與線段可按旁邊的「移除」；線段也可雙擊刪除；袋口再點一次即可取消');
 });
 $('resetBtn').addEventListener('click',()=>$('resetDialog').showModal());
 $('confirmReset').addEventListener('click',()=>{stash();state=M.eraseDrawing(state,'all');selected=-1;gesture=null;$('resetDialog').close();commit(true);toast('已重置球型，關卡設定保留；可按復原找回');});
