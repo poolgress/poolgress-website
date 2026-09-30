@@ -1,15 +1,21 @@
 {
-  "version": 5,
+  "version": 7,
   "schemaVersion": 1,
   "minAppVersion": "1.0.0",
-  "publishedAt": "2026-09-28T00:16:43.636Z",
+  "publishedAt": "2026-09-29T16:29:43.725Z",
   "content": {
     "bucket": "content-packs",
-    "path": "content/v5.json",
-    "sha256": "6e6dea77a154190a1a193b16aaadd96a3e05c16ae6a1788c4a2439438db523f1",
-    "size": 45670
+    "path": "content/v7.json",
+    "sha256": "a1973fa51a81d2aff9c0b3206ce67600eb2eedded56b84c1d4b2b9918840ee39",
+    "size": 46257
   },
   "assets": [
+    {
+      "bucket": "content-assets",
+      "path": "venues/v0/Gemini_Generated_Image_ffra0iffra0iffra-837415d13e.webp",
+      "sha256": "837415d13e1937eb86076a3ab70ac9ece948a6ddea1a30a3de12e202a33e7d5a",
+      "size": 137088
+    },
     {
       "bucket": "content-assets",
       "path": "venues/v1/gogo-3c031818e5.webp",
