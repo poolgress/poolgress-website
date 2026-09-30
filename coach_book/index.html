@@ -166,6 +166,7 @@ textarea{resize:vertical;min-height:96px}
       widgetId = turnstile.render('#captcha', {
         sitekey: TURNSTILE_SITE_KEY,
         language: 'zh-tw',
+        theme: 'light',
         callback: (t) => { captchaToken = t; },
         'expired-callback': () => { captchaToken = ''; },
         'error-callback': () => { captchaToken = ''; },
