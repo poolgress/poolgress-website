@@ -119,7 +119,8 @@
     if(s.balls.some(b=>b.fx<GRID.left||b.fx>GRID.right||b.fy<GRID.top||b.fy>GRID.bottom))errors.push('球心位於庫鼻範圍之外，請移回桌面。');
     if(s.paths.length)warnings.push('路線只作教學示意，不自動驗證碰庫、推桿或拉桿。');
     if(s.noContact)warnings.push('現有遊戲以明顯位移推測碰球，輕微擦碰仍可能漏判。');
-    if(s.lines.length)warnings.push('目標線段會輸出供影像辨識判定球心是否穿越；工作台內只呈現位置，不模擬辨識結果。');
+    if(s.strike==='direct'&&s.lines.some(l=>l.side==='cue'))errors.push('無母球關卡不能設定母球目標線段。');
+    if(s.lines.some(l=>Math.hypot(l.x2-l.x1,l.y2-l.y1)<1e-6))errors.push('目標線段起點與終點不能相同。');
     return {errors:[...new Set(errors)],warnings};
   }
   function describe(s){
@@ -133,22 +134,27 @@
     const extra=s.noContact?'不得碰動其他子球，每桿最多進一顆':'';
     const score=s.flow==='D'?`單局清完 ${n} 顆才過關，失誤即結束；全清獲三星。`:`${s.flow==='E'?'清完一輪才算成功一次；':''}共 ${n} ${s.flow==='E'?'輪':'次'}，成功 ${s.pass} 次過關；${s.stars.join('／')} 次為一／二／三星。`;
     const gameRule=order||extra?`${[order,extra].filter(Boolean).join('；')}。`:null;
-    return [`${FLOWS[s.flow].name}：${setup}。${s.flow==='C'?`依${s.rotation==='cue'?'母球加入位置':'子球號碼'}輪換，循環 ${s.cycles} 次。`:''}`,s.flow==='E'?'第一桿：'+obj:obj,s.flow==='E'?'第一桿：'+cue:cue,...second,gameRule,score].filter(Boolean);
+    return [`${FLOWS[s.flow].name}：${setup}。${s.flow==='C'?`依${s.rotation==='cue'?'母球加入位置':'子球號碼'}輪換，循環 ${s.cycles} 次。`:''}`,s.flow==='E'?'第一桿：'+obj:obj,s.flow==='E'?'第一桿：'+cue:cue,...second,...(s.flow==='E'?[1,2]:[1]).flatMap(shot=>['ball','cue'].flatMap(side=>{const requirement=lineRequirement(s,side,shot);return requirement.required?[`${s.flow==='E'?'第 '+shot+' 桿：':'每次擊球：'}${side==='ball'?'本桿目標子球':'母球'}須碰到全部 ${requirement.lineIndexes.length} 條${side==='ball'?'黃色':'白色'}目標線段（順序不限），並同時滿足上述進袋或停球條件。`]:[]})),gameRule,score].filter(Boolean);
+  }
+  // Line targets supplement the endpoint goal; indexes refer to diagram.lines.
+  function lineRequirement(s,side,shot=1){
+    const lineIndexes=s.lines.flatMap((l,i)=>l.side===side&&(s.flow!=='E'||l.shot==null||l.shot===shot)?[i]:[]);
+    return {required:lineIndexes.length>0,lineIndexes,match:'all',order:'any',event:'ball_body_touches_segment',scope:'current_shot',combineWithTarget:'and'};
   }
   function toSpec(s){
     const withStar=b=>({...b,...star(b.fx,b.fy)});
     return {format:'poolgress.coach-level',version:1,id:s.id,name:s.name,
       flow:{template:s.flow,name:FLOWS[s.flow].name,onSuccess:['D','E'].includes(s.flow)?'continue_until_clear':'next_attempt',onFailure:s.flow==='D'?'end_game':'next_attempt'},
       setup:{strikeMode:s.strike,cuePlacement:s.cuePlacement,rotation:s.flow==='C'?s.rotation:null,cycles:s.cycles,coordinateSystem:{diagram:'table7-image-fraction',game:{unit:'star',xMax:8,yMax:4,origin:'top-left-cushion-nose'},imageBounds:GRID},balls:s.balls.map(withStar),rounds:roundPlan(s)?.map(r=>({...r,balls:r.balls.map(withStar)}))||null},
-      objectRules:{target:s.objectTarget,pockets:POCKETS.filter((p,i)=>['ball','both'].includes(s.pockets[i])).map(p=>p[0]),order:s.order?'ascending':'any'},
-      cueRules:{target:s.strike==='direct'?'none':s.cueTarget,pockets:POCKETS.filter((p,i)=>['cue','both'].includes(s.pockets[i])).map(p=>p[0]),zoneAppliesTo:s.flow==='E'&&s.cueTarget!==s.cueTarget2?'first_shot':'every_shot'},
-      shotRules:s.flow==='E'?{first:{object:{target:s.objectTarget,pockets:POCKETS.filter((p,i)=>['ball','both'].includes(s.pockets[i])).map(p=>p[0])},cue:{target:s.cueTarget,pockets:POCKETS.filter((p,i)=>['cue','both'].includes(s.pockets[i])).map(p=>p[0])}},second:{object:{target:s.objectTarget2,pockets:POCKETS.filter((p,i)=>['ball','both'].includes(s.pockets2[i])).map(p=>p[0])},cue:{target:s.cueTarget2,pockets:POCKETS.filter((p,i)=>['cue','both'].includes(s.pockets2[i])).map(p=>p[0])}}}:null,
+      objectRules:{target:s.objectTarget,lineRequirement:lineRequirement(s,'ball',1),pockets:POCKETS.filter((p,i)=>['ball','both'].includes(s.pockets[i])).map(p=>p[0]),order:s.order?'ascending':'any'},
+      cueRules:{target:s.strike==='direct'?'none':s.cueTarget,pockets:POCKETS.filter((p,i)=>['cue','both'].includes(s.pockets[i])).map(p=>p[0]),lineRequirement:lineRequirement(s,'cue'),zoneAppliesTo:s.flow==='E'&&s.cueTarget!==s.cueTarget2?'first_shot':'every_shot'},
+      shotRules:s.flow==='E'?{first:{object:{target:s.objectTarget,lineRequirement:lineRequirement(s,'ball',1),pockets:POCKETS.filter((p,i)=>['ball','both'].includes(s.pockets[i])).map(p=>p[0])},cue:{target:s.cueTarget,lineRequirement:lineRequirement(s,'cue',1),pockets:POCKETS.filter((p,i)=>['cue','both'].includes(s.pockets[i])).map(p=>p[0])}},second:{object:{target:s.objectTarget2,lineRequirement:lineRequirement(s,'ball',2),pockets:POCKETS.filter((p,i)=>['ball','both'].includes(s.pockets2[i])).map(p=>p[0])},cue:{target:s.cueTarget2,lineRequirement:lineRequirement(s,'cue',2),pockets:POCKETS.filter((p,i)=>['cue','both'].includes(s.pockets2[i])).map(p=>p[0])}}}:null,
       fouls:{otherObjectBallsMustNotMove:s.noContact,multipleObjectPotsForbidden:s.noContact},
       scoring:{unit:s.flow==='D'?'balls':s.flow==='E'?'cleared_rounds':'successful_shots',total:total(s),pass:s.pass,stars:[...s.stars]},
       diagram:{zones:copy(s.zones),lines:copy(s.lines),paths:copy(s.paths),grid:s.grid,snap:s.snap},teaching:s.teaching,source:s.source,
       legacyEditorExtras:s.original?copy(s.original):null};
   }
-  function fromSpec(j){if(j.version!==1)throw Error('不支援此完整關卡版本。');const s=blank();Object.assign(s,{id:typeof j.id==='string'?j.id:uid(),name:j.name,flow:j.flow?.template,strike:j.setup?.strikeMode,cuePlacement:j.setup?.cuePlacement,rotation:j.setup?.rotation||'object',cycles:j.setup?.cycles??1,balls:(j.setup?.balls||[]).map(b=>({id:b.id,fx:b.fx,fy:b.fy})),paths:j.diagram?.paths||[],zones:j.diagram?.zones||[],lines:j.diagram?.lines||[],grid:j.diagram?.grid??true,snap:j.diagram?.snap??true,objectTarget:j.objectRules?.target,cueTarget:j.cueRules?.target==='none'?'stay':j.cueRules?.target,order:j.objectRules?.order==='ascending',noContact:!!j.fouls?.otherObjectBallsMustNotMove,total:j.scoring?.total,pass:j.scoring?.pass,stars:j.scoring?.stars,teaching:j.teaching||'',source:typeof j.source==='string'?j.source:'匯入完整關卡',original:j.legacyEditorExtras||null});if(s.flow==='D'&&s.strike==='direct')s.flow='A';s.objectTarget2=j.shotRules?.second?.object?.target||s.objectTarget;s.cueTarget2=j.shotRules?.second?.cue?.target||(j.cueRules?.zoneAppliesTo==='first_shot'?'stay':s.cueTarget);
+  function fromSpec(j){if(j.version!==1)throw Error('不支援此完整關卡版本。');const s=blank();Object.assign(s,{id:typeof j.id==='string'?j.id:uid(),name:j.name,flow:j.flow?.template,strike:j.setup?.strikeMode,cuePlacement:j.setup?.cuePlacement,rotation:j.setup?.rotation||'object',cycles:j.setup?.cycles??1,balls:(j.setup?.balls||[]).map(b=>({id:b.id,fx:b.fx,fy:b.fy})),paths:j.diagram?.paths||[],zones:j.diagram?.zones||[],lines:j.diagram?.lines??j.legacyEditorExtras?.lines??[],grid:j.diagram?.grid??true,snap:j.diagram?.snap??true,objectTarget:j.objectRules?.target,cueTarget:j.cueRules?.target==='none'?'stay':j.cueRules?.target,order:j.objectRules?.order==='ascending',noContact:!!j.fouls?.otherObjectBallsMustNotMove,total:j.scoring?.total,pass:j.scoring?.pass,stars:j.scoring?.stars,teaching:j.teaching||'',source:typeof j.source==='string'?j.source:'匯入完整關卡',original:j.legacyEditorExtras||null});if(s.flow==='D'&&s.strike==='direct')s.flow='A';s.objectTarget2=j.shotRules?.second?.object?.target||s.objectTarget;s.cueTarget2=j.shotRules?.second?.cue?.target||(j.cueRules?.zoneAppliesTo==='first_shot'?'stay':s.cueTarget);
     for(const p of j.objectRules?.pockets||[]){const i=POCKETS.findIndex(x=>x[0]===p);if(i<0)throw Error('未知袋口代碼');s.pockets[i]='ball'}for(const p of j.cueRules?.pockets||[]){const i=POCKETS.findIndex(x=>x[0]===p);if(i<0)throw Error('未知袋口代碼');s.pockets[i]=s.pockets[i]==='ball'?'both':'cue'}for(const p of j.shotRules?.second?.object?.pockets||[]){const i=POCKETS.findIndex(x=>x[0]===p);if(i<0)throw Error('未知袋口代碼');s.pockets2[i]='ball'}for(const p of j.shotRules?.second?.cue?.pockets||[]){const i=POCKETS.findIndex(x=>x[0]===p);if(i<0)throw Error('未知袋口代碼');s.pockets2[i]=s.pockets2[i]==='ball'?'both':'cue'}if(!j.shotRules?.second)s.pockets2=[...s.pockets];return assertShape(s);}
   function fromLegacy(input,source='匯入 Table7 存檔'){
     let d=copy(input.data||input);if(!Array.isArray(d.balls)||!d.note)throw Error('找不到 Table7 的 balls 與 note。');
@@ -177,5 +183,5 @@
     return {v:1,savedAt:Date.now(),data:d,coachSpec:toSpec(s),compatibility:{purpose:'table7-editor-exchange',notGameDeployment:true,warnings:['舊 Table7 可能把 both 袋口轉成子球，且不保留所有新規則；完整規則以 coachSpec 或完整關卡檔為準。','與舊 drill 的座標及載入規則需工程端確認後才可遊玩。']}};
   }
   function read(j){if(!j||typeof j!=='object')throw Error('不是有效關卡物件。');if(j.format==='poolgress.coach-level')return fromSpec(j);if(j.coachSpec?.format==='poolgress.coach-level')return fromSpec(j.coachSpec);return fromLegacy(j);}
-  return {GRID,POCKETS,FLOWS,blank,copy,eraseDrawing,uid,star,frac,repeatable,ballName,ballColor,snapPoint,routeSegments,extendRoute,animationPlan,total,roundPlan,validate,describe,toSpec,fromSpec,fromLegacy,toLegacy,read,assertShape};
+  return {GRID,POCKETS,FLOWS,blank,copy,eraseDrawing,uid,star,frac,repeatable,ballName,ballColor,snapPoint,routeSegments,extendRoute,animationPlan,total,roundPlan,validate,describe,lineRequirement,toSpec,fromSpec,fromLegacy,toLegacy,read,assertShape};
 });

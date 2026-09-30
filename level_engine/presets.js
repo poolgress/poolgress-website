@@ -263,7 +263,16 @@ window.COACH_PRESETS = [
         false,
         false
       ],
-      "lines": [],
+      "lines": [
+        {
+          "x1": 0.6668625,
+          "y1": 0.0979,
+          "x2": 0.7782375,
+          "y2": 0.0979,
+          "side": "ball",
+          "shot": 1
+        }
+      ],
       "zones": [
         {
           "x1": 0.6668625,
@@ -342,7 +351,16 @@ window.COACH_PRESETS = [
         false,
         false
       ],
-      "lines": [],
+      "lines": [
+        {
+          "x1": 0.0543,
+          "y1": 0.3992125,
+          "x2": 0.0543,
+          "y2": 0.6000875,
+          "side": "ball",
+          "shot": 1
+        }
+      ],
       "zones": [
         {
           "x1": 0.6668625,
