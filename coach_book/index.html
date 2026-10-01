@@ -212,8 +212,8 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
   <section id="done-view" class="done" hidden>
     <div class="eyebrow">Request received</div>
     <h1>已送出申請</h1>
-    <p>加入 LINE 官方追蹤第一手消息</p>
-    <a class="btn line" href="https://lin.ee/QL02rCh" target="_blank" rel="noopener">加入 LINE 官方追蹤</a>
+    <p id="done-text">加入 LINE 官方追蹤第一手消息</p>
+    <a class="btn line" id="line-join" href="https://lin.ee/QL02rCh" target="_blank" rel="noopener">加入 LINE 官方追蹤</a>
     <a class="btn ghost" id="download" href="/">下載 Poolgress App</a>
   </section>
 </main>
@@ -248,7 +248,7 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
   const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
   const TURNSTILE_SITE_KEY = LOCAL ? '1x00000000000000000000AA' : '0x4AAAAAAFKVoDfLLkHgcJQD';
   const CONTACT_KEY = 'pg_coach_contact';
-  // 送出前用 LINE 授權（LIFF，Poolgress 官方 LINE 底下的 LINE Login channel）：後端才能知道這筆申請是哪位 LINE 好友，官方帳號才回覆得到他
+  // LINE 授權（LIFF，官方 LINE 底下的 LINE Login channel）：送出申請後按「加入 LINE 官方追蹤」才進行，後端才知道這筆申請是哪位 LINE 好友
   const LIFF_ID = '2011817704-nnTJfOXc';
 
   const params = new URLSearchParams(location.search);
@@ -266,28 +266,7 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
 
   const showError = (msg) => { errorEl.textContent = msg; errorEl.hidden = !msg; };
   const formView = document.getElementById('form-view');
-  formView.hidden = true; // LINE 授權完成前先不顯示表單（本機測試不走 LIFF）
-  let lineIdToken = '';
-  (async () => {
-    if (!LOCAL) {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; }
-        lineIdToken = liff.getIDToken() || '';
-        if (!form.nickname.value) {
-          const profile = await liff.getProfile().catch(() => null);
-          if (profile && !form.nickname.value) form.nickname.value = profile.displayName.slice(0, 40);
-        }
-      } catch (err) {
-        console.error('LIFF 初始化失敗', err);
-        formView.hidden = false;
-        showError('LINE 授權失敗，請重新整理頁面，或直接加入官方 LINE 聯絡我們。');
-        return;
-      }
-    }
-    formView.hidden = false;
-  })();
-
+  let pendingId = '';
   let captchaToken = '';
   let widgetId = null;
 
@@ -309,9 +288,64 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
     (function waitTurnstile() { window.turnstile ? render() : setTimeout(waitTurnstile, 100); })();
   }
 
+  // 送出申請後按「加入 LINE 官方追蹤」：LINE 授權（會帶去加官方好友）→ 回到這頁，把申請連到他的 LINE
+  const OA_URL = 'https://lin.ee/QL02rCh';
+  const doneView = document.getElementById('done-view');
+  const lineBtn = document.getElementById('line-join');
+  const doneText = document.getElementById('done-text');
+  const showDone = () => { formView.hidden = true; doneView.hidden = false; window.scrollTo(0, 0); };
+  lineBtn.addEventListener('click', async (e) => {
+    if (LOCAL || !pendingId) return; // 本機或沒有申請編號：照一般連結開官方 LINE
+    e.preventDefault();
+    lineBtn.textContent = '前往 LINE…';
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      const u = new URL(location.href);
+      u.searchParams.set('link', pendingId);
+      if (!liff.isLoggedIn()) { liff.login({ redirectUri: u.toString() }); return; }
+      await finishLink(pendingId);
+    } catch (err) {
+      console.error('LIFF 失敗', err);
+      window.open(OA_URL, '_blank', 'noopener');
+      lineBtn.textContent = '加入 LINE 官方追蹤';
+    }
+  });
+  async function finishLink(id) {
+    showDone();
+    lineBtn.hidden = true;
+    doneText.textContent = '正在連結你的 LINE…';
+    try {
+      const res = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: PUBLISHABLE_KEY },
+        body: JSON.stringify({ action: 'link', id, lineIdToken: liff.getIDToken() || '' }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || 'link_failed');
+      try { sessionStorage.removeItem('pg_coach_pending'); } catch { /* ignore */ }
+      doneText.textContent = out.friend ? '已連結 LINE！我們會在官方帳號的聊天室回覆你，請留意 LINE 訊息。' : '已連結 LINE，但你還沒加入官方帳號好友。請先加入，我們才傳得了訊息給你。';
+      if (!out.friend) { lineBtn.hidden = false; lineBtn.href = OA_URL; lineBtn.textContent = '加入 LINE 官方追蹤'; }
+    } catch (err) {
+      console.error(err);
+      doneText.textContent = '申請已送出，但連結 LINE 失敗。請加入官方 LINE，我們會用手機聯絡你。';
+      lineBtn.hidden = false; lineBtn.href = OA_URL; lineBtn.textContent = '加入 LINE 官方追蹤';
+    }
+  }
+  // LINE 授權完回來（網址帶 ?link=申請編號）
+  const linkId = params.get('link');
+  if (linkId && !LOCAL) {
+    showDone();
+    lineBtn.hidden = true;
+    doneText.textContent = '正在連結你的 LINE…';
+    liff.init({ liffId: LIFF_ID }).then(() => {
+      if (liff.isLoggedIn()) return finishLink(linkId);
+      doneText.textContent = '申請已送出。';
+      lineBtn.hidden = false;
+    }).catch(() => { doneText.textContent = '申請已送出。'; lineBtn.hidden = false; });
+  }
+
   const values = (name) => [...form.querySelectorAll(`input[name="${name}"]:checked`)].map((i) => i.value);
   const ERRORS = {
-    line_required: 'LINE 授權已過期，請重新整理頁面再送出一次。',
     captcha_failed: '驗證沒有通過，請再試一次。',
     too_many_requests: '送出太多次了，請一小時後再試，或直接加入官方 LINE 聯絡我們。',
     contact_required: '請填手機號碼。',
@@ -334,7 +368,6 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
       preferredCoach: form.preferredCoach.value.trim(),
       message: form.message.value.trim(),
       turnstileToken: captchaToken,
-      lineIdToken,
     };
     if (!body.name) return showError(ERRORS.name_required);
     if (!body.phone) return showError(ERRORS.contact_required);
@@ -353,6 +386,8 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(ERRORS[out.error] || '送出失敗，請稍後再試，或直接加入官方 LINE 聯絡我們。');
       try { localStorage.setItem(CONTACT_KEY, JSON.stringify({ name: body.name, phone: body.phone })); } catch { /* 不存也沒關係 */ }
+      pendingId = out.id || '';
+      try { sessionStorage.setItem('pg_coach_pending', pendingId); } catch { /* 不存也沒關係 */ }
       formView.hidden = true;
       document.getElementById('done-view').hidden = false;
       window.scrollTo(0, 0);
