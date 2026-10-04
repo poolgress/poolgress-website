@@ -1,0 +1,406 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "母球中袋變動角度挑戰",
+  "flow": {
+    "template": "C",
+    "name": "子/母球換位練習",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": "cue",
+    "cycles": 2,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "cue",
+        "fx": 0.4441125,
+        "fy": 0.6000875,
+        "x": 3.5,
+        "y": 2.5
+      },
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.34899375,
+        "x": 4,
+        "y": 1.25
+      },
+      {
+        "id": "cue",
+        "fx": 0.388425,
+        "fy": 0.6000875,
+        "x": 3,
+        "y": 2.5
+      },
+      {
+        "id": "cue",
+        "fx": 0.3327375,
+        "fy": 0.6000875,
+        "x": 2.5,
+        "y": 2.5
+      },
+      {
+        "id": "cue",
+        "fx": 0.27705,
+        "fy": 0.6000875,
+        "x": 2,
+        "y": 2.5
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.4441125,
+            "fy": 0.6000875,
+            "x": 3.5,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.388425,
+            "fy": 0.6000875,
+            "x": 3,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 3,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.3327375,
+            "fy": 0.6000875,
+            "x": 2.5,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 4,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.6000875,
+            "x": 2,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 5,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.4441125,
+            "fy": 0.6000875,
+            "x": 3.5,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 6,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.388425,
+            "fy": 0.6000875,
+            "x": 3,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 7,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.3327375,
+            "fy": 0.6000875,
+            "x": 2.5,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      },
+      {
+        "round": 8,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.6000875,
+            "x": 2,
+            "y": 2.5
+          },
+          {
+            "id": "1",
+            "fx": 0.4998,
+            "fy": 0.34899375,
+            "x": 4,
+            "y": 1.25
+          }
+        ]
+      }
+    ]
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_center"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 8,
+    "pass": 8,
+    "stars": [
+      8,
+      8,
+      8
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.5,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.5008704407690743,
+            "fy": 0.3865934412984707,
+            "ghost": true
+          },
+          {
+            "fx": 0.5009090909090909,
+            "fy": 0.3864480594338414,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "母球從一號位置開始，每次擺放一顆母球及子球。打進子球後，子球擺回原位，母球接著擺放下一個號碼位置，連續完成兩輪-八顆即可通關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.4441125,
+        "fy": 0.6000875
+      },
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.34899375
+      },
+      {
+        "id": "cue",
+        "cueIndex": 2,
+        "fx": 0.388425,
+        "fy": 0.6000875
+      },
+      {
+        "id": "cue",
+        "cueIndex": 3,
+        "fx": 0.3327375,
+        "fy": 0.6000875
+      },
+      {
+        "id": "cue",
+        "cueIndex": 4,
+        "fx": 0.27705,
+        "fy": 0.6000875
+      }
+    ],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.5,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.5008704407690743,
+            "fy": 0.3865934412984707,
+            "ghost": true
+          },
+          {
+            "fx": 0.5009090909090909,
+            "fy": 0.3864480594338414,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      "ball",
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.7452272727272727,
+      "fy": 0.1949284488279749,
+      "name": "母球中袋變動角度挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "母球從一號位置開始，每次擺放一顆母球及子球。打進子球後，子球擺回原位，母球接著擺放下一個號碼位置，連續完成兩輪-八顆即可通關。",
+      "pass": "8",
+      "total": "8",
+      "star1": "",
+      "star2": "",
+      "star3": "8",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

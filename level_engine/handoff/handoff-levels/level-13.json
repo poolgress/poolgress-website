@@ -1,0 +1,329 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "經典五角度準度挑戰",
+  "flow": {
+    "template": "C",
+    "name": "子/母球換位練習",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": "object",
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "cue",
+        "fx": 0.27705,
+        "fy": 0.49965000000000004,
+        "x": 2,
+        "y": 2
+      },
+      {
+        "id": "1",
+        "fx": 0.72255,
+        "fy": 0.298775,
+        "x": 6,
+        "y": 1
+      },
+      {
+        "id": "2",
+        "fx": 0.72255,
+        "fy": 0.39921249999999997,
+        "x": 6,
+        "y": 1.5
+      },
+      {
+        "id": "3",
+        "fx": 0.72255,
+        "fy": 0.700525,
+        "x": 6,
+        "y": 3
+      },
+      {
+        "id": "4",
+        "fx": 0.72255,
+        "fy": 0.6000875,
+        "x": 6,
+        "y": 2.5
+      },
+      {
+        "id": "5",
+        "fx": 0.72255,
+        "fy": 0.49965000000000004,
+        "x": 6,
+        "y": 2
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.49965000000000004,
+            "x": 2,
+            "y": 2
+          },
+          {
+            "id": "1",
+            "fx": 0.72255,
+            "fy": 0.298775,
+            "x": 6,
+            "y": 1
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.49965000000000004,
+            "x": 2,
+            "y": 2
+          },
+          {
+            "id": "2",
+            "fx": 0.72255,
+            "fy": 0.39921249999999997,
+            "x": 6,
+            "y": 1.5
+          }
+        ]
+      },
+      {
+        "round": 3,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.49965000000000004,
+            "x": 2,
+            "y": 2
+          },
+          {
+            "id": "3",
+            "fx": 0.72255,
+            "fy": 0.700525,
+            "x": 6,
+            "y": 3
+          }
+        ]
+      },
+      {
+        "round": 4,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.49965000000000004,
+            "x": 2,
+            "y": 2
+          },
+          {
+            "id": "4",
+            "fx": 0.72255,
+            "fy": 0.6000875,
+            "x": 6,
+            "y": 2.5
+          }
+        ]
+      },
+      {
+        "round": 5,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.27705,
+            "fy": 0.49965000000000004,
+            "x": 2,
+            "y": 2
+          },
+          {
+            "id": "5",
+            "fx": 0.72255,
+            "fy": 0.49965000000000004,
+            "x": 6,
+            "y": 2
+          }
+        ]
+      }
+    ]
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_right",
+      "bottom_right"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 5,
+    "pass": 5,
+    "stars": [
+      5,
+      5,
+      5
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.9345621181262729,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "子球從一號位置開始，一次擺放一顆子球。成功打進子球後，母球擺回原位，子球接著擺放下一個號碼位置，連續完成五顆即可通關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.27705,
+        "fy": 0.49965000000000004
+      },
+      {
+        "id": "1",
+        "fx": 0.72255,
+        "fy": 0.298775
+      },
+      {
+        "id": "2",
+        "fx": 0.72255,
+        "fy": 0.39921249999999997
+      },
+      {
+        "id": "3",
+        "fx": 0.72255,
+        "fy": 0.700525
+      },
+      {
+        "id": "4",
+        "fx": 0.72255,
+        "fy": 0.6000875
+      },
+      {
+        "id": "5",
+        "fx": 0.72255,
+        "fy": 0.49965000000000004
+      }
+    ],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.9345621181262729,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      "ball",
+      false,
+      "ball",
+      false,
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.1415909090909091,
+      "fy": 0.5703847316510824,
+      "name": "經典五角度準度挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "子球從一號位置開始，一次擺放一顆子球。成功打進子球後，母球擺回原位，子球接著擺放下一個號碼位置，連續完成五顆即可通關。",
+      "pass": "5",
+      "total": "5",
+      "star1": "",
+      "star2": "",
+      "star3": "5",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

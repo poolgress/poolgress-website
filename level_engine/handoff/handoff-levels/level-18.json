@@ -1,0 +1,236 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "八顆橫檯I型隨機清檯挑戰",
+  "flow": {
+    "template": "D",
+    "name": "球形挑戰",
+    "onSuccess": "continue_until_clear",
+    "onFailure": "end_game"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "free",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.388425,
+        "fy": 0.14811875,
+        "x": 3,
+        "y": 0.25
+      },
+      {
+        "id": "3",
+        "fx": 0.388425,
+        "fy": 0.7507437499999999,
+        "x": 3,
+        "y": 3.25
+      },
+      {
+        "id": "4",
+        "fx": 0.388425,
+        "fy": 0.34899375,
+        "x": 3,
+        "y": 1.25
+      },
+      {
+        "id": "5",
+        "fx": 0.388425,
+        "fy": 0.65030625,
+        "x": 3,
+        "y": 2.75
+      },
+      {
+        "id": "2",
+        "fx": 0.388425,
+        "fy": 0.85118125,
+        "x": 3,
+        "y": 3.75
+      },
+      {
+        "id": "6",
+        "fx": 0.388425,
+        "fy": 0.54986875,
+        "x": 3,
+        "y": 2.25
+      },
+      {
+        "id": "7",
+        "fx": 0.388425,
+        "fy": 0.44943125,
+        "x": 3,
+        "y": 1.75
+      },
+      {
+        "id": "8",
+        "fx": 0.388425,
+        "fy": 0.24855624999999995,
+        "x": 3,
+        "y": 0.75
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_left",
+      "bottom_left"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": true,
+    "multipleObjectPotsForbidden": true
+  },
+  "scoring": {
+    "unit": "balls",
+    "total": 8,
+    "pass": 8,
+    "stars": [
+      8,
+      8,
+      8
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照圖片擺放八顆子球，母球自由球\n在不互相敲擊的前提下，隨機順序打進指定兩個袋口，完成一桿清檯。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.388425,
+        "fy": 0.14811875
+      },
+      {
+        "id": "3",
+        "fx": 0.388425,
+        "fy": 0.7507437499999999
+      },
+      {
+        "id": "4",
+        "fx": 0.388425,
+        "fy": 0.34899375
+      },
+      {
+        "id": "5",
+        "fx": 0.388425,
+        "fy": 0.65030625
+      },
+      {
+        "id": "2",
+        "fx": 0.388425,
+        "fy": 0.85118125
+      },
+      {
+        "id": "6",
+        "fx": 0.388425,
+        "fy": 0.54986875
+      },
+      {
+        "id": "7",
+        "fx": 0.388425,
+        "fy": 0.44943125
+      },
+      {
+        "id": "8",
+        "fx": 0.388425,
+        "fy": 0.24855624999999995
+      }
+    ],
+    "paths": [],
+    "pockets": [
+      "ball",
+      false,
+      "ball",
+      false,
+      false,
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.6125,
+      "fy": 0.3178687844242347,
+      "name": "八顆橫檯I型隨機清檯挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照圖片擺放八顆子球，母球自由球\n在不互相敲擊的前提下，隨機順序打進指定兩個袋口，完成一桿清檯。",
+      "pass": "8",
+      "total": "8",
+      "star1": "",
+      "star2": "",
+      "star3": "8",
+      "no_contact": true,
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      },
+      "mode": "clear"
+    }
+  }
+}

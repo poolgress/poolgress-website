@@ -1,0 +1,172 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+  "name": "單顆目標球直接打進中袋練習",
+  "flow": {
+    "template": "A",
+    "name": "只有子球",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "direct",
+    "cuePlacement": "none",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.6000875,
+        "x": 4,
+        "y": 2.5
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_center"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "none",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 10,
+    "pass": 8,
+    "stars": [
+      8,
+      9,
+      10
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.5,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照著圖片擺好球，從相同位置開始挑戰。完成關卡要求後，把球放回原位再繼續。10 次中成功 8 次以上即可過關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.4998,
+        "fy": 0.6000875
+      }
+    ],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.5,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      "ball",
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.6007,
+      "fy": 0.28674348661457666,
+      "name": "單顆目標球直接打進中袋練習",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照著圖片擺好球，從相同位置開始挑戰。完成關卡要求後，把球放回原位再繼續。10 次中成功 8 次以上即可過關。",
+      "pass": "8",
+      "total": "10",
+      "star1": "8",
+      "star2": "9",
+      "star3": "10",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

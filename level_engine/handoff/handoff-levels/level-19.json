@@ -1,0 +1,313 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "尾袋一星距推桿做球清檯挑戰",
+  "flow": {
+    "template": "E",
+    "name": "打一顆做一顆",
+    "onSuccess": "continue_until_clear",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.27705,
+        "fy": 0.49965000000000004,
+        "x": 2,
+        "y": 2
+      },
+      {
+        "id": "cue",
+        "fx": 0.388425,
+        "fy": 0.700525,
+        "x": 3,
+        "y": 3
+      },
+      {
+        "id": "2",
+        "fx": 0.08214375,
+        "fy": 0.49965000000000004,
+        "x": 0.25,
+        "y": 2
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_left",
+      "bottom_left"
+    ],
+    "order": "ascending"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": {
+    "first": {
+      "object": {
+        "target": "pocket",
+        "lineRequirement": {
+          "required": false,
+          "lineIndexes": [],
+          "match": "all",
+          "order": "any",
+          "event": "ball_body_touches_segment",
+          "scope": "current_shot",
+          "combineWithTarget": "and"
+        },
+        "pockets": [
+          "top_left",
+          "bottom_left"
+        ]
+      },
+      "cue": {
+        "target": "stay",
+        "lineRequirement": {
+          "required": false,
+          "lineIndexes": [],
+          "match": "all",
+          "order": "any",
+          "event": "ball_body_touches_segment",
+          "scope": "current_shot",
+          "combineWithTarget": "and"
+        },
+        "pockets": []
+      }
+    },
+    "second": {
+      "object": {
+        "target": "pocket",
+        "lineRequirement": {
+          "required": false,
+          "lineIndexes": [],
+          "match": "all",
+          "order": "any",
+          "event": "ball_body_touches_segment",
+          "scope": "current_shot",
+          "combineWithTarget": "and"
+        },
+        "pockets": [
+          "top_left",
+          "bottom_left"
+        ]
+      },
+      "cue": {
+        "target": "stay",
+        "lineRequirement": {
+          "required": false,
+          "lineIndexes": [],
+          "match": "all",
+          "order": "any",
+          "event": "ball_body_touches_segment",
+          "scope": "current_shot",
+          "combineWithTarget": "and"
+        },
+        "pockets": []
+      }
+    }
+  },
+  "fouls": {
+    "otherObjectBallsMustNotMove": true,
+    "multipleObjectPotsForbidden": true
+  },
+  "scoring": {
+    "unit": "cleared_rounds",
+    "total": 10,
+    "pass": 7,
+    "stars": [
+      7,
+      9,
+      10
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.29101409972081466,
+            "fy": 0.5276361485768741,
+            "ghost": true
+          },
+          {
+            "fx": 0.14545454545454545,
+            "fy": 0.25528371973869607,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.0644378818737271,
+            "fy": 0.87011656205969,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.07181818181818182,
+            "fy": 0.129038067799731,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照圖片擺放兩顆子球及一顆母球。\n在不互相敲擊的前提下，照順序打進一號後做到二號並完成清檯。\n十次內完成7次即可通關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.27705,
+        "fy": 0.49965000000000004
+      },
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.388425,
+        "fy": 0.700525
+      },
+      {
+        "id": "2",
+        "fx": 0.08214375,
+        "fy": 0.49965000000000004
+      }
+    ],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.29101409972081466,
+            "fy": 0.5276361485768741,
+            "ghost": true
+          },
+          {
+            "fx": 0.14545454545454545,
+            "fy": 0.25528371973869607,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.0644378818737271,
+            "fy": 0.87011656205969,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.07181818181818182,
+            "fy": 0.129038067799731,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      "ball",
+      false,
+      "ball",
+      false,
+      false,
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.6125,
+      "fy": 0.3178687844242347,
+      "name": "尾袋一星距推桿做球清檯挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照圖片擺放兩顆子球及一顆母球。\n在不互相敲擊的前提下，照順序打進一號後做到二號並完成清檯。\n十次內完成7次即可通關。",
+      "pass": "7",
+      "total": "10",
+      "star1": "7",
+      "star2": "9",
+      "star3": "10",
+      "mode": "repeat_clear",
+      "order": true,
+      "no_contact": true,
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

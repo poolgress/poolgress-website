@@ -1,0 +1,238 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "三顆中袋控球球型清檯挑戰",
+  "flow": {
+    "template": "D",
+    "name": "球形挑戰",
+    "onSuccess": "continue_until_clear",
+    "onFailure": "end_game"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "free",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "2",
+        "fx": 0.4998,
+        "fy": 0.298775,
+        "x": 4,
+        "y": 1
+      },
+      {
+        "id": "3",
+        "fx": 0.611175,
+        "fy": 0.298775,
+        "x": 5,
+        "y": 1
+      },
+      {
+        "id": "1",
+        "fx": 0.388425,
+        "fy": 0.298775,
+        "x": 3,
+        "y": 1
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_center"
+    ],
+    "order": "ascending"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": true,
+    "multipleObjectPotsForbidden": true
+  },
+  "scoring": {
+    "unit": "balls",
+    "total": 3,
+    "pass": 3,
+    "stars": [
+      3,
+      3,
+      3
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.47363636363636363,
+            "fy": 0.1388753682592545,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.4990909090909091,
+            "fy": 0.14379403099782248,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.5327272727272727,
+            "fy": 0.15527091072114768,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照圖片擺放三顆子球，母球自由球，不互相敲擊的前提下，按照子球號碼順序打進指定中袋，完成一桿清檯。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "2",
+        "fx": 0.4998,
+        "fy": 0.298775
+      },
+      {
+        "id": "3",
+        "fx": 0.611175,
+        "fy": 0.298775
+      },
+      {
+        "id": "1",
+        "fx": 0.388425,
+        "fy": 0.298775
+      }
+    ],
+    "paths": [
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.47363636363636363,
+            "fy": 0.1388753682592545,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.4990909090909091,
+            "fy": 0.14379403099782248,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.5327272727272727,
+            "fy": 0.15527091072114768,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      "ball",
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.6788636363636363,
+      "fy": 0.4326375816574869,
+      "name": "三顆中袋控球球型清檯挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照圖片擺放三顆子球，母球自由球，不互相敲擊的前提下，按照子球號碼順序打進指定中袋，完成一桿清檯。",
+      "pass": "3",
+      "total": "3",
+      "star1": "",
+      "star2": "",
+      "star3": "3",
+      "order": true,
+      "no_contact": true,
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      },
+      "mode": "clear"
+    }
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "五字形順序清檯挑戰",
+  "flow": {
+    "template": "D",
+    "name": "球形挑戰",
+    "onSuccess": "continue_until_clear",
+    "onFailure": "end_game"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "free",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.16567500000000002,
+        "fy": 0.298775,
+        "x": 1,
+        "y": 1
+      },
+      {
+        "id": "3",
+        "fx": 0.16567500000000002,
+        "fy": 0.700525,
+        "x": 1,
+        "y": 3
+      },
+      {
+        "id": "4",
+        "fx": 0.388425,
+        "fy": 0.298775,
+        "x": 3,
+        "y": 1
+      },
+      {
+        "id": "5",
+        "fx": 0.27705,
+        "fy": 0.49965000000000004,
+        "x": 2,
+        "y": 2
+      },
+      {
+        "id": "2",
+        "fx": 0.388425,
+        "fy": 0.700525,
+        "x": 3,
+        "y": 3
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_left",
+      "top_right",
+      "bottom_left",
+      "bottom_right",
+      "top_center",
+      "bottom_center"
+    ],
+    "order": "ascending"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": true,
+    "multipleObjectPotsForbidden": true
+  },
+  "scoring": {
+    "unit": "balls",
+    "total": 5,
+    "pass": 5,
+    "stars": [
+      5,
+      5,
+      5
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照圖片擺放五顆子球，母球自由球\n在不互相敲擊的前提下，照號碼順序打進隨機袋口，完成一桿清檯。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.16567500000000002,
+        "fy": 0.298775
+      },
+      {
+        "id": "3",
+        "fx": 0.16567500000000002,
+        "fy": 0.700525
+      },
+      {
+        "id": "4",
+        "fx": 0.388425,
+        "fy": 0.298775
+      },
+      {
+        "id": "5",
+        "fx": 0.27705,
+        "fy": 0.49965000000000004
+      },
+      {
+        "id": "2",
+        "fx": 0.388425,
+        "fy": 0.700525
+      }
+    ],
+    "paths": [],
+    "pockets": [
+      "ball",
+      "ball",
+      "ball",
+      "ball",
+      "ball",
+      "ball"
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.6788636363636363,
+      "fy": 0.4326375816574869,
+      "name": "五字形順序清檯挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照圖片擺放五顆子球，母球自由球\n在不互相敲擊的前提下，照號碼順序打進隨機袋口，完成一桿清檯。",
+      "pass": "5",
+      "total": "5",
+      "star1": "",
+      "star2": "",
+      "star3": "5",
+      "order": true,
+      "no_contact": true,
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      },
+      "mode": "clear"
+    }
+  }
+}

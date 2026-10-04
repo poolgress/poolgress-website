@@ -1,0 +1,230 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "145a81f8-164d-431e-8aa9-7b90ad376e39",
+  "name": "角度球推桿控球挑戰",
+  "flow": {
+    "template": "B",
+    "name": "固定位置擊球",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "cue",
+        "fx": 0.2772727272727273,
+        "fy": 0.2979121801748431,
+        "x": 2.002,
+        "y": 0.995705
+      },
+      {
+        "id": "1",
+        "fx": 0.7218181818181818,
+        "fy": 0.296272575893429,
+        "x": 5.993429,
+        "y": 0.987542
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_right"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "zone",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 10,
+    "pass": 7,
+    "stars": [
+      7,
+      9,
+      10
+    ]
+  },
+  "diagram": {
+    "zones": [
+      {
+        "x1": 0.5018182373046876,
+        "y1": 0.5044959651594723,
+        "x2": 0.7218181818181818,
+        "y2": 0.8979890843153581,
+        "side": "cue"
+      }
+    ],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.7040120365097784,
+            "fy": 0.31592471144113365,
+            "ghost": true
+          },
+          {
+            "fx": 0.9345621181262729,
+            "fy": 0.5935911178049887,
+            "ghost": true
+          },
+          {
+            "fx": 0.7952985318732664,
+            "fy": 0.8816753902662994,
+            "ghost": true
+          },
+          {
+            "fx": 0.6027272727272728,
+            "fy": 0.6930447034712438,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": false
+  },
+  "teaching": "照著圖片擺好母球子球，打進子球後推桿兩顆星將母球控制在目標區快，\n每次成功或失敗都把球放回原位，十顆內完成七顆以上即通關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "145a81f8-164d-431e-8aa9-7b90ad376e39",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.2772727272727273,
+        "fy": 0.2979121801748431
+      },
+      {
+        "id": "1",
+        "fx": 0.7218181818181818,
+        "fy": 0.296272575893429
+      }
+    ],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.7040120365097784,
+            "fy": 0.31592471144113365,
+            "ghost": true
+          },
+          {
+            "fx": 0.9345621181262729,
+            "fy": 0.5935911178049887,
+            "ghost": true
+          },
+          {
+            "fx": 0.7952985318732664,
+            "fy": 0.8816753902662994,
+            "ghost": true
+          },
+          {
+            "fx": 0.6027272727272728,
+            "fy": 0.6930447034712438,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      "ball",
+      false,
+      false,
+      false,
+      false
+    ],
+    "lines": [],
+    "zones": [
+      {
+        "x1": 0.5018182373046876,
+        "y1": 0.5044959651594723,
+        "x2": 0.7218181818181818,
+        "y2": 0.8979890843153581,
+        "side": "cue"
+      }
+    ],
+    "grid": true,
+    "snap": false,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.5006963636363636,
+      "fy": 0.12606717048802354,
+      "name": "角度球推桿控球挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照著圖片擺好母球子球，打進子球後推桿兩顆星將母球控制在目標區快，\n每次成功或失敗都把球放回原位，十顆內完成七顆以上即通關。",
+      "pass": "7",
+      "total": "10",
+      "star1": "7",
+      "star2": "9",
+      "star3": "10",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

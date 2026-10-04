@@ -1,0 +1,366 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+  "name": "目標球直接打進中袋練習",
+  "flow": {
+    "template": "A",
+    "name": "只有子球",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "direct",
+    "cuePlacement": "none",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.3327375,
+        "fy": 0.6000875,
+        "x": 2.5,
+        "y": 2.5
+      },
+      {
+        "id": "2",
+        "fx": 0.388425,
+        "fy": 0.6000875,
+        "x": 3,
+        "y": 2.5
+      },
+      {
+        "id": "4",
+        "fx": 0.4998,
+        "fy": 0.6000875,
+        "x": 4,
+        "y": 2.5
+      },
+      {
+        "id": "5",
+        "fx": 0.5554875,
+        "fy": 0.6000875,
+        "x": 4.5,
+        "y": 2.5
+      },
+      {
+        "id": "3",
+        "fx": 0.4441125,
+        "fy": 0.6000875,
+        "x": 3.5,
+        "y": 2.5
+      },
+      {
+        "id": "6",
+        "fx": 0.611175,
+        "fy": 0.6000875,
+        "x": 5,
+        "y": 2.5
+      },
+      {
+        "id": "7",
+        "fx": 0.6668625,
+        "fy": 0.6000875,
+        "x": 5.5,
+        "y": 2.5
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_center"
+    ],
+    "order": "ascending"
+  },
+  "cueRules": {
+    "target": "none",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 7,
+    "pass": 7,
+    "stars": [
+      7,
+      7,
+      7
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4927273282137784,
+            "fy": 0.1192007173049827,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 3,
+        "vertices": [
+          {
+            "fx": 0.5172727272727272,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.4818181818181818,
+            "fy": 0.1192007173049827,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 5,
+        "vertices": [
+          {
+            "fx": 0.5200000554865056,
+            "fy": 0.1192007173049827,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 6,
+        "vertices": [
+          {
+            "fx": 0.519090909090909,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 4,
+        "vertices": [
+          {
+            "fx": 0.49818181818181817,
+            "fy": 0.1175611630587934,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.5036363636363637,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照著圖片擺好七顆球，依照號碼（左至右）依序將目標球打進中袋。\n七顆全部成功，不失誤即可通關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.3327375,
+        "fy": 0.6000875
+      },
+      {
+        "id": "2",
+        "fx": 0.388425,
+        "fy": 0.6000875
+      },
+      {
+        "id": "4",
+        "fx": 0.4998,
+        "fy": 0.6000875
+      },
+      {
+        "id": "5",
+        "fx": 0.5554875,
+        "fy": 0.6000875
+      },
+      {
+        "id": "3",
+        "fx": 0.4441125,
+        "fy": 0.6000875
+      },
+      {
+        "id": "6",
+        "fx": 0.611175,
+        "fy": 0.6000875
+      },
+      {
+        "id": "7",
+        "fx": 0.6668625,
+        "fy": 0.6000875
+      }
+    ],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4927273282137784,
+            "fy": 0.1192007173049827,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 3,
+        "vertices": [
+          {
+            "fx": 0.5172727272727272,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.4818181818181818,
+            "fy": 0.1192007173049827,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 5,
+        "vertices": [
+          {
+            "fx": 0.5200000554865056,
+            "fy": 0.1192007173049827,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 6,
+        "vertices": [
+          {
+            "fx": 0.519090909090909,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 4,
+        "vertices": [
+          {
+            "fx": 0.49818181818181817,
+            "fy": 0.1175611630587934,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.5036363636363637,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      "ball",
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.6570636363636363,
+      "fy": -0.03133085692327398,
+      "name": "目標球直接打進中袋練習",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照著圖片擺好七顆球，依照號碼（左至右）依序將目標球打進中袋。\n七顆全部成功，不失誤即可通關。",
+      "pass": "7",
+      "total": "7",
+      "star1": "",
+      "star2": "",
+      "star3": "7",
+      "mode": "clear",
+      "order": true,
+      "no_cue": true,
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

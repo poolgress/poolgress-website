@@ -1,0 +1,357 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+  "name": "子球中袋變動角度挑戰",
+  "flow": {
+    "template": "C",
+    "name": "子/母球換位練習",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": "object",
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "cue",
+        "fx": 0.2781818181818182,
+        "fy": 0.5963110029460741,
+        "x": 2.010162,
+        "y": 2.4812
+      },
+      {
+        "id": "1",
+        "fx": 0.3327272727272727,
+        "fy": 0.3520174202638658,
+        "x": 2.499908,
+        "y": 1.265052
+      },
+      {
+        "id": "2",
+        "fx": 0.3890909090909091,
+        "fy": 0.35037786601767645,
+        "x": 3.005979,
+        "y": 1.25689
+      },
+      {
+        "id": "3",
+        "fx": 0.4445454545454545,
+        "fy": 0.3520174202638658,
+        "x": 3.503887,
+        "y": 1.265052
+      },
+      {
+        "id": "4",
+        "fx": 0.5,
+        "fy": 0.35365697451005507,
+        "x": 4.001796,
+        "y": 1.273215
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.2781818181818182,
+            "fy": 0.5963110029460741,
+            "x": 2.010162,
+            "y": 2.4812
+          },
+          {
+            "id": "1",
+            "fx": 0.3327272727272727,
+            "fy": 0.3520174202638658,
+            "x": 2.499908,
+            "y": 1.265052
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.2781818181818182,
+            "fy": 0.5963110029460741,
+            "x": 2.010162,
+            "y": 2.4812
+          },
+          {
+            "id": "2",
+            "fx": 0.3890909090909091,
+            "fy": 0.35037786601767645,
+            "x": 3.005979,
+            "y": 1.25689
+          }
+        ]
+      },
+      {
+        "round": 3,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.2781818181818182,
+            "fy": 0.5963110029460741,
+            "x": 2.010162,
+            "y": 2.4812
+          },
+          {
+            "id": "3",
+            "fx": 0.4445454545454545,
+            "fy": 0.3520174202638658,
+            "x": 3.503887,
+            "y": 1.265052
+          }
+        ]
+      },
+      {
+        "round": 4,
+        "balls": [
+          {
+            "id": "cue",
+            "fx": 0.2781818181818182,
+            "fy": 0.5963110029460741,
+            "x": 2.010162,
+            "y": 2.4812
+          },
+          {
+            "id": "4",
+            "fx": 0.5,
+            "fy": 0.35365697451005507,
+            "x": 4.001796,
+            "y": 1.273215
+          }
+        ]
+      }
+    ]
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_center"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "stay",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 4,
+    "pass": 4,
+    "stars": [
+      4,
+      4,
+      4
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4681818181818182,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.48,
+            "fy": 0.1175611630587934,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 3,
+        "vertices": [
+          {
+            "fx": 0.48727272727272725,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 4,
+        "vertices": [
+          {
+            "fx": 0.5,
+            "fy": 0.12247982579736134,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": false
+  },
+  "teaching": "依照號碼順序，每次擺放一顆子球。打進一個位置後，母球擺回原位，再擺放下一個號碼位置，連續完成四顆即可通關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "3605f86e-0d18-434c-a23e-0261b3d50ffc",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.2781818181818182,
+        "fy": 0.5963110029460741
+      },
+      {
+        "id": "1",
+        "fx": 0.3327272727272727,
+        "fy": 0.3520174202638658
+      },
+      {
+        "id": "2",
+        "fx": 0.3890909090909091,
+        "fy": 0.35037786601767645
+      },
+      {
+        "id": "3",
+        "fx": 0.4445454545454545,
+        "fy": 0.3520174202638658
+      },
+      {
+        "id": "4",
+        "fx": 0.5,
+        "fy": 0.35365697451005507
+      }
+    ],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4681818181818182,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 2,
+        "vertices": [
+          {
+            "fx": 0.48,
+            "fy": 0.1175611630587934,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 3,
+        "vertices": [
+          {
+            "fx": 0.48727272727272725,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 4,
+        "vertices": [
+          {
+            "fx": 0.5,
+            "fy": 0.12247982579736134,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      "ball",
+      false
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": false,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.45704545454545453,
+      "fy": 0.417907826309722,
+      "name": "子球中袋變動角度挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "依照號碼順序，每次擺放一顆子球。打進一個位置後，母球擺回原位，再擺放下一個號碼位置，連續完成四顆即可通關。",
+      "pass": "4",
+      "total": "4",
+      "star1": "",
+      "star2": "",
+      "star3": "4",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

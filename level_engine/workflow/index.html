@@ -1,0 +1,7 @@
+<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Poolgress · 關卡流程工作台</title><link rel="stylesheet" href="style.css">
+<header><a href="../index.html">◉ POOLGRESS</a><span>關卡流程工作台</span><button id="reset">重新開始</button></header>
+<main><div class="intro"><div><small>COACH LEVEL / VERSION 1</small><h1>每一桿，都有下一步。</h1><p>載入關卡，跟著流程擺球、擊球與結算。</p></div><span class="tag">人工模擬 · 無相機辨識</span></div>
+<div class="layout"><section class="flow-panel"><div class="panel-title"><h2>進行流程</h2><span id="template">等待載入</span></div><ol id="flow"></ol><div id="branch" class="branch"></div><details><summary>逐桿紀錄</summary><div id="history">尚未開始</div></details></section>
+<section class="play-panel"><div class="panel-title"><h2 id="screen-title">載入關卡資訊</h2><span id="counter"></span></div><div id="screen"></div><p id="error" role="alert"></p><div id="actions"></div></section></div><p class="foot">新版 JSON 是執行依據。教學球路只供提示；成功必須符合當桿目標、必要碰線與犯規規則。</p></main>
+<dialog id="help"><h2>關卡說明</h2><div id="help-content"></div><button id="close-help">關閉說明</button></dialog>
+<script src="../model.js"></script><script src="../presets.js"></script><script src="engine.js?v=20261003-steps"></script><script src="app.js?v=20261003-steps"></script></html>

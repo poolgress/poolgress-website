@@ -4,15 +4,26 @@ const CACHE='poolgress-coach-studio-v1',LIBRARY='poolgress-coach-library-v1';
 let state=M.fromLegacy(COACH_PRESETS.find(p=>p.id===7),'原題庫第 07 關'),selected=-1,tool='move',armed=null,history=[],future=[],gesture=null,toastTimer,saveTimer,activeAnimations=[],animationRun=0,ballsEnlarged=false;
 let storageAvailable=true;
 let pocketMode='ball',targetTool='zoneBall',targetShot=1,lineStyle='dashed';
+let workflowTimer,workflowFingerprint='',workflowReady=true;
+function syncWorkflow(force=false){clearTimeout(workflowTimer);const send=()=>{
+ const frame=$('workflowFrame');if(!frame||!workflowReady)return;
+ try{const errors=M.validate(state).errors;const payload={type:'poolgress.workflow.spec',spec:errors.length?null:M.toSpec(state),errors};const fingerprint=JSON.stringify(payload);if(!force&&fingerprint===workflowFingerprint)return;workflowFingerprint=fingerprint;
+ frame.contentWindow.postMessage(payload,location.protocol==='file:'?'*':location.origin);
+ $('workflowSync').textContent=errors.length?'請先完成關卡設定：'+errors.join('；'):'已同步目前關卡：'+state.name;
+ }catch(e){$('workflowSync').textContent='流程同步失敗：'+e.message;}
+};if(force)send();else workflowTimer=setTimeout(send,180);}
+window.addEventListener('message',e=>{if(e.source!==$('workflowFrame')?.contentWindow||e.origin!==location.origin)return;if(e.data?.type==='poolgress.workflow.height'&&Number.isFinite(e.data.height))$('workflowFrame').style.height=Math.max(600,Math.min(2600,e.data.height+24))+'px';if(e.data?.type==='poolgress.workflow.ready'){workflowReady=true;syncWorkflow(true);}if(e.data?.type==='poolgress.workflow.error')$('workflowSync').textContent='流程暫無法執行：'+e.data.message;});
+$('workflowFrame').addEventListener('load',()=>{workflowReady=true;syncWorkflow(true)});
+$('restartWorkflow').addEventListener('click',()=>syncWorkflow(true));
 const mainMode=()=>['move','path'].includes(tool)?tool:'target';
 const ballVisual=id=>['gray','red'].includes(id)?`<span class="plain-ball ${id}" aria-hidden="true"></span>`:`<img src="assets/balls/${id}.png" alt="" draggable="false">`;
 try{const last=JSON.parse(localStorage.getItem(CACHE)||'null');if(last)state=M.read(last);}catch(e){storageAvailable=false;}
 function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),4500);}
 function stash(){history.push(M.copy(state));if(history.length>80)history.shift();future=[];}
-function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(CACHE,JSON.stringify(M.toSpec(state)));$('saveStatus').textContent='已自動儲存在此裝置 · '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});storageAvailable=true;}catch(e){$('saveStatus').textContent='瀏覽器儲存不可用，請下載 JSON 保留';storageAvailable=false;}},250);}
+function persist(){syncWorkflow();clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(CACHE,JSON.stringify(M.toSpec(state)));$('saveStatus').textContent='已自動儲存在此裝置 · '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});storageAvailable=true;}catch(e){$('saveStatus').textContent='瀏覽器儲存不可用，請下載 JSON 保留';storageAvailable=false;}},250);}
 function library(){try{return JSON.parse(localStorage.getItem(LIBRARY)||'[]')}catch(e){return []}}
 function saveNamed(quiet=false){try{const all=library(),spec=M.toSpec(state);const i=all.findIndex(x=>x.spec.id===state.id);const entry={savedAt:Date.now(),spec};if(i>=0)all[i]=entry;else all.unshift(entry);localStorage.setItem(LIBRARY,JSON.stringify(all));if(!quiet)toast('已儲存「'+state.name+'」至這台裝置');return true;}catch(e){if(!quiet)toast('儲存空間不足，請下載 JSON 保留');return false;}}
-function replaceState(next,message){if(!saveNamed(true)){toast('目前草稿無法備份，請先下載草稿，再切換關卡。');return;}stash();state=next;state.id=M.uid();selected=-1;tool='move';armed=null;render(true);persist();toast(message);}
+function replaceState(next,message){if(!saveNamed(true)){toast('目前草稿無法備份，請先下載草稿，再切換關卡。');return;}stash();state=next;state.id=M.uid();selected=-1;tool='move';armed=null;render(true);persist();syncWorkflow(true);toast(message);}
 function checked(id,v){$(id).checked=!!v;}
 function syncChoices(){document.querySelectorAll('[data-bind]').forEach(input=>input.checked=String(state[input.dataset.bind])===input.value);}
 function fillForm(){
@@ -82,7 +93,7 @@ function summary(){
   $('summaryName').textContent=state.name||'未命名關卡';$('summary').innerHTML=M.describe(state).map(t=>'<li>'+esc(t)+'</li>').join('');
   $('validation').innerHTML=issueHTML(M.validate(state));$('undoBtn').disabled=!history.length;$('redoBtn').disabled=!future.length;
 }
-function render(full=false){stopAnimation(true);if(full)fillForm();conditional();renderPockets();renderBalls();renderZones();draw();summary();setTool(tool);updateAnimationButton();syncBallScale();}
+function render(full=false){stopAnimation(true);if(full)fillForm();conditional();renderPockets();renderBalls();renderZones();draw();summary();setTool(tool);updateAnimationButton();syncBallScale();syncWorkflow();}
 function commit(full=false){render(full);persist();}
 function setTool(t){
   if(t!==tool&&gesture){state=gesture.before;gesture=null;}
@@ -96,9 +107,16 @@ function setTool(t){
   document.querySelectorAll('[data-target-tool]').forEach(b=>b.setAttribute('aria-pressed',String(t===b.dataset.targetTool&&(t!=='pocket'||pocketMode===b.dataset.side))));
   $('zoneList').hidden=mode!=='target';
   document.querySelectorAll('[data-pocket-index]').forEach(el=>el.disabled=t!=='pocket');
+  document.querySelectorAll('[data-rule-line]').forEach(b=>{const side=b.dataset.ruleLine,shot=Number(b.dataset.ruleShot);const count=M.lineRequirement(state,side,shot).lineIndexes.length;const editing=t===(side==='cue'?'targetLineCue':'targetLineBall')&&(state.flow!=='E'||targetShot===shot);b.setAttribute('aria-pressed',String(count>0));b.dataset.drawing=String(editing);b.querySelector('.line-rule-status').textContent=count?'已疊加 '+count+' 條':editing?'畫線中・尚未設定':'未畫線段';b.title='可疊加條件：球體碰到線段即可，並同時滿足進袋或停球區條件。'+(count?'已設定 '+count+' 條必要目標線段':'點擊後在球桌拖曳畫線');b.disabled=side==='cue'&&state.strike==='direct';});
   $('table').dataset.mode=mode;$('table').dataset.targetLine=String(t==='targetLineBall'||t==='targetLineCue');updateSelection();
   draw();
 }
+document.querySelectorAll('[data-rule-line]').forEach(button=>button.addEventListener('click',()=>{
+ const side=button.dataset.ruleLine;targetShot=Number(button.dataset.ruleShot);
+ if(side==='cue'&&state.strike==='direct'){toast('本關無母球，請使用子球目標線段');return;}
+ setTool(side==='cue'?'targetLineCue':'targetLineBall');
+ toast('請在球桌上拖曳畫出'+(side==='cue'?'母球':'子球')+'目標線段；可同時搭配進袋或停球區條件');
+}));
 function constrain(p,snap=state.snap){let {x,y}=M.star(p.fx,p.fy);if(snap){x=Math.round(x*4)/4;y=Math.round(y*4)/4;}return M.frac(Math.max(.09,Math.min(7.91,x)),Math.max(.09,Math.min(3.91,y)));}
 function pointer(e,forBall=false){const r=$('table').getBoundingClientRect();const p={fx:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),fy:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};return forBall?constrain(p):p;}
 function adjustClear(){if(state.flow==='D'){const n=M.total(state);state.total=n;state.pass=n;state.stars=[n,n,n];}}

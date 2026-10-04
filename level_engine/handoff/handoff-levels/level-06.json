@@ -1,0 +1,216 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+  "name": "中袋拉桿雙洗",
+  "flow": {
+    "template": "B",
+    "name": "固定位置擊球",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.39921249999999997,
+        "x": 4,
+        "y": 1.5
+      },
+      {
+        "id": "cue",
+        "fx": 0.4998,
+        "fy": 0.6000875,
+        "x": 4,
+        "y": 2.5
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_center"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "pocket",
+    "pockets": [
+      "bottom_center"
+    ],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 10,
+    "pass": 7,
+    "stars": [
+      7,
+      9,
+      10
+    ]
+  },
+  "diagram": {
+    "zones": [],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.4990909090909091,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4999985098090973,
+            "fy": 0.43686001725011686,
+            "ghost": true
+          },
+          {
+            "fx": 0.5,
+            "fy": 0.8816753902662994,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照著圖片擺好母球跟子球，每次都從相同位置開始。將子球打進中袋後母球拉乾洗下方中袋。每次完成後，把球放回原位再繼續。10 次中成功7次以上即可過關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.39921249999999997
+      },
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.4998,
+        "fy": 0.6000875
+      }
+    ],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.4990909090909091,
+            "fy": 0.11682460973370065,
+            "ghost": false
+          }
+        ]
+      },
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4999985098090973,
+            "fy": 0.43686001725011686,
+            "ghost": true
+          },
+          {
+            "fx": 0.5,
+            "fy": 0.8816753902662994,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      "ball",
+      "cue"
+    ],
+    "lines": [],
+    "zones": [],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.8143363636363636,
+      "fy": 0.06704321762520815,
+      "name": "中袋拉桿雙洗",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照著圖片擺好母球跟子球，每次都從相同位置開始。將子球打進中袋後母球拉乾洗下方中袋。每次完成後，把球放回原位再繼續。10 次中成功7次以上即可過關。",
+      "pass": "7",
+      "total": "10",
+      "star1": "7",
+      "star2": "9",
+      "star3": "10",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

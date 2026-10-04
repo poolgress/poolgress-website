@@ -1,0 +1,215 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+  "name": "短檯直線來回打進區塊內練習",
+  "flow": {
+    "template": "A",
+    "name": "只有子球",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "direct",
+    "cuePlacement": "none",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "9",
+        "fx": 0.72255,
+        "fy": 0.49965000000000004,
+        "x": 6,
+        "y": 2
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "zone",
+    "lineRequirement": {
+      "required": true,
+      "lineIndexes": [
+        0
+      ],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "none",
+    "pockets": [],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 10,
+    "pass": 8,
+    "stars": [
+      8,
+      9,
+      10
+    ]
+  },
+  "diagram": {
+    "zones": [
+      {
+        "x1": 0.6668625,
+        "y1": 0.49965,
+        "x2": 0.7782375,
+        "y2": 0.9014,
+        "side": "ball"
+      }
+    ],
+    "lines": [
+      {
+        "x1": 0.6668625,
+        "y1": 0.0979,
+        "x2": 0.7782375,
+        "y2": 0.0979,
+        "side": "ball",
+        "shot": 1
+      }
+    ],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.7209129523445608,
+            "fy": 0.11682460973370067,
+            "ghost": true
+          },
+          {
+            "fx": 0.7218181818181818,
+            "fy": 0.8651979993915717,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照著圖片擺好球，每次都從相同位置開始。將球經過上方一顆星反彈，回到下方指定區塊內。每次完成後，把球放回原位再繼續。10 次中成功 8 次以上即可過關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "9",
+        "fx": 0.72255,
+        "fy": 0.49965000000000004
+      }
+    ],
+    "paths": [
+      {
+        "ball": 0,
+        "vertices": [
+          {
+            "fx": 0.7209129523445608,
+            "fy": 0.11682460973370067,
+            "ghost": true
+          },
+          {
+            "fx": 0.7218181818181818,
+            "fy": 0.8651979993915717,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ],
+    "lines": [
+      {
+        "x1": 0.6668625,
+        "y1": 0.0979,
+        "x2": 0.7782375,
+        "y2": 0.0979,
+        "side": "ball",
+        "shot": 1
+      }
+    ],
+    "zones": [
+      {
+        "x1": 0.6668625,
+        "y1": 0.49965,
+        "x2": 0.7782375,
+        "y2": 0.9014,
+        "side": "cue"
+      }
+    ],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.8143363636363636,
+      "fy": 0.06704321762520815,
+      "name": "短檯直線來回打進區塊內練習",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照著圖片擺好球，每次都從相同位置開始。將球經過上方一顆星反彈，回到下方指定區塊內。每次完成後，把球放回原位再繼續。10 次中成功 8 次以上即可過關。",
+      "pass": "8",
+      "total": "10",
+      "star1": "8",
+      "star2": "9",
+      "star3": "10",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}

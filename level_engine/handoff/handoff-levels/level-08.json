@@ -1,0 +1,212 @@
+{
+  "format": "poolgress.coach-level",
+  "version": 1,
+  "id": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+  "name": "五分點推桿挑戰",
+  "flow": {
+    "template": "B",
+    "name": "固定位置擊球",
+    "onSuccess": "next_attempt",
+    "onFailure": "next_attempt"
+  },
+  "setup": {
+    "strikeMode": "cue",
+    "cuePlacement": "fixed",
+    "rotation": null,
+    "cycles": 1,
+    "coordinateSystem": {
+      "diagram": "table7-image-fraction",
+      "game": {
+        "unit": "star",
+        "xMax": 8,
+        "yMax": 4,
+        "origin": "top-left-cushion-nose"
+      },
+      "imageBounds": {
+        "left": 0.0543,
+        "right": 0.9453,
+        "top": 0.0979,
+        "bottom": 0.9014
+      }
+    },
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.49965000000000004,
+        "x": 4,
+        "y": 2
+      },
+      {
+        "id": "cue",
+        "fx": 0.27705,
+        "fy": 0.700525,
+        "x": 2,
+        "y": 3
+      }
+    ],
+    "rounds": null
+  },
+  "objectRules": {
+    "target": "pocket",
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "pockets": [
+      "top_right"
+    ],
+    "order": "any"
+  },
+  "cueRules": {
+    "target": "pocket_or_zone",
+    "pockets": [
+      "top_right"
+    ],
+    "lineRequirement": {
+      "required": false,
+      "lineIndexes": [],
+      "match": "all",
+      "order": "any",
+      "event": "ball_body_touches_segment",
+      "scope": "current_shot",
+      "combineWithTarget": "and"
+    },
+    "zoneAppliesTo": "every_shot"
+  },
+  "shotRules": null,
+  "fouls": {
+    "otherObjectBallsMustNotMove": false,
+    "multipleObjectPotsForbidden": false
+  },
+  "scoring": {
+    "unit": "successful_shots",
+    "total": 10,
+    "pass": 7,
+    "stars": [
+      7,
+      9,
+      10
+    ]
+  },
+  "diagram": {
+    "zones": [
+      {
+        "x1": 0.72255,
+        "y1": 0,
+        "x2": 0.9453,
+        "y2": 0.49965,
+        "side": "cue"
+      }
+    ],
+    "lines": [],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4821515294521985,
+            "fy": 0.5197594328767445,
+            "ghost": true
+          },
+          {
+            "fx": 0.8854546564275568,
+            "fy": 0.1946202376473037,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "grid": true,
+    "snap": true
+  },
+  "teaching": "照著圖片擺好母球跟子球，每次都從相同位置開始，將子球打進尾袋並將母球推至目標區塊或洗袋。\n每次完成後，把球放回原位再繼續。10 次中成功7次以上即可過關。",
+  "source": "匯入 Table7 存檔",
+  "legacyEditorExtras": {
+    "v": 2,
+    "levelId": "8e2b50c2-88d1-4c3b-9818-fd1373189cca",
+    "ballScale": 1,
+    "balls": [
+      {
+        "id": "1",
+        "fx": 0.4998,
+        "fy": 0.49965000000000004
+      },
+      {
+        "id": "cue",
+        "cueIndex": 1,
+        "fx": 0.27705,
+        "fy": 0.700525
+      }
+    ],
+    "paths": [
+      {
+        "ball": 1,
+        "vertices": [
+          {
+            "fx": 0.4821515294521985,
+            "fy": 0.5197594328767445,
+            "ghost": true
+          },
+          {
+            "fx": 0.8854546564275568,
+            "fy": 0.1946202376473037,
+            "ghost": false
+          }
+        ]
+      }
+    ],
+    "pockets": [
+      false,
+      "both",
+      false,
+      false,
+      false,
+      false
+    ],
+    "lines": [],
+    "zones": [
+      {
+        "x1": 0.72255,
+        "y1": 0,
+        "x2": 0.9453,
+        "y2": 0.49965,
+        "side": "cue"
+      }
+    ],
+    "grid": true,
+    "snap": true,
+    "cue": {
+      "shown": false,
+      "fx": 0.015,
+      "fy": 0.04,
+      "sx": "50%",
+      "sy": "50%"
+    },
+    "note": {
+      "shown": true,
+      "fx": 0.5066732026143791,
+      "fy": 0.7208528382510038,
+      "name": "五分點推桿挑戰",
+      "type": "repeat",
+      "opt": 0,
+      "desc": "照著圖片擺好母球跟子球，每次都從相同位置開始，將子球打進尾袋並將母球推至目標區塊或洗袋。\n每次完成後，把球放回原位再繼續。10 次中成功7次以上即可過關。",
+      "pass": "7",
+      "total": "10",
+      "star1": "7",
+      "star2": "9",
+      "star3": "10",
+      "reqs": {
+        "req_extra3": 0,
+        "req_extra2": 0,
+        "req_ball": 0,
+        "req_cue": 0
+      }
+    }
+  }
+}
