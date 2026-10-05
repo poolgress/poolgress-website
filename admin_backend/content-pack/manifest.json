@@ -1,13 +1,13 @@
 {
-  "version": 7,
+  "version": 8,
   "schemaVersion": 1,
   "minAppVersion": "1.0.0",
-  "publishedAt": "2026-09-29T16:29:43.725Z",
+  "publishedAt": "2026-10-04T18:48:20.880Z",
   "content": {
     "bucket": "content-packs",
-    "path": "content/v7.json",
-    "sha256": "a1973fa51a81d2aff9c0b3206ce67600eb2eedded56b84c1d4b2b9918840ee39",
-    "size": 46257
+    "path": "content/v8.json",
+    "sha256": "775247313bd6f11d7c7311670b0d4af409a3b160676fac72ce68d418843bd36f",
+    "size": 54669
   },
   "assets": [
     {
