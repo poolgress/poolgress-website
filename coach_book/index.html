@@ -290,6 +290,8 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
 
   // 送出申請後按「加入 LINE 官方追蹤」：LINE 授權（會帶去加官方好友）→ 回到這頁，把申請連到他的 LINE
   const OA_URL = 'https://lin.ee/QL02rCh';
+  // 連結完直接打開官方帳號聊天室（LINE App 的 oaMessage 網址；還不是好友的人在聊天室上方也能直接加好友）
+  const OA_CHAT_URL = 'https://line.me/R/oaMessage/@130yciph/';
   const doneView = document.getElementById('done-view');
   const lineBtn = document.getElementById('line-join');
   const doneText = document.getElementById('done-text');
@@ -323,13 +325,27 @@ footer{background:var(--charcoal);color:var(--ivory-2)}
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out.error || 'link_failed');
       try { sessionStorage.removeItem('pg_coach_pending'); } catch { /* ignore */ }
-      doneText.textContent = out.friend ? '已連結 LINE！我們會在官方帳號的聊天室回覆你，請留意 LINE 訊息。' : '已連結 LINE，但你還沒加入官方帳號好友。請先加入，我們才傳得了訊息給你。';
-      if (!out.friend) { lineBtn.hidden = false; lineBtn.href = OA_URL; lineBtn.textContent = '加入 LINE 官方追蹤'; }
+      doneText.textContent = out.friend ? '已連結 LINE！正在打開官方帳號聊天室…' : '已連結 LINE！正在打開官方帳號聊天室，加入好友後就會收到申請確認。';
+      // 沒自動跳過去（例如瀏覽器擋了）還有按鈕可以按
+      lineBtn.hidden = false; lineBtn.href = OA_CHAT_URL; lineBtn.textContent = '打開 LINE 聊天室';
+      location.href = OA_CHAT_URL;
     } catch (err) {
       console.error(err);
       doneText.textContent = '申請已送出，但連結 LINE 失敗。請加入官方 LINE，我們會用手機聯絡你。';
       lineBtn.hidden = false; lineBtn.href = OA_URL; lineBtn.textContent = '加入 LINE 官方追蹤';
     }
+  }
+  // LINE 授權完回來，網址先是 ?liff.state=…（link 包在裡面）或帶 code：要先 liff.init，LIFF 會自己再跳到 ?link=申請編號
+  // （10/6 修：以前沒做這步，從 App 開 Chrome 授權完會停在表單，連結和確認訊息都沒發生）
+  if ((params.has('liff.state') || params.has('code')) && !params.get('link') && !LOCAL) {
+    formView.hidden = true; doneView.hidden = false; lineBtn.hidden = true;
+    doneText.textContent = '正在連結你的 LINE…';
+    liff.init({ liffId: LIFF_ID }).then(() => setTimeout(() => {
+      // LIFF 沒再跳轉的保險：用送出時存的申請編號連結
+      let id = ''; try { id = sessionStorage.getItem('pg_coach_pending') || ''; } catch { /* ignore */ }
+      if (liff.isLoggedIn() && id) return finishLink(id);
+      doneText.textContent = '申請已送出。'; lineBtn.hidden = false;
+    }, 1500)).catch(() => { doneText.textContent = '申請已送出。'; lineBtn.hidden = false; });
   }
   // LINE 授權完回來（網址帶 ?link=申請編號）
   const linkId = params.get('link');
