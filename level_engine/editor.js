@@ -40,7 +40,8 @@ function conditional(){
   $('secondShotRules').hidden=state.flow!=='E';$('objectRuleHeading').textContent=state.flow==='E'?'子球規則（第一桿）':'子球規則';$('cueRuleHeading').textContent=state.flow==='E'?'母球規則（第一桿）':'母球規則';
   $('objectPockets').hidden=!['pocket','pocket_or_zone'].includes(state.objectTarget);$('cuePockets').hidden=!['pocket','pocket_or_zone'].includes(state.cueTarget);
   $('objectPockets2').hidden=!['pocket','pocket_or_zone'].includes(state.objectTarget2);$('cuePockets2').hidden=!['pocket','pocket_or_zone'].includes(state.cueTarget2);
-  $('total').disabled=['C','D'].includes(state.flow);$('total').value=M.total(state);
+  $('directClearRow').hidden=state.flow!=='A';$('directClear').checked=M.directClear(state);
+  $('total').disabled=['C','D'].includes(state.flow)||M.directClear(state);$('total').value=M.total(state);
 }
 function pocketDisplayPosition(p,i){if(i>=4)return {fx:p[2],fy:p[3]};return {fx:p[2]+(p[2]<.5?-.006:.006),fy:p[3]+(p[3]<.5?-.008:.008)};}
 function renderPockets(){
@@ -119,7 +120,7 @@ document.querySelectorAll('[data-rule-line]').forEach(button=>button.addEventLis
 }));
 function constrain(p,snap=state.snap){let {x,y}=M.star(p.fx,p.fy);if(snap){x=Math.round(x*4)/4;y=Math.round(y*4)/4;}return M.frac(Math.max(.09,Math.min(7.91,x)),Math.max(.09,Math.min(3.91,y)));}
 function pointer(e,forBall=false){const r=$('table').getBoundingClientRect();const p={fx:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),fy:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};return forBall?constrain(p):p;}
-function adjustClear(){if(state.flow==='D'){const n=M.total(state);state.total=n;state.pass=n;state.stars=[n,n,n];}}
+function adjustClear(){if(state.flow==='D'||M.directClear(state)){const n=M.total(state);state.total=n;state.pass=n;state.stars=[n,n,n];}}
 function addBall(id){
   if(tool!=='move'||state.balls.some(b=>b.id===id)&&!M.repeatable(id))return;
   stash();let p=M.frac(4,2);outer:for(let y=1;y<=3;y+=.5)for(let x=2;x<=6;x+=.5){const q=M.frac(x,y);if(state.balls.every(b=>{const a=M.star(b.fx,b.fy);return Math.hypot(a.x-x,a.y-y)>.25})){p=q;break outer;}}
@@ -221,3 +222,5 @@ if(document.modelContext?.registerTool){const lifecycle=new AbortController();fo
   {name:'read_current_poolgress_level',title:'讀取目前關卡規格',description:'Read the visible coach editor state, complete specification and validation; does not modify data.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute:()=>({spec:M.toSpec(state),validation:M.validate(state)})},
   {name:'configure_poolgress_level_name',title:'設定關卡名稱',description:'Set the current draft name using the same local editor action; auto-saves only in this browser, does not publish or send to the game server.',inputSchema:{type:'object',properties:{name:{type:'string',minLength:1,maxLength:100}},required:['name'],additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:true},execute:input=>{if(!input||typeof input.name!=='string'||!input.name.trim()||input.name.length>100)throw Error('名稱須為 1–100 字');stash();state.name=input.name;commit(true);return {name:state.name,validation:M.validate(state)};}}
 ]){try{Promise.resolve(document.modelContext.registerTool(definition,{signal:lifecycle.signal})).catch(()=>{});}catch(e){}}window.addEventListener('pagehide',()=>lifecycle.abort(),{once:true});}
+
+$('directClear').addEventListener('change',()=>{stash();state.directClear=$('directClear').checked;if(state.directClear){state.order=true;state.objectTarget='pocket';}adjustClear();commit();});

@@ -6,8 +6,8 @@
   "flow": {
     "template": "A",
     "name": "只有子球",
-    "onSuccess": "next_attempt",
-    "onFailure": "next_attempt"
+    "onSuccess": "continue_until_clear",
+    "onFailure": "end_game"
   },
   "setup": {
     "strikeMode": "direct",
@@ -118,7 +118,7 @@
     "multipleObjectPotsForbidden": false
   },
   "scoring": {
-    "unit": "successful_shots",
+    "unit": "balls",
     "total": 7,
     "pass": 7,
     "stars": [
@@ -205,7 +205,7 @@
     "grid": true,
     "snap": true
   },
-  "teaching": "照著圖片擺好七顆球，依照號碼（左至右）依序將目標球打進中袋。\n七顆全部成功，不失誤即可通關。",
+  "teaching": "依圖擺好七顆子球，不使用母球。依照 1～7 號順序，直接將每顆球打進指定中袋。成功後接著打下一顆，不需重擺；任何一顆失敗，本次挑戰結束。七顆全部成功即可過關。",
   "source": "匯入 Table7 存檔",
   "legacyEditorExtras": {
     "v": 2,
@@ -346,7 +346,7 @@
       "name": "目標球直接打進中袋練習",
       "type": "repeat",
       "opt": 0,
-      "desc": "照著圖片擺好七顆球，依照號碼（左至右）依序將目標球打進中袋。\n七顆全部成功，不失誤即可通關。",
+      "desc": "依圖擺好七顆子球，不使用母球。依照 1～7 號順序，直接將每顆球打進指定中袋。成功後接著打下一顆，不需重擺；任何一顆失敗，本次挑戰結束。七顆全部成功即可過關。",
       "pass": "7",
       "total": "7",
       "star1": "",

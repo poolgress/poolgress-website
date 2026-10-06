@@ -43,3 +43,7 @@
 流程模組測試只代表現有程式行為符合測試案例，不能代表已符合教練最終需求。工程端不得直接照搬預覽作為正式過關判定；應以使用者確認的球類規則與 APP_JSON_IMPLEMENTATION_GUIDE.md、VISION_AND_LEVEL_ENGINE_HANDOFF.md 接觸證據規格為基礎，待流程逐項重新確認後再驗收。
 
 交接包：Poolgress-工程交接-20261005.zip。包含完整 20 關 JSON、三份重點範例、規則文件、工作台／流程程式及檢查腳本。
+
+
+## 第 02 關流程修正（2026-10-05）
+保留 A 模板與 direct 擊球。開局擺七顆子球，依 1–7 號直接打進上中袋；成功只移除當前球，剩餘球原位繼續；任一桿失敗立即結束。重新挑戰重擺七顆。JSON：onSuccess=continue_until_clear、onFailure=end_game、scoring.unit=balls、total=pass=7。工作台 A 模板新增「整組依序清檯」選項；其餘 A 關卡仍逐次重擺。這次只確認第 02 關分支，其餘先前擱置的流程問題仍未驗收。

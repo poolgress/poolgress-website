@@ -51,3 +51,7 @@ node scripts/check-workflow.cjs
 涵蓋全 20 關載入、五種模板完整結算、第 12 關八輪、重擺與續桿、第 20 關逐桿規則、缺少碰線失敗、證據不足、無效 JSON 拒絕。
 
 部署需保留 `dist/workflow/`、`dist/editor/model.js`、`dist/editor/presets.js` 與 `dist/editor/assets/` 的相對路徑。可直接上傳整個 `dist`；正式網站使用 /level_engine/workflow/；原 /workflow/ 頁面保留。
+
+
+## 第 02 關流程修正（2026-10-05）
+保留 A 模板與 direct 擊球。開局擺七顆子球，依 1–7 號直接打進上中袋；成功只移除當前球，剩餘球原位繼續；任一桿失敗立即結束。重新挑戰重擺七顆。JSON：onSuccess=continue_until_clear、onFailure=end_game、scoring.unit=balls、total=pass=7。工作台 A 模板新增「整組依序清檯」選項；其餘 A 關卡仍逐次重擺。這次只確認第 02 關分支，其餘先前擱置的流程問題仍未驗收。
