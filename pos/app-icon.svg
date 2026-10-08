@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2364aa"/>
+  <circle cx="256" cy="256" r="170" fill="#0a3564"/>
+  <circle cx="256" cy="256" r="104" fill="#ffffff"/>
+  <text x="256" y="294" text-anchor="middle" font-family="PingFang TC, Noto Sans TC, sans-serif" font-weight="700" font-size="112" fill="#0a3564">撞</text>
+</svg>

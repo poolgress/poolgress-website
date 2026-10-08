@@ -3,6 +3,10 @@
     {
       "source": "/app",
       "destination": "/app-play.html"
+    },
+    {
+      "source": "/pos/:path*",
+      "destination": "/pos/index.html"
     }
   ]
 }
